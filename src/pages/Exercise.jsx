@@ -391,6 +391,7 @@ const Exercise = () => {
         return (
           <BorderRight
             mode={mode}
+            lang={lang}
           />
         );
       default:
