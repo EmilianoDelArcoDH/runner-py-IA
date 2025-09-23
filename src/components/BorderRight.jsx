@@ -1,9 +1,26 @@
+// BorderRight.jsx
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import './BorderRight.css';
 
-const BorderRight = ({ mode }) => {
+const STRINGS = {
+  es: {
+    title: "💡 Feedback de la IA",
+    empty: "<p class='placeholder'>Todavía no hay feedback...</p>",
+  },
+  en: {
+    title: "💡 AI Feedback",
+    empty: "<p class='placeholder'>No feedback yet...</p>",
+  },
+  pt: {
+    title: "💡 Feedback da IA",
+    empty: "<p class='placeholder'>Ainda não há feedback...</p>",
+  },
+};
+
+const BorderRight = ({ mode, lang = 'es' }) => {
   const themeClass = mode === 'dark' ? 'dark-mode' : 'light-mode';
+  const L = STRINGS[lang] || STRINGS.es;
 
   const [iaMessages, setIaMessages] = useState("");
 
@@ -15,13 +32,13 @@ const BorderRight = ({ mode }) => {
   }, []);
 
   return (
-    <div className={`border-right-container ${themeClass}`}> 
+    <div className={`border-right-container ${themeClass}`} lang={lang}>
       <div className="ia-panel">
-        <h2 className="ia-title">💡 Feedback de la IA</h2>
-        <div 
-          id="iaResult" 
-          className="ia-result" 
-          dangerouslySetInnerHTML={{ __html: iaMessages || "<p class='placeholder'>Todavía no hay feedback...</p>" }} 
+        <h2 className="ia-title">{L.title}</h2>
+        <div
+          id="iaResult"
+          className="ia-result"
+          dangerouslySetInnerHTML={{ __html: iaMessages || L.empty }}
         />
       </div>
     </div>
@@ -30,6 +47,7 @@ const BorderRight = ({ mode }) => {
 
 BorderRight.propTypes = {
   mode: PropTypes.oneOf(['light', 'dark']).isRequired,
+  lang: PropTypes.oneOf(['es', 'en', 'pt']),
 };
 
 export default BorderRight;
