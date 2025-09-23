@@ -18,8 +18,10 @@ const STRINGS = {
   },
 };
 
-const BorderRight = ({ mode, lang = 'es' }) => {
+const BorderRight = ({ mode, lang}) => {
   const themeClass = mode === 'dark' ? 'dark-mode' : 'light-mode';
+  console.log(`BorderRight render - mode: ${mode}, lang: ${lang}`);
+  
   const L = STRINGS[lang] || STRINGS.es;
 
   const [iaMessages, setIaMessages] = useState("");
