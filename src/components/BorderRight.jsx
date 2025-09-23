@@ -20,7 +20,7 @@ const STRINGS = {
 
 const BorderRight = ({ mode, lang}) => {
   const themeClass = mode === 'dark' ? 'dark-mode' : 'light-mode';
-  console.log(`BorderRight render - mode: ${mode}, lang: ${lang}`);
+  // console.log(`BorderRight render - mode: ${mode}, lang: ${lang}`);
   
   const L = STRINGS[lang] || STRINGS.es;
 
