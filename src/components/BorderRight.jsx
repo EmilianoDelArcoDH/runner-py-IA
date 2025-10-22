@@ -5,16 +5,16 @@ import './BorderRight.css';
 
 const STRINGS = {
   es: {
-    title: "💡 Feedback de la IA",
-    empty: "<p class='placeholder'>Todavía no hay feedback...</p>",
+    title: "💡 Feedback generado por la IA",
+    empty: "No hay feedback generado aún.",
   },
   en: {
-    title: "💡 AI Feedback",
-    empty: "<p class='placeholder'>No feedback yet...</p>",
+    title: "💡 AI-generated Feedback",
+    empty: "No feedback generated yet.",
   },
   pt: {
-    title: "💡 Feedback da IA",
-    empty: "<p class='placeholder'>Ainda não há feedback...</p>",
+    title: "💡 Feedback gerado pela IA",
+    empty: "Nenhum feedback gerado ainda.",
   },
 };
 

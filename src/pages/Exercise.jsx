@@ -156,7 +156,8 @@ const Exercise = () => {
         // Si recibimos datos, cargamos los editores con la información
         setEditors(editorsData.map(editor => ({ id: editor.id, code: editor.code })));
         setFiles(editorsData.map(file => ({ id: file.id, code: file.code })));
-      
+        console.log(data);
+        
         // Agregar pestañas para los editores cargados
         editorsData.forEach(editor => {
           if (layoutRef.current) {

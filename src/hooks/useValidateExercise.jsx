@@ -216,8 +216,25 @@ async function analizarConGroq(enunciado, code, clase, idioma = "es", opts = {})
 
     let finalHTML = html;
     if (data.fuentes?.length) {
-      const fuentesTxt = data.fuentes.map(([c, s]) => `Clase ${c}, Slide ${s}`).join("; ");
-      finalHTML += `<div style="margin-top:8px">Fuentes: ${escapeHtml(fuentesTxt)}</div>`;
+      const LABELS = {
+        es: "Clase",
+        en: "Class",
+        pt: "Aula"
+      };
+      const label = LABELS[idioma] || "Clase";
+      const fuentesHTML = data.fuentes
+        .map(([c, s]) => `<li>${label} ${escapeHtml(String(c))}, Slide ${escapeHtml(String(s))}</li>`)
+        .join("");
+      const labelByLang = { es: "📚 Fuentes:", en: "📚 Sources:", pt: "📚 Fontes:" };
+      const fuentesLabel = labelByLang[(idioma || "es")] || labelByLang.es;
+
+      finalHTML += `
+  <div style="margin-top:12px; background:#f9f9f9; border-left:4px solid #4caf50; padding:10px 14px; border-radius:6px;">
+    <strong style="color:#333;">${fuentesLabel}</strong>
+    <ul style="margin-top:6px; padding-left:20px; line-height:1.6; list-style-type:disc;">
+      ${fuentesHTML}
+    </ul>
+  </div>`;
     }
     mostrar(finalHTML);
   } catch (error) {

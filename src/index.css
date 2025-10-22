@@ -66,3 +66,9 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+
+.flexlayout__border_button_right::after, .flexlayout__border_button_right::before {
+  background: conic-gradient(from 45deg, #ff0000,#ff7300,#fffb00, #48ff00,#00ffd5, #0000ff,#7a00ff, #ff00c8,#ff0000) !important;
+  padding: 4px !important;
+  border-radius: 10px !important;
+}
