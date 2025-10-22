@@ -40,7 +40,7 @@ export const usePgEvent = () => {
         window.removeEventListener("message", handler); // Limpiar el listener
         resolve(null); // Resolver la promesa con null en caso de timeout
       }, timeout);
-  
+
       function handler(event) {
         if (isValidInitialEvent(event)) {
           clearTimeout(timer); // Limpiar el temporizador si se recibe el evento válido
@@ -48,12 +48,12 @@ export const usePgEvent = () => {
           resolve(event.data.data); // Resolver la promesa con la información
         }
       }
-  
+
       window.addEventListener("message", handler);
     });
   };
-  
-  
+
+
 
   const postToPg = (dataObject) => {
     const newDataObject = { ...dataObject, type: data.type, id: data.id };
@@ -61,16 +61,17 @@ export const usePgEvent = () => {
     window.top.postMessage(newDataObject, "*");
   };
 
- const postEvent = (eventType, message, reasons, state) => {
-  const newState = { ...state, eventType }; // crea copia con eventType agregado
-  const dataObject = {
-    event: eventType,
-    message,
-    reasons,
-    state: JSON.stringify({ data: newState }),
+  const postEvent = (eventType, message, reasons, state) => {
+    // Crear una copia del state agregando el tipo de evento
+    const stateWithEvent = { ...state, eventType };
+    const dataObject = {
+      event: eventType,
+      message,
+      reasons,
+      state: JSON.stringify({ data: stateWithEvent }),
+    };
+    postToPg(dataObject);
   };
-  postToPg(dataObject);
-};
 
   useEffect(() => {
     getValues(); // Get values when the component mounts

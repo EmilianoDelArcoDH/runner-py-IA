@@ -22,6 +22,7 @@ import GraphOutput from '../components/GraphOutput';
 import './Sandbox.css';
 import 'flexlayout-react/style/light.css';
 import BorderRight from '../components/BorderRight.jsx';
+import { result } from 'lodash';
 
 const Exercise = () => {
   const { t, i18n } = useTranslation();
@@ -138,10 +139,12 @@ const Exercise = () => {
   useEffect(() => {
     const loadEditors = async () => {
       const rawData = await waitForMessage();
-    
+      console.log(rawData);
+      
       let data;
       try {
         data = JSON.parse(rawData);
+
         // //console.log("La data parseada es: ", data);
       } catch (error) {
         console.error("Error al hacer JSON.parse de los datos:", error);
