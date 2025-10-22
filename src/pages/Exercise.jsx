@@ -145,7 +145,7 @@ const Exercise = () => {
       try {
         data = JSON.parse(rawData);
 
-        // //console.log("La data parseada es: ", data);
+        console.log("La data parseada es: ", data);
       } catch (error) {
         console.error("Error al hacer JSON.parse de los datos:", error);
         return;
@@ -157,9 +157,9 @@ const Exercise = () => {
         const editorsData = data.data;
       
         // Si recibimos datos, cargamos los editores con la información
+        console.log(data.data);
         setEditors(editorsData.map(editor => ({ id: editor.id, code: editor.code })));
         setFiles(editorsData.map(file => ({ id: file.id, code: file.code })));
-        console.log(data.data);
         
         // Agregar pestañas para los editores cargados
         editorsData.forEach(editor => {
