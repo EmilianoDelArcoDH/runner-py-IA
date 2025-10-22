@@ -76,7 +76,7 @@ button:focus-visible {
 .flexlayout__border_button.flexlayout__border_button_right {
   --bg: #fff;                 
   --a: 0deg;                  /* ángulo animado */
-  border: 3px solid transparent;
+  border: 2px solid transparent;
   border-radius: 999px;
   padding: 6px 10px;
   background:
