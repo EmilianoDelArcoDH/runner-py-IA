@@ -145,7 +145,7 @@ const Exercise = () => {
       try {
         data = JSON.parse(rawData);
 
-        console.log("La data parseada es: ", data);
+        // console.log("La data parseada es: ", data);
       } catch (error) {
         console.error("Error al hacer JSON.parse de los datos:", error);
         return;
