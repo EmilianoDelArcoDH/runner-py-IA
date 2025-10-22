@@ -62,16 +62,16 @@ export const usePgEvent = () => {
   };
 
   const postEvent = (eventType, message, reasons, state) => {
-    // Crear una copia del state agregando el tipo de evento
-    const stateWithEvent = { ...state, eventType };
-    const dataObject = {
-      event: eventType,
-      message,
-      reasons,
-      state: JSON.stringify({ data: stateWithEvent }),
-    };
-    postToPg(dataObject);
+  const payload = { data: state, eventType };
+  const dataObject = {
+    event: eventType,
+    message,
+    reasons,
+    state: JSON.stringify(payload),
   };
+
+  postToPg(dataObject);
+};
 
   useEffect(() => {
     getValues(); // Get values when the component mounts
