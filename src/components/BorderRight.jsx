@@ -26,7 +26,7 @@ const BorderRight = ({ mode, lang, eventTypePG}) => {
   // console.log(`BorderRight render - mode: ${mode}, lang: ${lang}`);
   
   const L = STRINGS[lang] || STRINGS.es;
-  console.log(eventTypePG);
+  // console.log(eventTypePG);
   
   const [iaMessages, setIaMessages] = useState("");
 

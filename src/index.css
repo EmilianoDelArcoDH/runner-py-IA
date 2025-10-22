@@ -67,8 +67,39 @@ button:focus-visible {
   }
 }
 
-.flexlayout__border_button_right::after, .flexlayout__border_button_right::before {
-  background: conic-gradient(from 45deg, #ff0000,#ff7300,#fffb00, #48ff00,#00ffd5, #0000ff,#7a00ff, #ff00c8,#ff0000) !important;
-  padding: 4px !important;
-  border-radius: 10px !important;
+@property --a {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg
+}
+/* TAB DERECHO CON BORDE ARCOÍRIS LIMPIO */
+.flexlayout__border_button.flexlayout__border_button_right {
+  --bg: #fff;                 
+  --a: 0deg;                  /* ángulo animado */
+  border: 3px solid transparent;
+  border-radius: 999px;
+  padding: 6px 10px;
+  background:
+    linear-gradient(var(--bg), var(--bg)) padding-box,
+    conic-gradient(from var(--a),
+      #ff0000, #ff7300, #fffb00, #48ff00, #00ffd5, #0000ff, #7a00ff, #ff00c8, #ff0000
+    ) border-box;                                                   /* aro arcoíris */
+  animation: girar 2s linear infinite;
+  box-shadow: 0 0 14px rgba(0,0,0,.08), 0 0 18px rgba(127, 0, 255, .25); /* glow */
+}
+
+/* Modo oscuro: fondo interior más oscuro para contraste */
+.dark-mode .flexlayout__border_button.flexlayout__border_button_right {
+  --bg: #111; /* o el que uses */
+}
+
+@keyframes girar {
+  0%   { --a: 0deg; }
+  100% { --a: 360deg; }
+}
+
+/* Evita que cada letra “salte” de línea */
+.flexlayout__border_button.flexlayout__border_button_right .flexlayout__border_button_content {
+  white-space: nowrap;
+  line-height: 1;
 }

@@ -157,7 +157,7 @@ const Exercise = () => {
         const editorsData = data.data;
       
         // Si recibimos datos, cargamos los editores con la información
-        console.log(data.data);
+        // console.log(data.data);
         setEventType(data.eventType)
         setEditors(editorsData.map(editor => ({ id: editor.id, code: editor.code })));
         setFiles(editorsData.map(file => ({ id: file.id, code: file.code })));
