@@ -57,7 +57,7 @@ const Exercise = () => {
   const exercise = exercises.find((ex) => ex.id === exerciseId);  // Obtener el exercise correspondiente por parametro
   useFlexLayoutTheme(mode);  // Cambiar el tema de flex layout
   const [isWorkerInitialized, setIsWorkerInitialized] = useState(false);  // Estado para verificar si el worker ya ha sido inicializado
-
+  const [eventType, setEventType] = useState(null)
   // Actualizar lenguaje por parametro
   useEffect(() => {
     i18n.changeLanguage(lang);
@@ -158,6 +158,7 @@ const Exercise = () => {
       
         // Si recibimos datos, cargamos los editores con la información
         console.log(data.data);
+        setEventType(data.eventType)
         setEditors(editorsData.map(editor => ({ id: editor.id, code: editor.code })));
         setFiles(editorsData.map(file => ({ id: file.id, code: file.code })));
         
@@ -396,6 +397,7 @@ const Exercise = () => {
           <BorderRight
             mode={mode}
             lang={lang}
+            eventTypePG={eventType}
           />
         );
       default:
