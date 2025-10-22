@@ -62,12 +62,13 @@ export const usePgEvent = () => {
   };
 
   const postEvent = (eventType, message, reasons, state) => {
+    state.eventType = eventType;
     const dataObject = {
       event: eventType,
       message: message,
       reasons: reasons,
       state: JSON.stringify({ data: state }),
-      
+
     };
     postToPg(dataObject);
   };
