@@ -97,18 +97,27 @@ export const useValidateExercise = async (
       // }
     }
 
-    // === (5) Análisis con IA (opcional) ===
+    // === (5) Resultado preliminar ===
+    const isOk = !syntaxErrorsFound && !simulationErrorsFound;
+
+    if (isOk) {
+      // (5a) Mostrar "Cumple la consigna" en el panel, sin IA
+      if (runIA) {
+        await analizarConGroq(contexto.enunciado, code, contexto.clase, contexto.idioma || "es", { forceSuccess: true });
+      }
+      // (6) Evento SUCCESS
+      postEvent("SUCCESS", "Has completado el ejercicio", [], stateToPost);
+      return;
+    }
+
+    // Si llegamos acá, hubo errores => pedir feedback de IA
     if (runIA) {
       await analizarConGroq(contexto.enunciado, code, contexto.clase, contexto.idioma || "es");
     }
+    throw new Error("Falló la validación de sintaxis o simulación");
 
-    // === (6) Resultado Final ===
-    if (syntaxErrorsFound || simulationErrorsFound) {
-      throw new Error("Falló la validación de sintaxis o simulación");
-    }
-    
-    
-    postEvent("SUCCESS", "Has completado el ejercicio", [], stateToPost);
+
+    // postEvent("SUCCESS", "Has completado el ejercicio", [], stateToPost);
   } catch (_err) {
     const failureReasonsFiltrado = failureReasons.filter(r =>
       !r.includes("El código debe corregir los errores")
@@ -172,7 +181,8 @@ async function runPythonWithCapture(code) {
   return finalText || "(Sin salida)";
 }
 
-async function analizarConGroq(enunciado, code, clase, idioma = "es") {
+async function analizarConGroq(enunciado, code, clase, idioma = "es", opts = {}) {
+  const { forceSuccess = false } = opts;
   const mostrar = (html) => {
     if (typeof window.mostrarResultadoHTML === "function") {
       window.mostrarResultadoHTML(html);
@@ -185,12 +195,12 @@ async function analizarConGroq(enunciado, code, clase, idioma = "es") {
       throw new Error("Clase no definida");
     }
 
-    console.log("Enviando a RAG:", { enunciado, clase, idioma });
+    console.log("Enviando a RAG:", { enunciado, clase, idioma, forceSuccess });
 
-    const response = await fetch("http://127.0.0.1:9000/consejo", {
+    const response = await fetch("http://127.0.0.1:8000/consejo", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ enunciado, codigo: code, idioma, clase })
+      body: JSON.stringify({ enunciado, codigo: code, idioma, clase, force_success: forceSuccess })
     });
 
     if (!response.ok) {
