@@ -139,7 +139,7 @@ const Exercise = () => {
   useEffect(() => {
     const loadEditors = async () => {
       const rawData = await waitForMessage();
-      console.log(rawData);
+      // console.log(rawData);
       
       let data;
       try {
