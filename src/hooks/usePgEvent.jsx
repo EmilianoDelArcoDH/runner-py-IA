@@ -67,6 +67,7 @@ export const usePgEvent = () => {
       message: message,
       reasons: reasons,
       state: JSON.stringify({ data: state }),
+      
     };
     postToPg(dataObject);
   };
