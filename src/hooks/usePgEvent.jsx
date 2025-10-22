@@ -61,17 +61,16 @@ export const usePgEvent = () => {
     window.top.postMessage(newDataObject, "*");
   };
 
-  const postEvent = (eventType, message, reasons, state) => {
-    state.eventType = eventType;
-    const dataObject = {
-      event: eventType,
-      message: message,
-      reasons: reasons,
-      state: JSON.stringify({ data: state }),
-
-    };
-    postToPg(dataObject);
+ const postEvent = (eventType, message, reasons, state) => {
+  const newState = { ...state, eventType }; // crea copia con eventType agregado
+  const dataObject = {
+    event: eventType,
+    message,
+    reasons,
+    state: JSON.stringify({ data: newState }),
   };
+  postToPg(dataObject);
+};
 
   useEffect(() => {
     getValues(); // Get values when the component mounts
