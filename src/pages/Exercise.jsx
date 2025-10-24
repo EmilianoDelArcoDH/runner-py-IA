@@ -230,6 +230,8 @@ const Exercise = () => {
 
   // Función para manejar los cambios en el contenido de un editor específico
   const handleCodeChange = (id, newCode) => {
+    setEventType(null);
+    if (window.mostrarResultadoHTML) window.mostrarResultadoHTML("");
     setEditors((prevEditors) =>
       prevEditors.map((editor) => 
         editor.id === id ? { ...editor, code: newCode } : editor
@@ -240,6 +242,8 @@ const Exercise = () => {
 
   // Combinar el código de todos los editores y ejecutarlo
   const handleRunCode = async () => {
+    setEventType(null);
+    if (window.mostrarResultadoHTML) window.mostrarResultadoHTML("");
 
     await runPythonCode(editors, exercise.data, exercise.editorsNotVisible || {}, mode);
 
@@ -275,6 +279,9 @@ const Exercise = () => {
     setOutputPyodideGraph([]);
     setOutputDecisionTree([]);
     setOutputPyodideHistory([]);
+
+    setEventType("FAILURE"); // o "FAILURE", cualquier cosa que NO sea "SUCCESS"
+    if (window.mostrarResultadoHTML) window.mostrarResultadoHTML("");
 
     if (exercise) {
       // Iterar sobre los editores y crear pestañas basadas en sus IDs
