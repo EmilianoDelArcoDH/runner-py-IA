@@ -230,8 +230,9 @@ const Exercise = () => {
 
   // Función para manejar los cambios en el contenido de un editor específico
   const handleCodeChange = (id, newCode) => {
-    setEventType(null);
-    if (window.mostrarResultadoHTML) window.mostrarResultadoHTML("");
+
+    // setEventType(null);
+    // if (window.mostrarResultadoHTML) window.mostrarResultadoHTML("");
     setEditors((prevEditors) =>
       prevEditors.map((editor) => 
         editor.id === id ? { ...editor, code: newCode } : editor
@@ -242,8 +243,8 @@ const Exercise = () => {
 
   // Combinar el código de todos los editores y ejecutarlo
   const handleRunCode = async () => {
-    setEventType(null);
-    if (window.mostrarResultadoHTML) window.mostrarResultadoHTML("");
+    // setEventType(null);
+    // if (window.mostrarResultadoHTML) window.mostrarResultadoHTML("");
 
     await runPythonCode(editors, exercise.data, exercise.editorsNotVisible || {}, mode);
 
