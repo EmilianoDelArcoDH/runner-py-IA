@@ -12,24 +12,6 @@ import { getContextFromEnunciados } from "../utils/enunciadosLoader";
  * - setEditorValue: fn(code) para inyectar código base si está vacío
  */
 
-let __ultimoContextoIA = null // { enunciado, clase, idioma, code }
-
-/** Disparador manual de IA (se puede invocar desde un botón de la UI) */
-export async function solicitarFeedbackIA(opts = {}) {
-  if (!__ultimoContextoIA) {
-    avisarEnPanel("<pre>⚠️ Aún no hay nada para analizar. Ejecutá una vez el ejercicio.</pre>");
-    return;
-  }
-  const { enunciado, clase, idioma, code } = __ultimoContextoIA;
-  // Llama a tu backend/función existente que genera el feedback
-  await analizarConGroq(enunciado, code, clase, idioma || "es", opts);
-}
-
-// Exponer global para poder llamarlo con un botón sin importar el componente
-if (typeof window !== "undefined") {
-  window.solicitarFeedbackIA = solicitarFeedbackIA;
-}
-
 export const useValidateExercise = async (
   exerciseId,
   editors,
@@ -38,7 +20,7 @@ export const useValidateExercise = async (
   stateToPost,
   {
     runPy = true,
-    runIA = false,
+    runIA = true,
     obtenerContexto = null,
     onPyOutput = null,
     setEditorValue = null,
@@ -70,14 +52,6 @@ export const useValidateExercise = async (
         code = codigoBase; // actualizar variable local para pasos siguientes
       }
     }
-
-    // === (1.b) Guardar último contexto para el disparo manual de IA ===
-    __ultimoContextoIA = {
-      enunciado: contexto.enunciado,
-      clase: contexto.clase,
-      idioma: contexto.idioma || (lang || "es"),
-      code,
-    };
 
     // === (2) Validación de Sintaxis (AST) ===
     if (exercise.validationAST) {
