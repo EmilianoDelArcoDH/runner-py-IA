@@ -197,10 +197,14 @@ async function analizarConGroq(enunciado, code, clase, idioma = "es", opts = {})
     }
 
     console.log("Enviando a RAG:", { enunciado, clase, idioma, forceSuccess });
+    // Detecta si estás en entorno local (localhost o 127.0.0.1)
+    const isLocal =
+      window.location.hostname.includes("localhost") ||
+      window.location.hostname.includes("127.0.0.1");
 
     const API_URL = isLocal
-  ? "http://127.0.0.1:8000" // dev local
-  : "https://admissions-barbie-clock-recognition.trycloudflare.com"; // túnel
+      ? "http://127.0.0.1:8000" // dev local
+      : "https://admissions-barbie-clock-recognition.trycloudflare.com"; // túnel
 
     const response = await fetch(`${API_URL}/consejo`, {
       method: "POST",
