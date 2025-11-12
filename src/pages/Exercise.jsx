@@ -27,16 +27,16 @@ import { result } from 'lodash';
 const Exercise = () => {
   const { t, i18n } = useTranslation();
   const { exerciseId, lang } = useParams();
-  const { 
+  const {
     runPythonCode,
     provideInput,
     interruptExecution,
     setEditors,
     initializeWorker,
-    setOutputPyodideHistory, 
+    setOutputPyodideHistory,
     setOutputPyodideGraph,
     setOutputDecisionTree,
-    setCsvFileData, 
+    setCsvFileData,
     csvFileData,
     loadingPackages,
     outputPyodideHistory,
@@ -47,12 +47,58 @@ const Exercise = () => {
     outputPyodideInput,
     editors,
   } = usePyodide();
-  const { postEvent, waitForMessage } = usePgEvent(); 
+
+  // === Controlar visibilidad del panel de feedback ===
+    const FEEDBACK_VISIBILITY = {
+      // Introductorio y básicos → ocultar
+      "intro-01": false,
+      "tipoDatos-01-01": false,
+      "tipoDatos-01-02": false,
+      "tipoDatos-01-03": false,
+      "tipoDatos-02": false,
+      "modulo-01": false,
+      "modulo-02": false,
+
+      // Funciones y condicionales → intermedios, mostrar
+      "funciones-01": true,
+      "funciones-02": true,
+      "condicionales-01": true,
+      "condicionales-02": true,
+
+      // Bucles → mostrar en los que ya combinan lógica
+      "while-01": false,
+      "while-02": true,
+      "forIn-01": true,
+
+      // Listas → los primeros ocultos, los siguientes con feedback
+      "listas01-01": false,
+      "listas01-02": true,
+      "listas01-03": true,
+      "listas02-01": true,
+      "listas02-02": true,
+
+      // Diccionarios → todos con feedback
+      "diccionario-01-01": true,
+      "diccionario-01-03": true,
+      "diccionario-01-04": true,
+      "diccionario-02-01": true,
+      "diccionario-02-02": true
+    };
+
+    // Si no está en la lista, por defecto mostrar el feedback
+    const shouldShowFeedback = FEEDBACK_VISIBILITY[exerciseId] ?? true;
+
+
+
+  const { postEvent, waitForMessage } = usePgEvent();
   const [fontSize, setFontSize] = useState(null); // Manejo de tamaño de fuente
   const [files, setFiles] = useState([]); // Archivos cerrados
   const layoutRef = useRef(null); // Ref del layout
   const mode = useSelector((state) => state.theme.mode);   // Selector de tema
-  const modelJson = useMemo(() => layoutModelJson(terminalIcon, folderIcon, t), [t]);  // Importando y creando el modelo del alyout
+ const modelJson = useMemo(
+   () => layoutModelJson(terminalIcon, folderIcon, t, shouldShowFeedback),
+   [t, shouldShowFeedback]
+ );  // Importando y creando el modelo del layout
   const model = useMemo(() => Model.fromJson(modelJson), [modelJson]);
   const exercise = exercises.find((ex) => ex.id === exerciseId);  // Obtener el exercise correspondiente por parametro
   useFlexLayoutTheme(mode);  // Cambiar el tema de flex layout
@@ -63,6 +109,8 @@ const Exercise = () => {
     i18n.changeLanguage(lang);
   }, [lang, i18n]);
 
+  
+
   useEffect(() => {
     // Inicializar el worker solo una vez al cargar el componente
     if (!isWorkerInitialized && exercise.packages) {
@@ -70,16 +118,21 @@ const Exercise = () => {
       setIsWorkerInitialized(true); // Marcar que el worker ya ha sido inicializado
     }
   }, [initializeWorker, exercise, isWorkerInitialized]);
-  
+
   useEffect(() => {
+    
 
     if (!loadingExecution) {
       const stateToPost = editors.map(editor => ({
         id: editor.id,
         code: editor.code,
       }));
-      
-      useValidateExercise(exerciseId, editors, lang, postEvent, stateToPost);
+
+      useValidateExercise(exerciseId, editors, lang, postEvent, stateToPost, {
+        runPy: true,
+        runIA: shouldShowFeedback,   // 👈 si el panel está oculto, NO se llama IA
+        silent: false,
+      });
     }
 
   }, [loadingExecution]);
@@ -88,23 +141,23 @@ const Exercise = () => {
   useEffect(() => {
     if (csvFileData) {
       const newId = csvFileData.fileName;
-      
+
       // Verifica si el id ya existe en files o en editors
       const existsInFiles = files.some(file => file.id === newId);
       const existsInEditors = editors.some(editor => editor.id === newId);
-      
+
       if (existsInFiles || existsInEditors) {
         // Si ya existe, simplemente limpia el csvFileData y no hace nada más.
         setCsvFileData(null);
         return;
       }
-      
+
       const fileData = { id: newId, code: csvFileData.code };
-      
+
       // Agrega a ambos arrays
       setFiles(prev => [...prev, fileData]);
       setEditors(prev => [...prev, fileData]);
-      
+
       // Crea la pestaña correspondiente
       if (layoutRef.current) {
         layoutRef.current.addTabToTabSet('#3a8361ce-881c-44d6-827c-487d1fcdb066', {
@@ -115,12 +168,12 @@ const Exercise = () => {
           enableClose: true,
         });
       }
-      
+
       // Limpia el estado para evitar ciclos
       setCsvFileData(null);
     }
   }, [csvFileData, files, editors, setCsvFileData, setEditors, setFiles]);
-  
+
 
   // Efecto para actualizar los layouts de editores cuando cambia el lenguaje
   useEffect(() => {
@@ -128,19 +181,19 @@ const Exercise = () => {
       layoutRef.current.addTabToTabSet("#3a8361ce-881c-44d6-827c-487d1fcdb066", {
         type: "tab",
         component: "EditorComponent",
-        id: editor.id, 
-        name: editor.id, 
+        id: editor.id,
+        name: editor.id,
         enableClose: true,
       });
     })
-  }, [t]) 
+  }, [t])
 
   // Crear el primer editor automáticamente al iniciar la app
   useEffect(() => {
     const loadEditors = async () => {
       const rawData = await waitForMessage();
       // console.log(rawData);
-      
+
       let data;
       try {
         data = JSON.parse(rawData);
@@ -150,25 +203,25 @@ const Exercise = () => {
         console.error("Error al hacer JSON.parse de los datos:", error);
         return;
       }
-    
+
       if (data && Array.isArray(data.data)) {
-    
+
         // Accedemos al array dentro de "data"
         const editorsData = data.data;
-      
+
         // Si recibimos datos, cargamos los editores con la información
         // console.log(data.data);
         setEventType(data.eventType)
         setEditors(editorsData.map(editor => ({ id: editor.id, code: editor.code })));
         setFiles(editorsData.map(file => ({ id: file.id, code: file.code })));
-        
+
         // Agregar pestañas para los editores cargados
         editorsData.forEach(editor => {
           if (layoutRef.current) {
             layoutRef.current.addTabToTabSet("#3a8361ce-881c-44d6-827c-487d1fcdb066", {
               type: "tab",
               component: "EditorComponent",
-              id: editor.id, 
+              id: editor.id,
               name: editor.id,
               enableClose: true,
             });
@@ -185,17 +238,17 @@ const Exercise = () => {
                 type: "tab",
                 component: "EditorComponent",
                 id: key,
-                name: key, 
+                name: key,
                 enableClose: true,
               });
-    
+
               setEditors(prevEditors => [
                 ...prevEditors,
                 { id: key, code: editor.code[lang], readOnly: editor.isReadOnly }
               ]);
               setFiles(prevFiles => [
                 ...prevFiles,
-                { id: key, code: editor.code[lang]}
+                { id: key, code: editor.code[lang] }
               ])
             });
           }
@@ -234,7 +287,7 @@ const Exercise = () => {
     // setEventType(null);
     // if (window.mostrarResultadoHTML) window.mostrarResultadoHTML("");
     setEditors((prevEditors) =>
-      prevEditors.map((editor) => 
+      prevEditors.map((editor) =>
         editor.id === id ? { ...editor, code: newCode } : editor
       )
     );
@@ -250,8 +303,8 @@ const Exercise = () => {
 
     // Crear el objeto de estado de los editores para enviarlo
     const stateToPost = editors.map(editor => ({
-        id: editor.id,
-        code: editor.code
+      id: editor.id,
+      code: editor.code
     }));
 
     postEvent("STATE", "Guardando estado de los editores", [], stateToPost);
@@ -273,7 +326,7 @@ const Exercise = () => {
 
     // Loop through each file ID and delete it using deleteFile function
     files.forEach(file => deleteFile(file.id));
-  
+
     // Clear the current editors and files
     setEditors([]);
     setFiles([]);
@@ -292,7 +345,7 @@ const Exercise = () => {
           type: "tab",
           component: "EditorComponent",
           id: key,
-          name: key, 
+          name: key,
           enableClose: true,
         });
 
@@ -302,11 +355,11 @@ const Exercise = () => {
         ]);
         setFiles(prevFiles => [
           ...prevFiles,
-          { id: key, code: editor.code[lang]}
+          { id: key, code: editor.code[lang] }
         ])
       });
     }
-  
+
     // Post a failure event if necessary
     postEvent("FAILURE", "Se ha reseteado el ejercicio", [], "");
   };
@@ -314,22 +367,22 @@ const Exercise = () => {
   // Función para manejar la subida del archivo
   const handleFileUpload = (fileData) => {
     const newId = fileData.id;
-  
+
     // Verifica si el id ya existe en alguno de los arrays
     const existsInFiles = files.some(file => file.id === newId);
     const existsInEditors = editors.some(editor => editor.id === newId);
-  
+
     if (existsInFiles || existsInEditors) {
       // Si el id ya existe, no se agrega el archivo y se puede mostrar un mensaje o simplemente retornar.
       return;
     }
-  
+
     // Agregar el archivo al estado files
     setFiles(prevFiles => [...prevFiles, fileData]);
-  
+
     // (Opcional) Agregar el archivo también a los editores
     setEditors(prevEditors => [...prevEditors, fileData]);
-  
+
     // (Opcional) Agregar una nueva pestaña en el layout para este archivo
     if (layoutRef.current) {
       layoutRef.current.addTabToTabSet("#3a8361ce-881c-44d6-827c-487d1fcdb066", {
@@ -345,6 +398,10 @@ const Exercise = () => {
   // Creando los layouts 
   const factory = useCallback((node) => {
     const component = node.getComponent();
+
+    
+
+
     switch (component) {
       case 'EditorComponent': {
         const editorId = node.getName();
@@ -356,7 +413,7 @@ const Exercise = () => {
           }
           return null;
         }
-      
+
         return (
           <Editor
             value={editorData ? editorData.code : ''}
@@ -366,7 +423,7 @@ const Exercise = () => {
             fontSize={fontSize}
           />
         );
-      }      
+      }
       case 'TerminalOutputComponent':
         return (
           <TerminalOutput
@@ -374,28 +431,28 @@ const Exercise = () => {
             history={outputPyodideHistory} // Pasar el historial
             inputPrompt={outputPyodideInput}
             waitingForInput={waitingForInput}
-            mode={mode}   
+            mode={mode}
           />
         );
       case 'GraphOutputComponent':
         return (
-          <GraphOutput 
-            graphs={outputPyodideGraph} 
+          <GraphOutput
+            graphs={outputPyodideGraph}
             mode={mode}
           />
         );
       case 'DecisionTreeOutputComponent':
         return (
-          <DecisionTreeOutput 
-            treeDot={outputDecisionTreeGraph} 
-            mode={mode}   
+          <DecisionTreeOutput
+            treeDot={outputDecisionTreeGraph}
+            mode={mode}
           />
         );
-      case 'NavigationComponent': 
+      case 'NavigationComponent':
         return (
-          <NavigationComponent 
-            files={files} 
-            restoreFile={restoreFile} 
+          <NavigationComponent
+            files={files}
+            restoreFile={restoreFile}
             mode={mode}
             deleteFile={deleteFile}
           />
@@ -406,8 +463,10 @@ const Exercise = () => {
             mode={mode}
             lang={lang}
             eventTypePG={eventType}
+            hidden={!shouldShowFeedback}
           />
         );
+
       default:
         return <div>Componente no definido: {component}</div>;
     }
@@ -419,7 +478,7 @@ const Exercise = () => {
     if (model) {
       // Check if the file already exists in the layout by its ID
       const tabNode = model.getNodeById(file.id);
-      
+
       //console.log(tabNode);
 
       // If the file does not exist, add it to the layout
@@ -434,7 +493,7 @@ const Exercise = () => {
       }
     }
   }, [model, layoutRef]);
-  
+
   // Funcion para eliminar tabs
   const deleteFile = useCallback((fileName) => {
     if (model) {
@@ -446,7 +505,7 @@ const Exercise = () => {
         model.doAction(Actions.deleteTab(tabNode.getId()));
       }
     }
-  
+
     // Update 'files' and 'editors' state to remove the file and editor entries
     setFiles((prevFiles) => prevFiles.filter((file) => file.id !== fileName));
     setEditors((prevEditors) => prevEditors.filter((editor) => editor.id !== fileName));
@@ -479,26 +538,26 @@ const Exercise = () => {
 
   return (
     <div className={`sandbox-container ${mode}`}>
-      <TopNavBar 
-        onRunCode={handleRunCode} 
-        addEditor={addEditor} 
-        downloadCodes={downloadCodes} 
-        saveEditors={saveEditors} 
-        interruptExecution={interruptExecution} 
-        restoreExercise={restoreExercise} 
-        setEditorFontSize={setFontSize} 
-        loadingPackages={loadingPackages} 
-        objetivoEjercicio={exercise.prompt} 
-        loadingExecution={loadingExecution} 
+      <TopNavBar
+        onRunCode={handleRunCode}
+        addEditor={addEditor}
+        downloadCodes={downloadCodes}
+        saveEditors={saveEditors}
+        interruptExecution={interruptExecution}
+        restoreExercise={restoreExercise}
+        setEditorFontSize={setFontSize}
+        loadingPackages={loadingPackages}
+        objetivoEjercicio={exercise.prompt}
+        loadingExecution={loadingExecution}
         defaultLanguage={lang}
         onFileUpload={handleFileUpload}
       />
       <div className="flexlayout-wrapper">
-        <Layout 
-          factory={factory} 
-          ref={layoutRef} 
-          model={model} 
-          className="flexlayout-container" 
+        <Layout
+          factory={factory}
+          ref={layoutRef}
+          model={model}
+          className="flexlayout-container"
         />
       </div>
     </div>

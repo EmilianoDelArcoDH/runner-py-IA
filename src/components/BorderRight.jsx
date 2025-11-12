@@ -21,7 +21,7 @@ const STRINGS = {
   },
 };
 
-const BorderRight = ({ mode, lang, eventTypePG}) => {
+const BorderRight = ({ mode, lang, eventTypePG, hidden = false}) => {
   const themeClass = mode === 'dark' ? 'dark-mode' : 'light-mode';
   // console.log(`BorderRight render - mode: ${mode}, lang: ${lang}`);
   
@@ -43,7 +43,7 @@ const BorderRight = ({ mode, lang, eventTypePG}) => {
       : (iaMessages || L.empty);
 
   return (
-    <div className={`border-right-container ${themeClass}`} lang={lang}>
+    <div className={`border-right-container ${themeClass}`} lang={lang} style={{ display: hidden ? 'none' : 'block' }}>
       <div className="ia-panel">
         <h2 className="ia-title">{L.title}</h2>
         <div

@@ -153,7 +153,7 @@ export const exercises = [
                 en: "You should have the variable numA with the value 2. Remember you should not delete the existing code, just correct the error.",
                 pt: "Você deve ter a variável numA com o valor 2. Lembre-se de não excluir o código existente, apenas corrigir o erro."
               }]
-            } else if (!code.replace(/\s/g, '').trim().includes('total=numA+numB') && !code.replace(/\s/g, '').trim().includes('result=numB+numA')) {
+            } else if (!code.replace(/\s/g, '').trim().includes('total=numA+numB') && !code.replace(/\s/g, '').trim().includes('result=numB+numA') && !code.replace(/\s/g, '').trim().includes('total=numA+int(numB)') && !code.replace(/\s/g, '').trim().includes('result=int(numB)+numA') && !code.replace(/\s/g, '').trim().includes('total=int(numB)+numA') && !code.replace(/\s/g, '').trim().includes('result=numA+int(numB)')) {
               return [{
                 es: "Debes sumar numA y numB y guardar el resultado en la variable total. Recuerda no debes eliminar el codigo existente solo corregir el error.",
                 en: "You should add numA and numB and save the result in the total variable. Remember you should not delete the existing code, just correct the error.",
@@ -167,32 +167,11 @@ export const exercises = [
                 pt: "Você deve imprimir o valor da variável total. Lembre-se de não excluir o código existente, apenas corrigir o erro."
               }]
             }
-            // else if(!code.includes(/numA\s*=\s*2) ){
-            //   return [{ 
-            //     es: "En la actividad 01 la variable 'numA' debe ser igual a 2.",
-            //     en: "In activity 01 the variable 'numA' should be equal to 2.",
-            //     pt: "Na atividade 01, a variável 'numA' deve ser igual a 2."
-
-            //   }]
-            // }
+            
           })
       },
     ],
-    // "validationCodeSimulator": {
-    //   "description": "Deberias corregir los errores que se encuentran en la actividad.",
-    //   "test": ($) => {
-    //     $.input("Ingrese su sabor de helado favorito: ", "chocolate").catch({
-    //       es: "Se debería solicitar al usuario que ingrese su sabor de helado favorito.",
-    //       en: "The user should be prompted to enter their favorite ice cream flavor.",
-    //       pt: "O usuário deve ser solicitado a inserir seu sabor de sorvete favorito.",
-    //     });
-    //     $.print("El sabor ingresado por consola es: chocolate").catch({
-    //       es: "Se debería imprimir el mensaje 'El sabor ingresado por consola es: chocolate' si el sabor ingresado es 'chocolate'.",
-    //       en: "The message 'El sabor ingresado por consola es: chocolate' should be printed if the entered flavor is 'chocolate'.",
-    //       pt: "A mensagem 'El sabor ingresado por consola es: chocolate' deve ser impressa se o sabor inserido for 'chocolate'.",
-    //     });
-    //   }
-    // }
+    
   },
   {
     "id": "tipoDatos-01-02",
@@ -206,21 +185,7 @@ export const exercises = [
       }
     },
 
-    // "validationCodeSimulator": {
-    //   "description": "Deberias corregir los errores que se encuentran en la actividad.",
-    //   "test": ($, lang) => {
-    //     $.input("Ingrese su sabor de helado favorito: ", "chocolate").catch({
-    //       es: "Se debería solicitar al usuario que ingrese su sabor de helado favorito.",
-    //       en: "The user should be prompted to enter their favorite ice cream flavor.",
-    //       pt: "O usuário deve ser solicitado a inserir seu sabor de sorvete favorito.",
-    //     });
-    //     $.print("El sabor ingresado por consola es: chocolate").catch({
-    //       es: "Se debería imprimir el mensaje 'El sabor ingresado por consola es: chocolate' si el sabor ingresado es 'chocolate'.",
-    //       en: "The message 'The flavor entered on the console is: chocolate' should be printed if the entered flavor is 'chocolate'.",
-    //       pt: "A mensagem 'El sabor ingresado por consola es: chocolate' deve ser impressa se o sabor inserido for 'chocolate'.",
-    //     });
-    //   }
-    // },
+    
     "validationAST": [
       {
         "description": "El código debe corregir los errores que se encuentran en la actividad.",
@@ -410,64 +375,7 @@ export const exercises = [
 
           })
       },
-      // {
-      //   "description": "El código debes crear una variable 'edad' que almacene el valor ingresado por el usuario.",
-      //   "test": (assert) => assert
-      //     .$variable("edad").catch({
-      //       es: "La variable 'edad' debe almacenar el valor ingresado por el usuario como entero.",
-      //       en: "The variable 'edad' must store the value entered by the user as an integer.",
-      //       pt: "A variável 'edad' deve armazenar o valor inserido pelo usuário como inteiro."
-      //     })
-      //     .withAssignation('input(\"Qué edad tienes?\")').catch({
-      //       es: "La variable 'edad' debe almacenar el valor ingresado por el usuario como entero.",
-      //       en: "The variable 'edad' must store the value entered by the user as an integer.",
-      //       pt: "A variável 'edad' deve armazenar o valor inserido pelo usuário como inteiro."
-      //     })
-      // },
-      // {
-      //   "description": "El código debe crear una variable que almacene la suma de 'edad' más 18.",
-      //   "test": (assert) => assert
-      //     .$variable("edad_futura").catch({
-      //       es: "Debe crearse una variable que sume 'edad'.",
-      //       en: "A variable that adds 'edad' must be created.",
-      //       pt: "Uma variável que soma 'edad' deve ser criada."
-      //     })
-      //     .withAssignation("int(edad) + 18").catch({
-      //       es: "La variable debe almacenar la suma de 'edad' más 18.",
-      //       en: "The variable must store the sum of 'edad' plus 18.",
-      //       pt: "A variável deve armazenar a soma de 'edad' mais 18."
-      //     })
-      // },
-      // {
-      //   "description": "El código debe transformar 'edad_futura' a texto y concatenarla en un mensaje.",
-      //   "test": (assert) => assert
-      //     .$functionCall("print").catch({
-      //       es: "Debe imprimir un mensaje que contenga 'edad_futura' convertida a texto.",
-      //       en: "A message containing 'edad_futura' converted to text must be printed.",
-      //       pt: "Uma mensagem contendo 'edad_futura' convertida para texto deve ser impressa."
-      //     })
-      //     .withArguments(["\"Tu edad dentro de 18 años será: \" + str(edad_futura)"]).catch({
-      //       es: "El mensaje debe concatenar correctamente el texto con 'edad_futura' transformado a texto.",
-      //       en: "The message must correctly concatenate the text with 'edad_futura' converted to text.",
-      //       pt: "A mensagem deve concatenar corretamente o texto com 'edad_futura' convertido para texto."
-      //     })
-      // }
-    ],
-    // "validationCodeSimulator": {
-    //   "description": "Al ingresar una edad, el programa debería responder con la edad que tendrás dentro de 18 años.",
-    //   "test": ($) => {
-    //     $.input("¿Qué edad tienes? ", "25").catch({
-    //       es: "Se debería solicitar al usuario que ingrese su edad.",
-    //       en: "The user should be prompted to enter their age.",
-    //       pt: "O usuário deve ser solicitado a inserir sua idade.",
-    //     });
-    //     $.print("Tu edad dentro de 18 años será: 43").catch({
-    //       es: "Se debería imprimir el mensaje 'Tu edad dentro de 18 años será: 43' si la edad ingresada es 25.",
-    //       en: "The message 'Tu edad dentro de 18 años será: 43' should be printed if the entered age is 25.",
-    //       pt: "A mensagem 'Tu edad dentro de 18 anos será: 43' deve ser impressa se a idade inserida for 25.",
-    //     });
-    //   }
-    // }
+    ]
   },
   {
     "id": "modulo-01",

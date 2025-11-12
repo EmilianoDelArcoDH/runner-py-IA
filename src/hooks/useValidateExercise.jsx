@@ -18,14 +18,22 @@ export const useValidateExercise = async (
   lang,
   postEvent,
   stateToPost,
-  {
+  maybeOptions = {}
+) => {
+  // Normalización: permitir pasar boolean o objeto
+  const options = typeof maybeOptions === 'boolean'
+    ? { runIA: maybeOptions }
+    : (maybeOptions || {});
+
+  const {
     runPy = true,
-    runIA = true,
+    runIA = true,          // <- se controla "desde afuera" (Exercise.jsx)
     obtenerContexto = null,
     onPyOutput = null,
     setEditorValue = null,
-  } = {}
-) => {
+    silent = false         // <- no emitir SUCCESS/FAILURE si true
+  } = options;
+
   const failureReasons = [];
   let syntaxErrorsFound = false;
   let simulationErrorsFound = false;
@@ -107,7 +115,9 @@ export const useValidateExercise = async (
         await analizarConGroq(contexto.enunciado, code, contexto.clase, contexto.idioma || "es", { forceSuccess: true });
       }
       // (6) Evento SUCCESS
-      postEvent("SUCCESS", "Has completado el ejercicio", [], stateToPost);
+      if (!silent) {
+        postEvent("SUCCESS", "Has completado el ejercicio", [], stateToPost);
+      }
       return;
     }
 
@@ -123,7 +133,9 @@ export const useValidateExercise = async (
     const failureReasonsFiltrado = failureReasons.filter(r =>
       !r.includes("El código debe corregir los errores")
     );
-    postEvent("FAILURE", "El ejercicio está incompleto", failureReasonsFiltrado, stateToPost);
+    if (!silent) {
+      postEvent("FAILURE", "El ejercicio está incompleto", failureReasonsFiltrado, stateToPost);
+    }
   }
 };
 
@@ -183,6 +195,7 @@ async function runPythonWithCapture(code) {
 }
 
 async function analizarConGroq(enunciado, code, clase, idioma = "es", opts = {}) {
+  console.log("se ejecuta analizarConGroq");
   const { forceSuccess = false } = opts;
   const mostrar = (html) => {
     if (typeof window.mostrarResultadoHTML === "function") {
@@ -207,7 +220,7 @@ async function analizarConGroq(enunciado, code, clase, idioma = "es", opts = {})
     //   : "https://admissions-barbie-clock-recognition.trycloudflare.com"; // túnel
 
     const API_URL = "https://schools-tools.digitalhouse.com"
-    
+
     const response = await fetch(`${API_URL}/consejo`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
