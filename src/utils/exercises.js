@@ -19,7 +19,7 @@ export const exercises = [
     }
   },
 
-  
+
   {
     "id": "intro-01",
     "prompt": "",
@@ -36,80 +36,152 @@ export const exercises = [
         "description": "El código debe seguir los pasos para crear una historia loca basada en una de las dos historias proporcionadas.",
         "test": (assert) => assert
           .$custom(code => {
+            const norm = code.replace(/\r/g, "");
 
-            // Verificar que las historias se incluyan en el código
-            const historia1 = "Hawkins.*Indiana.*Will Byers desaparece.*Eleven.*Mike.*Dustin.*Lucas";
-            const historia2 = "Johnny Lawrence.*Cobra Kai.*Daniel LaRusso.*Miyagi.*karate";
-            if (!new RegExp(historia1, "s").test(code) && !new RegExp(historia2, "s").test(code)) {
-              return [{
-                es: "En tu código debes tener las dos historias brindadas por el ejercicio, revisa no haberlas borrado o modificado. Puedes restaurar el ejercicio para recuperar el código original.",
-                en: "In your code you must have the two stories provided by the exercise, check that you have not deleted or modified them. You can restore the exercise to recover the original code.",
-                pt: "No seu código, você deve ter as duas histórias fornecidas pelo exercício, verifique se você não as excluiu ou modificou. Você pode restaurar o exercício para recuperar o código original."
-              }];
-            }
-
-            // Verificar que al menos 5 palabras estén marcadas con []
-            const palabrasMarcadas = code.match(/\[.*?\]/g) || [];
+            // 1) Verificar que existan al menos 5 palabras entre []
+            const palabrasMarcadas = norm.match(/\[.*?\]/g) || [];
             if (palabrasMarcadas.length < 5) {
               return [{
-                es: "Debe marcar al menos cinco palabras con [].",
-                en: "It must mark at least five words with [].",
-                pt: "Deve marcar pelo menos cinco palavras com []."
+                es: "Debe marcar al menos cinco palabras entre corchetes [].",
+                en: "You must mark at least five words between brackets [].",
+                pt: "Você deve marcar pelo menos cinco palavras entre colchetes []."
               }];
             }
 
-            // Verificar que hay 5 inputs para reemplazar palabras
-            const inputs = code.match(/input\(/g) || [];
-            if (inputs.length < 5) {
+            // 2) Detectar inputs y variables
+            const inputMatches = [...norm.matchAll(/^\s*([A-Za-z_]\w*)\s*=\s*input\s*\(\s*["'][\s\S]*?["']\s*\)\s*$/gm)];
+            const varNames = inputMatches.map(m => m[1]);
+            const uniqueVarNames = [...new Set(varNames)];
+
+            if (uniqueVarNames.length < 5) {
               return [{
-                es: "Debe incluir cinco inputs para reemplazar las palabras seleccionadas.",
-                en: "It must include five inputs to replace the selected words.",
-                pt: "Deve incluir cinco inputs para substituir as palavras selecionadas."
+                es: "Debes tener al menos 5 entradas con input() asignadas a variables distintas.",
+                en: "You must have at least 5 input() entries assigned to distinct variables.",
+                pt: "Você deve ter pelo menos 5 entradas com input() atribuídas a variáveis distintas."
               }];
             }
 
-            // Verificar si se genera un título
-            if (!code.includes("print(") && !code.match(/print\(.*"Historia Loca".*\)/)) {
+            // 3) Validar título (cualquier print con “Historia”)
+            const hasTitle = /print\s*\(\s*["'][^"']*historia[^"']*["']\s*\)/i.test(norm);
+            if (!hasTitle) {
               return [{
-                es: "Debe incluir un título para la historia con un print().",
-                en: "It must include a title for the story with a print().",
-                pt: "Deve incluir um título para a história com um print()."
+                es: "Incluí un título para la historia usando print(), por ejemplo: print(\"Historia 1\") o print(\"Historia Loca\").",
+                en: "Include a title for the story using print(), e.g., print(\"Historia 1\") or print(\"Historia Loca\").",
+                pt: "Inclua um título para a história usando print(), por exemplo: print(\"História 1\") ou print(\"História Louca\")."
               }];
             }
-            const inputLines = code.match(/(\w+)\s*=\s*input\(["'].*?["']\)/gs) || [];
-            // console.log("Inputs encontrados:", inputLines);
 
-            const variablesInput = inputLines.map(line => line.split('=')[0].trim());
-
-            // console.log("Variables encontradas:", variablesInput);
-
-            // Buscar el último print() que contiene concatenación
-            const printMatches = code.match(/print\((["'].*?\+.*?["'].*?)+\)/gs);
-
-            if (!printMatches) {
+            // 4) Extraer el contenido de los print()
+            const printArgs = [...norm.matchAll(/print\s*\(([\s\S]*?)\)\s*$/gm)].map(m => m[1]);
+            if (printArgs.length === 0) {
               return [{
-                es: "Debe incluir un print() con la historia concatenada y las palabras reemplazadas.",
-                en: "It must include a print() with the concatenated story and replaced words.",
-                pt: "Deve incluir um print() com a história concatenada e as palavras substituídas."
+                es: "Debes mostrar la historia con al menos un print().",
+                en: "You must show the story with at least one print().",
+                pt: "Você deve mostrar a história com pelo menos um print()."
               }];
             }
 
-            // Seleccionar el último print
-            const ultimoPrint = printMatches[0];
-
-            const variablesNoReemplazadas = variablesInput.filter(variable => {
-              const regexVariable = new RegExp("\\+" + variable + "\\+");
-              return !regexVariable.test(ultimoPrint.replace(/\s/g, ""));
+            // 5) Comprobar que las variables aparecen en la historia (en cualquier print)
+            const allPrintBody = printArgs.join("\n");
+            const missing = uniqueVarNames.filter(v => {
+              const re = new RegExp(`(?<![A-Za-z0-9_])${v}(?![A-Za-z0-9_])`);
+              return !re.test(allPrintBody);
             });
 
-            if (variablesNoReemplazadas.length > 0) {
-              // console.log(`Las siguientes variables no se reemplazaron correctamente:`, variablesNoReemplazadas);
+            if (missing.length > 0) {
               return [{
-                es: `Las siguientes variables no fueron reemplazadas: ${variablesNoReemplazadas.join(', ')}`,
-                en: `The following variables were not correctly replaced: ${variablesNoReemplazadas.join(', ')}`,
-                pt: `As seguintes variáveis não foram corretamente substituídas: ${variablesNoReemplazadas.join(', ')}`
+                es: `Estas variables pedidas por input no aparecen en la historia impresa: ${missing.join(", ")}.`,
+                en: `These input variables do not appear in the printed story: ${missing.join(", ")}.`,
+                pt: `Estas variáveis de input não aparecem na história impressa: ${missing.join(", ")}.`
               }];
             }
+
+            // 6) Verificar que haya al menos rastros de una de las dos historias originales
+            const hayRastrosHistoria1 = /Hawkins|Will\s+Byers|Eleven|Mike|Dustin|Lucas/i.test(norm);
+            const hayRastrosHistoria2 = /Johnny\s+Lawrence|Cobra\s+Kai|LaRusso|Miyagi|karate/i.test(norm);
+            if (!hayRastrosHistoria1 && !hayRastrosHistoria2) {
+              return [{
+                es: "Debes mantener al menos una de las dos historias como base en los comentarios del código.",
+                en: "You must keep at least one of the two base stories in the code comments.",
+                pt: "Você deve manter pelo menos uma das duas histórias-base nos comentários do código."
+              }];
+            }
+
+
+            //VERSION VIEJA
+            // // Verificar que las historias se incluyan en el código
+            // const historia1 = "Hawkins.*Indiana.*Will Byers desaparece.*Eleven.*Mike.*Dustin.*Lucas";
+            // const historia2 = "Johnny Lawrence.*Cobra Kai.*Daniel LaRusso.*Miyagi.*karate";
+            // if (!new RegExp(historia1, "s").test(code) && !new RegExp(historia2, "s").test(code)) {
+            //   return [{
+            //     es: "En tu código debes tener las dos historias brindadas por el ejercicio, revisa no haberlas borrado o modificado. Puedes restaurar el ejercicio para recuperar el código original.",
+            //     en: "In your code you must have the two stories provided by the exercise, check that you have not deleted or modified them. You can restore the exercise to recover the original code.",
+            //     pt: "No seu código, você deve ter as duas histórias fornecidas pelo exercício, verifique se você não as excluiu ou modificou. Você pode restaurar o exercício para recuperar o código original."
+            //   }];
+            // }
+
+            // // Verificar que al menos 5 palabras estén marcadas con []
+            // const palabrasMarcadas = code.match(/\[.*?\]/g) || [];
+            // if (palabrasMarcadas.length < 5) {
+            //   return [{
+            //     es: "Debe marcar al menos cinco palabras con [].",
+            //     en: "It must mark at least five words with [].",
+            //     pt: "Deve marcar pelo menos cinco palavras com []."
+            //   }];
+            // }
+
+            // // Verificar que hay 5 inputs para reemplazar palabras
+            // const inputs = code.match(/input\(/g) || [];
+            // if (inputs.length < 5) {
+            //   return [{
+            //     es: "Debe incluir cinco inputs para reemplazar las palabras seleccionadas.",
+            //     en: "It must include five inputs to replace the selected words.",
+            //     pt: "Deve incluir cinco inputs para substituir as palavras selecionadas."
+            //   }];
+            // }
+
+            // // Verificar si se genera un título
+            // if (!code.includes("print(") && !code.match(/print\(.*"Historia Loca".*\)/)) {
+            //   return [{
+            //     es: "Debe incluir un título para la historia con un print().",
+            //     en: "It must include a title for the story with a print().",
+            //     pt: "Deve incluir um título para a história com um print()."
+            //   }];
+            // }
+            // const inputLines = code.match(/(\w+)\s*=\s*input\(["'].*?["']\)/gs) || [];
+            // // console.log("Inputs encontrados:", inputLines);
+
+            // const variablesInput = inputLines.map(line => line.split('=')[0].trim());
+
+            // // console.log("Variables encontradas:", variablesInput);
+
+            // // Buscar el último print() que contiene concatenación
+            // const printMatches = code.match(/print\((["'].*?\+.*?["'].*?)+\)/gs);
+
+            // if (!printMatches) {
+            //   return [{
+            //     es: "Debe incluir un print() con la historia concatenada y las palabras reemplazadas.",
+            //     en: "It must include a print() with the concatenated story and replaced words.",
+            //     pt: "Deve incluir um print() com a história concatenada e as palavras substituídas."
+            //   }];
+            // }
+
+            // // Seleccionar el último print
+            // const ultimoPrint = printMatches[0];
+
+            // const variablesNoReemplazadas = variablesInput.filter(variable => {
+            //   const regexVariable = new RegExp("\\+" + variable + "\\+");
+            //   return !regexVariable.test(ultimoPrint.replace(/\s/g, ""));
+            // });
+
+            // if (variablesNoReemplazadas.length > 0) {
+            //   // console.log(`Las siguientes variables no se reemplazaron correctamente:`, variablesNoReemplazadas);
+            //   return [{
+            //     es: `Las siguientes variables no fueron reemplazadas: ${variablesNoReemplazadas.join(', ')}`,
+            //     en: `The following variables were not correctly replaced: ${variablesNoReemplazadas.join(', ')}`,
+            //     pt: `As seguintes variáveis não foram corretamente substituídas: ${variablesNoReemplazadas.join(', ')}`
+            //   }];
+            // }
 
           })
       }
@@ -131,47 +203,103 @@ export const exercises = [
         "description": "El código debe corregir los errores que se encuentran en la actividad.",
         "test": (assert) => assert
           .$custom(code => {
+            const norm = code.replace(/\r/g, "");
+
+            // === 1. numA = 2 debe existir ===
+            if (!/^\s*numA\s*=\s*2(\.0)?\s*$/m.test(norm)) {
+              return [{
+                es: "Debes mantener 'numA' con el valor 2.",
+                en: "You must keep 'numA' with value 2.",
+                pt: "Você deve manter 'numA' com valor 2."
+              }];
+            }
+
+            // === 2. Detectar si numB está como texto ("3") ===
+            const numB_esTexto = /numB\s*=\s*["']\d+["']/.test(norm);
+
+            // === 3. Detectar si hay conversión en algún punto ===
+            const usaConversion = /(int|float)\s*\(\s*numB\s*\)/.test(norm) || /numB\s*=\s*(int|float)\s*\(/.test(norm);
+
+            // Si es texto y nunca se convierte, marcar error
+            if (numB_esTexto && !usaConversion) {
+              return [{
+                es: "La variable 'numB' está como texto y no se convierte a número. Usa int(numB) o float(numB).",
+                en: "Variable 'numB' is a string and is not converted to a number. Use int(numB) or float(numB).",
+                pt: "A variável 'numB' é texto e não foi convertida em número. Use int(numB) ou float(numB)."
+              }];
+            }
+
+            // === 4. Validar suma numérica (total = numA + numB o con int(numB)) ===
+            const validSum =
+              /(total|result)\s*=\s*.*numA.*\+.*numB|numB.*\+.*numA/.test(norm) ||
+              /(total|result)\s*=\s*.*(int|float)\s*\(\s*numB\s*\)/.test(norm);
+
+            if (!validSum) {
+              return [{
+                es: "Debes sumar numA y numB de forma numérica (por ejemplo: total = numA + int(numB)).",
+                en: "You must add numA and numB numerically (e.g., total = numA + int(numB)).",
+                pt: "Você deve somar numA e numB numericamente (ex: total = numA + int(numB))."
+              }];
+            }
+
+            // === 5. Debe imprimirse el resultado ===
+            if (!/print\s*\([^)]*(total|result)[^)]*\)/.test(norm)) {
+              return [{
+                es: "Debes imprimir el valor del resultado (print(total) o print(result)).",
+                en: "You must print the result value (print(total) or print(result)).",
+                pt: "Você deve imprimir o valor do resultado (print(total) ou print(result))."
+              }];
+            }
+
+            // 5) (Opcional, suave) La cabecera puede o no estar; si querés hacerla obligatoria, descomenta el return.
+            // if (!/print\s*\(\s*["']---\s*Actividad\s*01\s*-\s*Errores\s*---["']\s*\)\s*;?\s*/.test(norm)) {
+            //   return [{ es: "Incluí el encabezado: print(\"---Actividad 01 - Errores ---\");", en: "...", pt: "..." }];
+            // }
+
+            // Si llega acá, pasa
+
+            //VALIDACION VIEJA
             // console.log(code.match(/numA\s*=\s*2/));
 
-            let match = code.match(/numB\s*=\s*"(\d+)"/)
-            if (match) {
-              if (typeof match[1] === 'string') {
-                seguirValidando = false
+            // let match = code.match(/numB\s*=\s*"(\d+)"/)
+            // if (match) {
+            //   if (typeof match[1] === 'string') {
+            //     seguirValidando = false
 
-                return [{
-                  es: "La variable 'numB' debe convertirse en número entero.",
-                  en: "The variable 'numB' should be converted to an integer.",
-                  pt: "A variável 'numB' deve ser convertida para um número inteiro."
-                }]
+            //     return [{
+            //       es: "La variable 'numB' debe convertirse en número entero.",
+            //       en: "The variable 'numB' should be converted to an integer.",
+            //       pt: "A variável 'numB' deve ser convertida para um número inteiro."
+            //     }]
 
-              }
-            }
-            let matchNumA = code.match(/numA\s*=\s*2/)
-            if (!matchNumA) {
-              return [{
-                es: "Debes tener la variable numA con el valor 2. Recuerda no debes eliminar el codigo existente solo corregir el error.",
-                en: "You should have the variable numA with the value 2. Remember you should not delete the existing code, just correct the error.",
-                pt: "Você deve ter a variável numA com o valor 2. Lembre-se de não excluir o código existente, apenas corrigir o erro."
-              }]
-            } else if (!code.replace(/\s/g, '').trim().includes('total=numA+numB') && !code.replace(/\s/g, '').trim().includes('result=numB+numA') && !code.replace(/\s/g, '').trim().includes('total=numA+int(numB)') && !code.replace(/\s/g, '').trim().includes('result=int(numB)+numA') && !code.replace(/\s/g, '').trim().includes('total=int(numB)+numA') && !code.replace(/\s/g, '').trim().includes('result=numA+int(numB)')) {
-              return [{
-                es: "Debes sumar numA y numB y guardar el resultado en la variable total. Recuerda no debes eliminar el codigo existente solo corregir el error.",
-                en: "You should add numA and numB and save the result in the total variable. Remember you should not delete the existing code, just correct the error.",
-                pt: "Você deve adicionar numA e numB e salvar o resultado na variável total. Lembre-se de não excluir o código existente, apenas corrigir o erro."
+            //   }
+            // }
+            // let matchNumA = code.match(/numA\s*=\s*2/)
+            // if (!matchNumA) {
+            //   return [{
+            //     es: "Debes tener la variable numA con el valor 2. Recuerda no debes eliminar el codigo existente solo corregir el error.",
+            //     en: "You should have the variable numA with the value 2. Remember you should not delete the existing code, just correct the error.",
+            //     pt: "Você deve ter a variável numA com o valor 2. Lembre-se de não excluir o código existente, apenas corrigir o erro."
+            //   }]
+            // } else if (!code.replace(/\s/g, '').trim().includes('total=numA+numB') && !code.replace(/\s/g, '').trim().includes('result=numB+numA') && !code.replace(/\s/g, '').trim().includes('total=numA+int(numB)') && !code.replace(/\s/g, '').trim().includes('result=int(numB)+numA') && !code.replace(/\s/g, '').trim().includes('total=int(numB)+numA') && !code.replace(/\s/g, '').trim().includes('result=numA+int(numB)')) {
+            //   return [{
+            //     es: "Debes sumar numA y numB y guardar el resultado en la variable total. Recuerda no debes eliminar el codigo existente solo corregir el error.",
+            //     en: "You should add numA and numB and save the result in the total variable. Remember you should not delete the existing code, just correct the error.",
+            //     pt: "Você deve adicionar numA e numB e salvar o resultado na variável total. Lembre-se de não excluir o código existente, apenas corrigir o erro."
 
-              }]
-            } else if (!code.includes('print(total)') && !code.includes('print(result)')) {
-              return [{
-                es: "Debes imprimir el valor de la variable total. Recuerda no debes eliminar el codigo existente solo corregir el error.",
-                en: "You should print the value of the total variable. Remember you should not delete the existing code, just correct the error.",
-                pt: "Você deve imprimir o valor da variável total. Lembre-se de não excluir o código existente, apenas corrigir o erro."
-              }]
-            }
-            
+            //   }]
+            // } else if (!code.includes('print(total)') && !code.includes('print(result)')) {
+            //   return [{
+            //     es: "Debes imprimir el valor de la variable total. Recuerda no debes eliminar el codigo existente solo corregir el error.",
+            //     en: "You should print the value of the total variable. Remember you should not delete the existing code, just correct the error.",
+            //     pt: "Você deve imprimir o valor da variável total. Lembre-se de não excluir o código existente, apenas corrigir o erro."
+            //   }]
+            // }
+
           })
       },
     ],
-    
+
   },
   {
     "id": "tipoDatos-01-02",
@@ -185,27 +313,100 @@ export const exercises = [
       }
     },
 
-    
+
     "validationAST": [
       {
         "description": "El código debe corregir los errores que se encuentran en la actividad.",
         "test": (assert) => assert
           .$custom(code => {
-            let match = code.match(/\bint\s*\(\s*input\(/)
-            //console.log(match)
-            if (match) {
+
+            const norm = code.replace(/\r/g, "");
+
+            // 1) Capturar una variable asignada desde input(...), en cualquier idioma/variable
+            //    (ej: sabor = input("..."), flavor = input("..."))
+            const mInput = [...norm.matchAll(/^\s*([A-Za-z_]\w*)\s*=\s*(.+input\s*\(\s*["'][\s\S]*?["']\s*\).*)$/gm)];
+            if (mInput.length === 0) {
               return [{
-                es: "Lo que se obtiene de la función 'input' no debe convertirse a número entero.",
-                en: "What is obtained from the 'input' function should not be converted to an integer.",
-                pt: "O que é obtido da função 'input' não deve ser convertido para um inteiro."
-              }]
-            } else if (!code.replace(/\s/g, '').trim().includes('print("Elsaboringresadoporconsolaes:"+sabor)') && !code.replace(/\s/g, '').trim().includes('print("Theflavorenteredontheconsoleis:"+flavor)')) {
-              return [{
-                es: "Debes imprimir el valor de la variable 'sabor'. Recuerda no debes eliminar el codigo existente solo corregir el error.",
-                en: "You should print the value of the 'flavor' variable. Remember you should not delete the existing code, just correct the error.",
-                pt: "Você deve imprimir o valor da variável 'sabor'. Lembre-se de não excluir o código existente, apenas corrigir o erro."
-              }]
+                es: "Debes leer el sabor con input(...) y guardarlo en una variable.",
+                en: "You must read the flavor with input(...) and store it in a variable.",
+                pt: "Você deve ler o sabor com input(...) e armazená-lo em uma variável."
+              }];
             }
+
+            // Tomamos la primera variable que venga de input()
+            const varFromInput = mInput[0][1];
+            const rhsInput = mInput[0][2];
+
+            // 2) Error: NO permitir int(input(...)) ni float(input(...))
+            if (/(?:^|[^A-Za-z_])(int|float)\s*\(\s*input\s*\(/.test(rhsInput)) {
+              return [{
+                es: "Lo que se obtiene de input() no debe convertirse con int() ni float().",
+                en: "The value from input() must not be converted with int() or float().",
+                pt: "O valor de input() não deve ser convertido com int() ou float()."
+              }];
+            }
+
+            // 3) Debe imprimirse la variable proveniente de input(), aceptando varios estilos:
+            //    - print("... " + var)
+            //    - print("...", var)
+            //    - print(f"... {var} ...")
+            //    - print("... {}".format(var))
+            //    - print(var)
+            const varRe = new RegExp(`(?<![A-Za-z0-9_])${varFromInput}(?![A-Za-z0-9_])`);
+
+            const prints = [...norm.matchAll(/print\s*\(([\s\S]*?)\)\s*$/gm)].map(m => m[1]);
+            if (prints.length === 0) {
+              return [{
+                es: "Debes imprimir el sabor ingresado usando print().",
+                en: "You must print the entered flavor using print().",
+                pt: "Você deve imprimir o sabor inserido usando print()."
+              }];
+            }
+
+            // ¿Algún print incluye la variable (de manera directa o en f-string/format/coma)?
+            let printedOK = false;
+            for (const body of prints) {
+              const hasVarDirect = varRe.test(body);                         // print(var) / print("...", var) / f-string contiene {var} (nombre aparece)
+              const hasFString = /f["'][\s\S]*?{[\s\S]*?}[\s\S]*?["']/.test(body) && hasVarDirect;
+              const hasFormat = /\.format\s*\([\s\S]*\)/.test(body) && hasVarDirect;
+              const hasPlus = /\+/.test(body) && hasVarDirect;
+              const hasComma = /,/.test(body) && hasVarDirect;
+
+              if (hasVarDirect && (hasFString || hasFormat || hasPlus || hasComma || /^\s*([A-Za-z_]\w*)\s*$/.test(body.trim()))) {
+                printedOK = true;
+                break;
+              }
+            }
+
+            if (!printedOK) {
+              return [{
+                es: `Debes imprimir la variable '${varFromInput}' que proviene de input(). Puedes usar concatenación, comas, f-strings o .format().`,
+                en: `You must print the '${varFromInput}' variable coming from input(). You can use concatenation, commas, f-strings, or .format().`,
+                pt: `Você deve imprimir a variável '${varFromInput}' que vem de input(). Pode usar concatenação, vírgulas, f-strings ou .format().`
+              }];
+            }
+
+            // Si llegó hasta acá, aprueba
+
+
+
+
+            //VALIDACION VIEJA
+            // let match = code.match(/\bint\s*\(\s*input\(/)
+            // //console.log(match)
+            // if (match) {
+            //   return [{
+            //     es: "Lo que se obtiene de la función 'input' no debe convertirse a número entero.",
+            //     en: "What is obtained from the 'input' function should not be converted to an integer.",
+            //     pt: "O que é obtido da função 'input' não deve ser convertido para um inteiro."
+            //   }]
+            // } else if (!code.replace(/\s/g, '').trim().includes('print("Elsaboringresadoporconsolaes:"+sabor)') && !code.replace(/\s/g, '').trim().includes('print("Theflavorenteredontheconsoleis:"+flavor)')) {
+            //   return [{
+            //     es: "Debes imprimir el valor de la variable 'sabor'. Recuerda no debes eliminar el codigo existente solo corregir el error.",
+            //     en: "You should print the value of the 'flavor' variable. Remember you should not delete the existing code, just correct the error.",
+            //     pt: "Você deve imprimir o valor da variável 'sabor'. Lembre-se de não excluir o código existente, apenas corrigir o erro."
+            //   }]
+            // }
           })
       },
     ],
@@ -226,47 +427,139 @@ export const exercises = [
         "description": "El código debe corregir los errores que se encuentran en la actividad.",
         "test": (assert) => assert
           .$custom(code => {
-            // Expresión regular para detectar la conversión directa de input a int
-            let regexInputToInt = /\bnum[AB]\s*=\s*int\s*\(\s*input\s*\([^)]+\)\s*\)/;
 
-            // Expresión regular para detectar la conversión al momento de operar
-            let regexOperationToInt = /resultado\s*=\s*int\s*\(\s*num[AB]\s*\)\s*\*\s*int\s*\(\s*num[AB]\s*\)/;
-            let regexOperationToInt2 = /result\s*=\s*int\s*\(\s*num[AB]\s*\)\s*\*\s*int\s*\(\s*num[AB]\s*\)/;
+            const norm = code.replace(/\r/g, "");
 
-            // Validar si existe alguna de las dos maneras
-            let matchInputToInt = code.match(regexInputToInt);
-            let matchOperationToInt = code.match(regexOperationToInt);
-            let matchOperationToInt2 = code.match(regexOperationToInt2);
-
-            if (matchInputToInt) {
-              //console.log("El código convierte correctamente las entradas de input a un entero.");
-            } else if (matchOperationToInt || matchOperationToInt2) {
-              //console.log("El código convierte correctamente las variables a entero durante la operación.");
-            } else {
-              seguirValidando = false;
-              //console.log("Error: El código no convierte las entradas o variables a entero de forma válida.");
-              return [{
-                es: "Recuerda que las entradas de input o las variables deben convertirse a enteros.",
-                en: "Remember that input entries or variables must be converted to integers.",
-                pt: "Lembre-se de que as entradas de input ou as variáveis devem ser convertidas para inteiros."
-              }]
+            // 1) Debe leerse numA y numB desde input (con o sin cast en esa línea)
+            const reInputA = /^\s*numA\s*=\s*(?:[A-Za-z_]\w*\s*\(\s*)?input\s*\(\s*["'][\s\S]*?["']\s*\)\s*\)?\s*$/m;
+            const reInputB = /^\s*numB\s*=\s*(?:[A-Za-z_]\w*\s*\(\s*)?input\s*\(\s*["'][\s\S]*?["']\s*\)\s*\)?\s*$/m;
+            if (!reInputA.test(norm) || !reInputB.test(norm)) {
+              return [{ es: "Debes leer numA y numB con input() (con o sin int()/float())." }];
             }
 
-            // Expresión regular para detectar el uso de str() en el print
-            let regexStrConversion = /print\s*\(\s*".*"\s*\+\s*str\s*\(\s*resultado\s*\)\s*\)/;
-            let regexStrConversion2 = /print\s*\(\s*".*"\s*\+\s*str\s*\(\s*result\s*\)\s*\)/;
-            // console.log(regexStrConversion);
+            // 2) ¿Hay conversión a número en algún punto? (en input o en operación)
+            const castOnAssignA = /^\s*numA\s*=\s*(?:int|float)\s*\(\s*input\s*\(/m.test(norm);
+            const castOnAssignB = /^\s*numB\s*=\s*(?:int|float)\s*\(\s*input\s*\(/m.test(norm);
 
-            if (regexStrConversion.test(code) || regexStrConversion2.test(code)) {
-              //console.log("El código convierte correctamente el resultado a una cadena usando str().");
-            } else {
-              //console.log("Error: El código no convierte el resultado a una cadena usando str().");
-              return [{
-                es: "Para ver el resultado de la multiplicación debe convertirse a cadena usando str().",
-                en: "To see the multiplication result it must be converted to a string using str().",
-                pt: "Para ver o resultado da multiplicação deve ser convertido para uma string usando str()."
-              }]
+            // 3) Buscar asignación del resultado (resultado|result) = ...
+            const resultAssigns = [...norm.matchAll(/^\s*(resultado|result)\s*=\s*(.+)$/gm)];
+            if (resultAssigns.length === 0) {
+              return [{ es: "Debes guardar el producto en 'resultado' o 'result'." }];
             }
+
+            const usesNumericProduct = (rhs) => {
+              if (!/\*/.test(rhs)) return false;
+              const hasA = /\bnumA\b/.test(rhs) || /(int|float)\s*\(\s*numA\s*\)/.test(rhs);
+              const hasB = /\bnumB\b/.test(rhs) || /(int|float)\s*\(\s*numB\s*\)/.test(rhs);
+              if (!(hasA && hasB)) return false;
+              if (!castOnAssignA && !castOnAssignB) {
+                const castInOpA = /(int|float)\s*\(\s*numA\s*\)/.test(rhs);
+                const castInOpB = /(int|float)\s*\(\s*numB\s*\)/.test(rhs);
+                if (!(castInOpA || castInOpB)) return false;
+              }
+              return true;
+            };
+
+            let resultVar = null;
+            let okProduct = false;
+            for (const m of resultAssigns) {
+              const lhs = m[1];   // resultado | result
+              const rhs = m[2];
+              if (usesNumericProduct(rhs)) {
+                okProduct = true;
+                resultVar = lhs;
+                break;
+              }
+            }
+
+            if (!okProduct) {
+              return [{ es: "Debes multiplicar numA y numB como números (con int()/float() en input u operación)." }];
+            }
+
+            // 4) Debe imprimirse el resultado correctamente
+            const prints = [...norm.matchAll(/print\s*\(([\s\S]*?)\)\s*$/gm)].map(m => m[1]);
+            if (prints.length === 0) {
+              return [{ es: "Debes imprimir el resultado con print()." }];
+            }
+
+            const resName = resultVar || "resultado|result";
+            const resRe = new RegExp(`\\b(${resName})\\b`);
+
+            const isFStringWithVar = (body) =>
+              /f["']/.test(body) && new RegExp(`\\{[^}]*\\b(${resName})\\b[^}]*\\}`).test(body);
+
+            const containsVar = (body) => resRe.test(body);
+            const hasFormat = (body) => /\.format\s*\(/.test(body) && containsVar(body);
+            const hasComma = (body) => /,/.test(body) && containsVar(body);
+            const isDirect = (body) => body.trim().match(new RegExp(`^${resName}$`));
+
+            const usesPlus = (body) => /\+/.test(body);
+            const hasStringLiteral = (body) => /["'][\s\S]*?["']/.test(body);
+            const hasStrWrap = (body) => new RegExp(`str\\s*\\(\\s*${resName}\\s*\\)`).test(body);
+
+            // ❌ Caso a bloquear: "texto" + resultado  (sin str(resultado))
+            const badConcat = prints.some(body =>
+              usesPlus(body) && hasStringLiteral(body) && containsVar(body) && !hasStrWrap(body)
+            );
+            if (badConcat) {
+              return [{ es: "Si concatenás texto con el resultado, debés usar str(resultado). Ej.: print('El resultado es: ' + str(resultado))." }];
+            }
+
+            // ✅ Formas válidas
+            const printedOK = prints.some(body =>
+              isFStringWithVar(body) || hasFormat(body) || hasComma(body) || isDirect(body) ||
+              (usesPlus(body) && hasStrWrap(body)) // concatenación correcta con str(...)
+            );
+
+            if (!printedOK) {
+              return [{ es: "Debes imprimir la variable del resultado (acepta comas, f-strings, .format o concatenación con str(...))." }];
+            }
+
+            // Si llegó hasta acá, aprueba
+
+
+            //VALIDACION VIEJA
+            // // Expresión regular para detectar la conversión directa de input a int
+            // let regexInputToInt = /\bnum[AB]\s*=\s*int\s*\(\s*input\s*\([^)]+\)\s*\)/;
+
+            // // Expresión regular para detectar la conversión al momento de operar
+            // let regexOperationToInt = /resultado\s*=\s*int\s*\(\s*num[AB]\s*\)\s*\*\s*int\s*\(\s*num[AB]\s*\)/;
+            // let regexOperationToInt2 = /result\s*=\s*int\s*\(\s*num[AB]\s*\)\s*\*\s*int\s*\(\s*num[AB]\s*\)/;
+
+            // // Validar si existe alguna de las dos maneras
+            // let matchInputToInt = code.match(regexInputToInt);
+            // let matchOperationToInt = code.match(regexOperationToInt);
+            // let matchOperationToInt2 = code.match(regexOperationToInt2);
+
+            // if (matchInputToInt) {
+            //   //console.log("El código convierte correctamente las entradas de input a un entero.");
+            // } else if (matchOperationToInt || matchOperationToInt2) {
+            //   //console.log("El código convierte correctamente las variables a entero durante la operación.");
+            // } else {
+            //   seguirValidando = false;
+            //   //console.log("Error: El código no convierte las entradas o variables a entero de forma válida.");
+            //   return [{
+            //     es: "Recuerda que las entradas de input o las variables deben convertirse a enteros.",
+            //     en: "Remember that input entries or variables must be converted to integers.",
+            //     pt: "Lembre-se de que as entradas de input ou as variáveis devem ser convertidas para inteiros."
+            //   }]
+            // }
+
+            // // Expresión regular para detectar el uso de str() en el print
+            // let regexStrConversion = /print\s*\(\s*".*"\s*\+\s*str\s*\(\s*resultado\s*\)\s*\)/;
+            // let regexStrConversion2 = /print\s*\(\s*".*"\s*\+\s*str\s*\(\s*result\s*\)\s*\)/;
+            // // console.log(regexStrConversion);
+
+            // if (regexStrConversion.test(code) || regexStrConversion2.test(code)) {
+            //   //console.log("El código convierte correctamente el resultado a una cadena usando str().");
+            // } else {
+            //   //console.log("Error: El código no convierte el resultado a una cadena usando str().");
+            //   return [{
+            //     es: "Para ver el resultado de la multiplicación debe convertirse a cadena usando str().",
+            //     en: "To see the multiplication result it must be converted to a string using str().",
+            //     pt: "Para ver o resultado da multiplicação deve ser convertido para uma string usando str()."
+            //   }]
+            // }
           })
       },
     ],
@@ -291,87 +584,187 @@ export const exercises = [
         "description": "El código debes crear una variable 'edad' que almacene el valor ingresado por el usuario.",
         "test": (assert) => assert
           .$custom(code => {
+            const norm = code.replace(/\r/g, "");
 
-            if (!code.replace(/\s/g, '').trim().includes("edad=") && !code.replace(/\s/g, '').trim().includes("age=")) {
+            // === 1) Capturar variable con input() ===
+            const inputMatches = [...norm.matchAll(/^\s*([A-Za-z_]\w*)\s*=\s*(.+input\s*\(\s*["'][\s\S]*?["']\s*\).*)$/gm)];
+            if (inputMatches.length === 0) {
+              return [{ es: "Debes leer la edad con input() y guardarla en una variable (p. ej., 'edad')." }];
+            }
+
+            const ageVar = inputMatches[0][1];
+            const rhsInput = inputMatches[0][2];
+
+            // === 2) Validar que el texto del input mencione edad o años ===
+            const promptText = (rhsInput.match(/input\s*\(\s*["']([\s\S]*?)["']\s*\)/) || [])[1] || "";
+            if (!/edad|años|age|old/i.test(promptText)) {
               return [{
-                es: "Debes crearse una variable 'edad' que almacene el valor ingresado por el usuario como entero.",
-                en: "A variable 'age' that stores the value entered by the user as an integer must be created.",
-                pt: "Uma variável 'edad' que armazena o valor inserido pelo usuário como inteiro deve ser criada."
-              }]
-            } else if (code.replace(/\s/g, '').trim().includes("edad=int(input(") || code.replace(/\s/g, '').trim().includes("edad=input(")) {
+                es: `La pregunta del input debe mencionar "edad"/"años" (o "age"/"old"). Actual: "${promptText}".`
+              }];
+            }
 
-              const lineasInput = code.match(/input\(["'].*?["']\)/g);
-              // console.log(lineasInput[0]);
+            // === 3) Verificar conversión a número (en input o en operación) ===
+            const castOnAssign = new RegExp(`^\\s*${ageVar}\\s*=\\s*(?:int|float)\\s*\\(\\s*input\\s*\\(`, "m").test(norm);
 
-              const preguntaEs = lineasInput[0].match(/["'](.*?)["']/)?.[1]; // Extraer el texto de la preguntaEs
-              if (preguntaEs.length < 1) {
-                return [{
-                  es: "El input no debe estar vacío, debes solicitar al usuario que ingrese su edad.",
-                  en: "The input must not be empty, you must ask the user to enter their age.",
-                  pt: "A entrada não deve estar vazia, você deve pedir ao usuário para inserir sua idade."
-                }]
-              }
-              if (preguntaEs) {
-                const contieneEdadOAnios = /edad|años/i.test(preguntaEs);
-                if (!contieneEdadOAnios) {
-                  seguirValidando = false
-                  // console.log("La pregunta del input no es válida porque no menciona 'edad' o 'años'.");
-                  return [{
-                    es: 'La pregunta del input "' + preguntaEs + '" no es válida porque no menciona "edad" o "años".',
-                    en: 'The input question ' + preguntaEs + ' is not valid because it does not mention "age" or "years".',
-                    pt: 'A pergunta do input ' + preguntaEs + ' não é válida porque não menciona "idade" ou "anos".'
-                  }]
-                }
+            // === 4) Verificar edadFutura = edad + 18 (con posible conversión) ===
+            const futureNames = ["edadFutura", "futureAge"];
+            const assigns = [...norm.matchAll(/^\s*([A-Za-z_]\w*)\s*=\s*(.+)$/gm)];
 
-              }
-            } else {
-              if (code.replace(/\s/g, '').trim().includes("age=int(input(") || code.replace(/\s/g, '').trim().includes("age=input(")) {
+            let futureVar = null;
+            let okFutureAssign = false;
 
-                const lineasInput = code.match(/input\(["'].*?["']\)/g);
-                // console.log(lineasInput[0]);
+            const usesValidFutureExpr = (rhs) => {
+              if (!/\+/.test(rhs) || !/(^|[^0-9])18([^0-9]|$)/.test(rhs)) return false;
+              const hasAgeDirect = new RegExp(`(?<![A-Za-z0-9_])${ageVar}(?![A-Za-z0-9_])`).test(rhs);
+              const hasAgeCasted = new RegExp(`(int|float)\\s*\\(\\s*${ageVar}\\s*\\)`).test(rhs);
+              if (!castOnAssign && !hasAgeCasted) return false;
+              return hasAgeDirect || hasAgeCasted;
+            };
 
-                const preguntaEn = lineasInput[0].match(/["'](.*?)["']/)?.[1]; // Extraer el texto de la preguntaEn
-                if (preguntaEn.length < 1) {
-                  return [{
-                    es: "El input no debe estar vacío, debes solicitar al usuario que ingrese su edad.",
-                    en: "The input must not be empty, you must ask the user to enter their age.",
-                    pt: "A entrada não deve estar vazia, você deve pedir ao usuário para inserir sua idade."
-                  }]
-                }
-                if (preguntaEn) {
-                  const contieneEdadOAnios = /age|old/i.test(preguntaEn);
-                  if (!contieneEdadOAnios) {
-                    seguirValidando = false
-                    // console.log("La pregunta del input no es válida porque no menciona 'edad' o 'años'.");
-                    return [{
-                      es: 'La pregunta del input "' + preguntaEn + '" no es válida porque no menciona "edad" o "años".',
-                      en: 'The input question ' + preguntaEn + ' is not valid because it does not mention "age" or "old".',
-                      pt: 'A pergunta do input ' + preguntaEn + ' não é válida porque não menciona "idade" ou "anos".'
-                    }]
-                  }
-                }
-              } else {
-                return [{
-                  es: "Debe solicitar al usuario que ingrese su edad.",
-                  en: "You must ask the user to enter their age.",
-                  pt: "Você deve pedir ao usuário para inserir sua idade."
-                }]
+            for (const m of assigns) {
+              const lhs = m[1];
+              const rhs = m[2];
+              if (futureNames.includes(lhs) && usesValidFutureExpr(rhs)) {
+                futureVar = lhs;
+                okFutureAssign = true;
+                break;
               }
             }
 
-            if (!code.replace(/\s/g, '').trim().includes("edadFutura=edad+18") && !code.replace(/\s/g, '').trim().includes("edadFutura=int(edad)+18") && !code.replace(/\s/g, '').trim().includes("futureAge=age+18") && !code.replace(/\s/g, '').trim().includes("futureAge=int(age)+18") && !code.replace(/\s/g, '').trim().includes("edadFutura=18+edad") && !code.replace(/\s/g, '').trim().includes("edadFutura=18+int(edad)") && !code.replace(/\s/g, '').trim().includes("futureAge=18+age") && !code.replace(/\s/g, '').trim().includes("futureAge=18+int(age)")) {
+            if (!okFutureAssign) {
               return [{
-                es: "Debes crearse una variable llamada edadFutura que sume la 'edad' del usuario mas 18.",
-                en: "A variable called futureAge that adds the user's 'age' plus 18 must be created.",
-                pt: "Uma variável chamada futureAge que adiciona a 'idade' do usuário mais 18 deve ser criada."
-              }]
-            } else if (!code.replace(/\s/g, '').trim().includes('print("Tuedaddentrode18añosserá:"+str(edadFutura))') && !code.replace(/\s/g, '').trim().includes('print("Youragedin18yearswillbe:"+str(futureAge))') && !code.replace(/\s/g, '').trim().includes("print('Tuedaddentrode18añosserá:'+str(edadFutura))") && !code.replace(/\s/g, '').trim().includes("print('Youragedin18yearswillbe:'+str(futureAge))")) {
-              return [{
-                es: "Debes imprimir un mensaje que contenga 'edadFutura' convertida a texto.",
-                en: "A message containing 'futureAge' converted to text must be printed.",
-                pt: "Uma mensagem contendo 'edadFutura' convertida para texto deve ser impressa."
-              }]
+                es: "Debes crear 'edadFutura' sumando 18 a la edad. Si no convertiste en el input, convierte en la operación."
+              }];
             }
+
+            // === 5) Validar el print ===
+            const prints = [...norm.matchAll(/print\s*\(([\s\S]*?)\)\s*$/gm)].map(m => m[1]);
+            if (prints.length === 0) {
+              return [{ es: "Debes imprimir el resultado con print()." }];
+            }
+
+            const resName = futureVar;
+            const containsRes = (body) => new RegExp(`(?<![A-Za-z0-9_])${resName}(?![A-Za-z0-9_])`).test(body);
+            const hasPhrase = (body) => /tu\s*edad\s*dentro\s*de\s*18/i.test(body);
+
+            const isFStringWithRes = (body) => /f["']/.test(body) && new RegExp(`\\{[^}]*\\b${resName}\\b[^}]*\\}`).test(body);
+            const hasFormat = (body) => /\.format\s*\(/.test(body) && containsRes(body);
+            const hasComma = (body) => /,/.test(body) && containsRes(body);
+            const isDirect = (body) => new RegExp(`^\\s*${resName}\\s*$`).test(body.trim());
+            const usesPlus = (body) => /\+/.test(body);
+            const hasStringLiteral = (body) => /["'][\s\S]*?["']/.test(body);
+            const hasStrWrap = (body) => new RegExp(`str\\s*\\(\\s*${resName}\\s*\\)`).test(body);
+
+            // ❌ Bloquear concatenación sin str()
+            const badConcat = prints.some(body =>
+              usesPlus(body) && hasStringLiteral(body) && containsRes(body) && !hasStrWrap(body)
+            );
+            if (badConcat) {
+              return [{
+                es: `Si concatenás texto con ${resName}, usá str(${resName}). Ej.: print("Tu edad dentro de 18..." + str(${resName})).`
+              }];
+            }
+
+            // ✅ Validar frase + variable correcta
+            const printedOK = prints.some(body =>
+              hasPhrase(body) && (
+                isFStringWithRes(body) || hasFormat(body) || hasComma(body) || isDirect(body) ||
+                (usesPlus(body) && hasStrWrap(body))
+              )
+            );
+
+            if (!printedOK) {
+              return [{
+                es: "El print debe incluir la frase 'Tu edad dentro de 18' y mostrar la variable convertida a texto."
+              }];
+            }
+
+            // Listo, aprobó
+
+
+
+
+            //VALIDACION VIEJA
+            // if (!code.replace(/\s/g, '').trim().includes("edad=") && !code.replace(/\s/g, '').trim().includes("age=")) {
+            //   return [{
+            //     es: "Debes crearse una variable 'edad' que almacene el valor ingresado por el usuario como entero.",
+            //     en: "A variable 'age' that stores the value entered by the user as an integer must be created.",
+            //     pt: "Uma variável 'edad' que armazena o valor inserido pelo usuário como inteiro deve ser criada."
+            //   }]
+            // } else if (code.replace(/\s/g, '').trim().includes("edad=int(input(") || code.replace(/\s/g, '').trim().includes("edad=input(")) {
+
+            //   const lineasInput = code.match(/input\(["'].*?["']\)/g);
+            //   // console.log(lineasInput[0]);
+
+            //   const preguntaEs = lineasInput[0].match(/["'](.*?)["']/)?.[1]; // Extraer el texto de la preguntaEs
+            //   if (preguntaEs.length < 1) {
+            //     return [{
+            //       es: "El input no debe estar vacío, debes solicitar al usuario que ingrese su edad.",
+            //       en: "The input must not be empty, you must ask the user to enter their age.",
+            //       pt: "A entrada não deve estar vazia, você deve pedir ao usuário para inserir sua idade."
+            //     }]
+            //   }
+            //   if (preguntaEs) {
+            //     const contieneEdadOAnios = /edad|años/i.test(preguntaEs);
+            //     if (!contieneEdadOAnios) {
+            //       seguirValidando = false
+            //       // console.log("La pregunta del input no es válida porque no menciona 'edad' o 'años'.");
+            //       return [{
+            //         es: 'La pregunta del input "' + preguntaEs + '" no es válida porque no menciona "edad" o "años".',
+            //         en: 'The input question ' + preguntaEs + ' is not valid because it does not mention "age" or "years".',
+            //         pt: 'A pergunta do input ' + preguntaEs + ' não é válida porque não menciona "idade" ou "anos".'
+            //       }]
+            //     }
+
+            //   }
+            // } else {
+            //   if (code.replace(/\s/g, '').trim().includes("age=int(input(") || code.replace(/\s/g, '').trim().includes("age=input(")) {
+
+            //     const lineasInput = code.match(/input\(["'].*?["']\)/g);
+            //     // console.log(lineasInput[0]);
+
+            //     const preguntaEn = lineasInput[0].match(/["'](.*?)["']/)?.[1]; // Extraer el texto de la preguntaEn
+            //     if (preguntaEn.length < 1) {
+            //       return [{
+            //         es: "El input no debe estar vacío, debes solicitar al usuario que ingrese su edad.",
+            //         en: "The input must not be empty, you must ask the user to enter their age.",
+            //         pt: "A entrada não deve estar vazia, você deve pedir ao usuário para inserir sua idade."
+            //       }]
+            //     }
+            //     if (preguntaEn) {
+            //       const contieneEdadOAnios = /age|old/i.test(preguntaEn);
+            //       if (!contieneEdadOAnios) {
+            //         seguirValidando = false
+            //         // console.log("La pregunta del input no es válida porque no menciona 'edad' o 'años'.");
+            //         return [{
+            //           es: 'La pregunta del input "' + preguntaEn + '" no es válida porque no menciona "edad" o "años".',
+            //           en: 'The input question ' + preguntaEn + ' is not valid because it does not mention "age" or "old".',
+            //           pt: 'A pergunta do input ' + preguntaEn + ' não é válida porque não menciona "idade" ou "anos".'
+            //         }]
+            //       }
+            //     }
+            //   } else {
+            //     return [{
+            //       es: "Debe solicitar al usuario que ingrese su edad.",
+            //       en: "You must ask the user to enter their age.",
+            //       pt: "Você deve pedir ao usuário para inserir sua idade."
+            //     }]
+            //   }
+            // }
+
+            // if (!code.replace(/\s/g, '').trim().includes("edadFutura=edad+18") && !code.replace(/\s/g, '').trim().includes("edadFutura=int(edad)+18") && !code.replace(/\s/g, '').trim().includes("futureAge=age+18") && !code.replace(/\s/g, '').trim().includes("futureAge=int(age)+18") && !code.replace(/\s/g, '').trim().includes("edadFutura=18+edad") && !code.replace(/\s/g, '').trim().includes("edadFutura=18+int(edad)") && !code.replace(/\s/g, '').trim().includes("futureAge=18+age") && !code.replace(/\s/g, '').trim().includes("futureAge=18+int(age)")) {
+            //   return [{
+            //     es: "Debes crearse una variable llamada edadFutura que sume la 'edad' del usuario mas 18.",
+            //     en: "A variable called futureAge that adds the user's 'age' plus 18 must be created.",
+            //     pt: "Uma variável chamada futureAge que adiciona a 'idade' do usuário mais 18 deve ser criada."
+            //   }]
+            // } else if (!code.replace(/\s/g, '').trim().includes('print("Tuedaddentrode18añosserá:"+str(edadFutura))') && !code.replace(/\s/g, '').trim().includes('print("Youragedin18yearswillbe:"+str(futureAge))') && !code.replace(/\s/g, '').trim().includes("print('Tuedaddentrode18añosserá:'+str(edadFutura))") && !code.replace(/\s/g, '').trim().includes("print('Youragedin18yearswillbe:'+str(futureAge))")) {
+            //   return [{
+            //     es: "Debes imprimir un mensaje que contenga 'edadFutura' convertida a texto.",
+            //     en: "A message containing 'futureAge' converted to text must be printed.",
+            //     pt: "Uma mensagem contendo 'edadFutura' convertida para texto deve ser impressa."
+            //   }]
+            // }
 
           })
       },
@@ -399,149 +792,239 @@ export const exercises = [
         "test": (assert) => assert
           .$custom(code => {
 
-            if (!code.includes("import random")) {
+            const norm = code.replace(/\r/g, "");
+
+            // 1) Importación válida del módulo random
+            const hasImportRandom = /\bimport\s+random\b/.test(norm);
+            const hasFromRandint = /\bfrom\s+random\s+import\s+(?:\*|randint)\b/.test(norm);
+            const hasAliasImport = /\bimport\s+random\s+as\s+([A-Za-z_]\w*)\b/.exec(norm);
+            const aliasName = hasAliasImport ? hasAliasImport[1] : null;
+
+            if (!(hasImportRandom || hasFromRandint)) {
               return [{
-                es: "Debe importar el módulo 'random'.",
-                en: "The 'random' module must be imported.",
-                pt: "O módulo 'random' deve ser importado."
-              }]
-            } else if (!code.replace(/\s/g, '').trim().includes("num1=random.randint(0,20)")) {
-              return [{
-                es: "Debe crearse una variable 'num1' que guarde un número aleatorio entre 0 y 20.",
-                en: "A variable 'num1' that stores a random number between 0 and 20 must be created.",
-                pt: "Uma variável 'num1' que armazena um número aleatório entre 0 e 20 deve ser criada."
-              }]
-            } else if (!code.replace(/\s/g, '').trim().includes("num2=random.randint(0,20)")) {
-              return [{
-                es: "Debe crearse una variable 'num2' que guarde un número aleatorio entre 0 y 20.",
-                en: "A variable 'num2' that stores a random number between 0 and 20 must be created.",
-                pt: "Uma variável 'num2' que armazena um número aleatório entre 0 e 20 deve ser criada."
-              }]
-            } else if (!code.replace(/\s/g, '').trim().includes("num3=random.randint(0,20)")) {
-              return [{
-                es: "Debe crearse una variable 'num3' que guarde un número aleatorio entre 0 y 20.",
-                en: "A variable 'num3' that stores a random number between 0 and 20 must be created.",
-                pt: "Uma variável 'num3' que armazena um número aleatório entre 0 e 20 deve ser criada."
-              }]
-            } else if (!code.replace(/\s/g, '').trim().includes("num4=random.randint(0,20)")) {
-              return [{
-                es: "Debe crearse una variable 'num4' que guarde un número aleatorio entre 0 y 20.",
-                en: "A variable 'num4' that stores a random number between 0 and 20 must be created.",
-                pt: "Uma variável 'num4' que armazena um número aleatório entre 0 e 20 deve ser criada."
-              }]
-            } else if (!code.replace(/\s/g, '').trim().includes("num5=random.randint(0,20)")) {
-              return [{
-                es: "Debe crearse una variable 'num5' que guarde un número aleatorio entre 0 y 20.",
-                en: "A variable 'num5' that stores a random number between 0 and 20 must be created.",
-                pt: "Uma variável 'num5' que armazena um número aleatório entre 0 e 20 deve ser criada."
-              }]
-            } else if (!code.includes("print(num1)")) {
-              return [{
-                es: "Debe imprimir el valor de 'num1'.",
-                en: "The value of 'num1' must be printed.",
-                pt: "O valor de 'num1' deve ser impresso."
-              }]
-            } else if (!code.includes("print(num2)")) {
-              return [{
-                es: "Debe imprimir el valor de 'num2'.",
-                en: "The value of 'num2' must be printed.",
-                pt: "O valor de 'num2' deve ser impresso."
-              }]
-            } else if (!code.includes("print(num3)")) {
-              return [{
-                es: "Debe imprimir el valor de 'num3'.",
-                en: "The value of 'num3' must be printed.",
-                pt: "O valor de 'num3' deve ser impresso."
-              }]
-            } else if (!code.includes("print(num4)")) {
-              return [{
-                es: "Debe imprimir el valor de 'num4'.",
-                en: "The value of 'num4' must be printed.",
-                pt: "O valor de 'num4' deve ser impresso."
-              }]
-            } else if (!code.includes("print(num5)")) {
-              return [{
-                es: "Debe imprimir el valor de 'num5'.",
-                en: "The value of 'num5' must be printed.",
-                pt: "O valor de 'num5' deve ser impresso."
-              }]
-            } else if (!code.replace(/\s/g, '').trim().includes("total=num1+num2+num3+num4+num5")) {
-              return [{
-                es: "Debe crearse una variable 'total' que sume los valores de 'num1', 'num2', 'num3', 'num4' y 'num5'.",
-                en: "A variable 'total' that adds the values of 'num1', 'num2', 'num3', 'num4', and 'num5' must be created.",
-                pt: "Uma variável 'total' que soma os valores de 'num1', 'num2', 'num3', 'num4' e 'num5' deve ser criada."
-              }]
-            } else if (!code.replace(/\s/g, '').trim().includes('print("Lasumadelosnúmerosgeneradoses:"+str(total)') && !code.replace(/\s/g, '').trim().includes('print("Thesumofthegeneratednumbersis:"+str(total)')) {
-              return [{
-                es: "Debe imprimir un mensaje que contenga 'total' convertida a texto. Recuerda utilizar el metodo str() para convertir a texto.",
-                en: "A message containing 'total' converted to text must be printed. Remember to use the str() method to convert to text.",
-                pt: "Uma mensagem contendo 'total' convertida para texto deve ser impressa. Lembre-se de usar o método str() para converter para texto."
-              }]
+                es: "Debe importar el módulo 'random' (por ejemplo: 'import random' o 'from random import randint').",
+                en: "You must import the 'random' module (e.g., 'import random' or 'from random import randint').",
+                pt: "Você deve importar o módulo 'random' (por exemplo: 'import random' ou 'from random import randint')."
+              }];
             }
+
+            // 2) Capturar 5 variables distintas asignadas con randint(0,20)
+            //    Acepta: random.randint(...), <alias>.randint(...), o randint(...) (from random import randint)
+            const aliasMatch = /\bimport\s+random\s+as\s+([A-Za-z_]\w*)\b/.exec(norm);
+            const aliasNameMatch = aliasMatch ? aliasMatch[1] : null;
+
+            // Armamos un prefijo que cubra random, alias (si hay), o nada (randint importado)
+            const prefixPart = aliasNameMatch ? `(?:random|${aliasNameMatch})\\.` : `(?:random\\.)?`;
+
+            // Regex sin ^$ para encontrar asignaciones en cualquier lugar del código
+            const reAnyRandintAnywhere = new RegExp(
+              String.raw`([A-Za-z_]\w*)\s*=\s*(?:` +
+              `${prefixPart}` + String.raw`randint\s*\(\s*0\s*,\s*20\s*\)` +
+              `)`,
+              "g"
+            );
+
+            const vars = new Set();
+            for (const m of norm.matchAll(reAnyRandintAnywhere)) {
+              vars.add(m[1]); // nombre de variable a la izquierda del =
+            }
+
+            if (vars.size < 5) {
+              return [{
+                es: "Debes crear 5 variables distintas usando randint(0, 20).",
+                en: "You must create 5 distinct variables using randint(0, 20).",
+                pt: "Você deve criar 5 variáveis distintas usando randint(0, 20)."
+              }];
+            }
+
+            // Nos quedamos exactamente con las 5 primeras encontradas para validar impresiones y suma
+            const firstFive = [...vars].slice(0, 5);
+
+            // 3) Cada número debe imprimirse al menos una vez
+            const allPrintBodies = [...norm.matchAll(/print\s*\(([\s\S]*?)\)\s*$/gm)].map(m => m[1]);
+            if (allPrintBodies.length === 0) {
+              return [{ es: "Debes imprimir cada número generado usando print()." }];
+            }
+            const printedEach = firstFive.every(v =>
+              allPrintBodies.some(body => new RegExp(`(?<![A-Za-z0-9_])${v}(?![A-Za-z0-9_])`).test(body))
+            );
+            if (!printedEach) {
+              return [{
+                es: "Debes imprimir los cinco números generados (cada variable al menos una vez).",
+                en: "You must print all five generated numbers (each variable at least once).",
+                pt: "Você deve imprimir os cinco números gerados (cada variável ao menos uma vez)."
+              }];
+            }
+
+            // 4) total como suma: aceptar + o sum([...])
+            const assignTotal = [...norm.matchAll(/^\s*total\s*=\s*(.+)$/gm)];
+            if (assignTotal.length === 0) {
+              return [{
+                es: "Debes crear la variable 'total' con la suma de los cinco números.",
+                en: "You must create the 'total' variable with the sum of the five numbers.",
+                pt: "Você deve criar a variável 'total' com a soma dos cinco números."
+              }];
+            }
+
+            const usesValidTotal = (rhs) => {
+              // Caso sum([...])
+              const listMatch = rhs.match(/\bsum\s*\(\s*\[\s*([^\]]+)\s*\]\s*\)/);
+              if (listMatch) {
+                const inside = listMatch[1];
+                // Deben aparecer las 5 variables en cualquier orden
+                return firstFive.every(v => new RegExp(`(?<![A-Za-z0-9_])${v}(?![A-Za-z0-9_])`).test(inside));
+              }
+              // Caso con '+'
+              if (/\+/.test(rhs)) {
+                return firstFive.every(v => new RegExp(`(?<![A-Za-z0-9_])${v}(?![A-Za-z0-9_])`).test(rhs));
+              }
+              return false;
+            };
+
+            let totalOK = false;
+            for (const m of assignTotal) {
+              const rhs = m[1];
+              if (usesValidTotal(rhs)) { totalOK = true; break; }
+            }
+            if (!totalOK) {
+              return [{
+                es: "La variable 'total' debe ser la suma de las cinco variables (con '+' o con sum([...])).",
+                en: "The 'total' variable must be the sum of the five variables (with '+' or sum([...])).",
+                pt: "A variável 'total' deve ser a soma das cinco variáveis (com '+' ou sum([...]))."
+              }];
+            }
+
+            // 5) Print final con frase requerida y total correcto
+            if (allPrintBodies.length === 0) {
+              return [{ es: "Debes imprimir el resultado final con print()." }];
+            }
+
+            const phraseRe = /la\s*suma\s*de\s*los\s*n[uú]meros\s*generados\s*es/i; // tolera 'números'/'numeros'
+            const containsTotal = (body) => /\btotal\b/.test(body);
+
+            const usesPlus = (body) => /\+/.test(body);
+            const hasStringLiteral = (body) => /["'][\s\S]*?["']/.test(body);
+            const hasStrTotal = (body) => /str\s*\(\s*total\s*\)/.test(body);
+
+            const isFStringWithTotal = (body) => /f["']/.test(body) && /\{[^}]*\btotal\b[^}]*\}/.test(body);
+            const hasFormat = (body) => /\.format\s*\(/.test(body) && containsTotal(body);
+            const hasComma = (body) => /,/.test(body) && containsTotal(body);
+            const isDirect = (body) => /^\s*total\s*$/.test(body.trim());
+
+            // Bloquear concatenación texto + total sin str(total)
+            const badConcat = allPrintBodies.some(body =>
+              usesPlus(body) && hasStringLiteral(body) && containsTotal(body) && !hasStrTotal(body)
+            );
+            if (badConcat) {
+              return [{
+                es: "Si concatenás texto con el resultado, usá str(total). Ej.: print(\"La suma de los números generados es: \" + str(total)).",
+                en: "If you concatenate text with the result, use str(total). E.g., print(\"The sum of the generated numbers is: \" + str(total)).",
+                pt: "Se concatenar texto com o resultado, use str(total). Ex.: print(\"A soma dos números gerados é: \" + str(total))."
+              }];
+            }
+
+            // Debe existir un print que tenga la frase requerida y muestre total correctamente
+            const printedOK = allPrintBodies.some(body =>
+              phraseRe.test(body) && (
+                isFStringWithTotal(body) || hasFormat(body) || hasComma(body) || isDirect(body) ||
+                (usesPlus(body) && hasStrTotal(body))
+              )
+            );
+            if (!printedOK) {
+              return [{
+                es: "El print final debe incluir la frase “La suma de los números generados es” y mostrar 'total' correctamente (con comas, f-string, .format o + str(total)).",
+                en: "The final print must include the phrase “La suma de los números generados es” and show 'total' correctly (commas, f-string, .format, or + str(total)).",
+                pt: "O print final deve incluir a frase “La suma de los números generados es” e mostrar 'total' corretamente (vírgulas, f-string, .format ou + str(total))."
+              }];
+            }
+
+            // Todo OK
+
+
+            // VALIDACION VIEJA
+            // if (!code.includes("import random")) {
+            //   return [{
+            //     es: "Debe importar el módulo 'random'.",
+            //     en: "The 'random' module must be imported.",
+            //     pt: "O módulo 'random' deve ser importado."
+            //   }]
+            // } else if (!code.replace(/\s/g, '').trim().includes("num1=random.randint(0,20)")) {
+            //   return [{
+            //     es: "Debe crearse una variable 'num1' que guarde un número aleatorio entre 0 y 20.",
+            //     en: "A variable 'num1' that stores a random number between 0 and 20 must be created.",
+            //     pt: "Uma variável 'num1' que armazena um número aleatório entre 0 e 20 deve ser criada."
+            //   }]
+            // } else if (!code.replace(/\s/g, '').trim().includes("num2=random.randint(0,20)")) {
+            //   return [{
+            //     es: "Debe crearse una variable 'num2' que guarde un número aleatorio entre 0 y 20.",
+            //     en: "A variable 'num2' that stores a random number between 0 and 20 must be created.",
+            //     pt: "Uma variável 'num2' que armazena um número aleatório entre 0 e 20 deve ser criada."
+            //   }]
+            // } else if (!code.replace(/\s/g, '').trim().includes("num3=random.randint(0,20)")) {
+            //   return [{
+            //     es: "Debe crearse una variable 'num3' que guarde un número aleatorio entre 0 y 20.",
+            //     en: "A variable 'num3' that stores a random number between 0 and 20 must be created.",
+            //     pt: "Uma variável 'num3' que armazena um número aleatório entre 0 e 20 deve ser criada."
+            //   }]
+            // } else if (!code.replace(/\s/g, '').trim().includes("num4=random.randint(0,20)")) {
+            //   return [{
+            //     es: "Debe crearse una variable 'num4' que guarde un número aleatorio entre 0 y 20.",
+            //     en: "A variable 'num4' that stores a random number between 0 and 20 must be created.",
+            //     pt: "Uma variável 'num4' que armazena um número aleatório entre 0 e 20 deve ser criada."
+            //   }]
+            // } else if (!code.replace(/\s/g, '').trim().includes("num5=random.randint(0,20)")) {
+            //   return [{
+            //     es: "Debe crearse una variable 'num5' que guarde un número aleatorio entre 0 y 20.",
+            //     en: "A variable 'num5' that stores a random number between 0 and 20 must be created.",
+            //     pt: "Uma variável 'num5' que armazena um número aleatório entre 0 e 20 deve ser criada."
+            //   }]
+            // } else if (!code.includes("print(num1)")) {
+            //   return [{
+            //     es: "Debe imprimir el valor de 'num1'.",
+            //     en: "The value of 'num1' must be printed.",
+            //     pt: "O valor de 'num1' deve ser impresso."
+            //   }]
+            // } else if (!code.includes("print(num2)")) {
+            //   return [{
+            //     es: "Debe imprimir el valor de 'num2'.",
+            //     en: "The value of 'num2' must be printed.",
+            //     pt: "O valor de 'num2' deve ser impresso."
+            //   }]
+            // } else if (!code.includes("print(num3)")) {
+            //   return [{
+            //     es: "Debe imprimir el valor de 'num3'.",
+            //     en: "The value of 'num3' must be printed.",
+            //     pt: "O valor de 'num3' deve ser impresso."
+            //   }]
+            // } else if (!code.includes("print(num4)")) {
+            //   return [{
+            //     es: "Debe imprimir el valor de 'num4'.",
+            //     en: "The value of 'num4' must be printed.",
+            //     pt: "O valor de 'num4' deve ser impresso."
+            //   }]
+            // } else if (!code.includes("print(num5)")) {
+            //   return [{
+            //     es: "Debe imprimir el valor de 'num5'.",
+            //     en: "The value of 'num5' must be printed.",
+            //     pt: "O valor de 'num5' deve ser impresso."
+            //   }]
+            // } else if (!code.replace(/\s/g, '').trim().includes("total=num1+num2+num3+num4+num5")) {
+            //   return [{
+            //     es: "Debe crearse una variable 'total' que sume los valores de 'num1', 'num2', 'num3', 'num4' y 'num5'.",
+            //     en: "A variable 'total' that adds the values of 'num1', 'num2', 'num3', 'num4', and 'num5' must be created.",
+            //     pt: "Uma variável 'total' que soma os valores de 'num1', 'num2', 'num3', 'num4' e 'num5' deve ser criada."
+            //   }]
+            // } else if (!code.replace(/\s/g, '').trim().includes('print("Lasumadelosnúmerosgeneradoses:"+str(total)') && !code.replace(/\s/g, '').trim().includes('print("Thesumofthegeneratednumbersis:"+str(total)')) {
+            //   return [{
+            //     es: "Debe imprimir un mensaje que contenga 'total' convertida a texto. Recuerda utilizar el metodo str() para convertir a texto.",
+            //     en: "A message containing 'total' converted to text must be printed. Remember to use the str() method to convert to text.",
+            //     pt: "Uma mensagem contendo 'total' convertida para texto deve ser impressa. Lembre-se de usar o método str() para converter para texto."
+            //   }]
+            // }
 
           })
       }
-      // {
-      //   "description": "El código debe importar el módulo 'random'.",
-      //   "test": (assert) => assert
-      //     .$import("random").catch({
-      //       es: "Debe importar el módulo 'random'.",
-      //       en: "The 'random' module must be imported.",
-      //       pt: "O módulo 'random' deve ser importado."
-      //     })
-      // },
-      // {
-      //   "description": "El código debe crear 5 variables con números aleatorios en rangos diferentes, sin repetir el rango.",
-      //   "test": (assert) => assert
-      //     .$variable("num1").catch({
-      //       es: "No se encontró la variable 'num1' en el código.",
-      //       en: "The variable 'num1' was not found in the code.",
-      //       pt: "A variável 'num1' não foi encontrada no código.",
-      //     })
-      //     .withAssignation(" random.randint(0, 9)").catch({
-      //       es: "La variable 'num1' debe ser asignada con el valor de la función 'input'.",
-      //       en: "The variable 'num1' should be assigned the value of the 'input' function.",
-      //       pt: "A variável 'num1' deve ser atribuída com o valor da função 'input'.",
-      //     })
-
-
-      // },
-      // {
-      //   "description": "El código debe sumar los números generados y guardar el resultado en una variable.",
-      //   "test": (assert) => assert
-      //     .$variable("total").catch({
-      //       es: "No se encontró la variable 'total' en el código.",
-      //       en: "The variable 'total' was not found in the code.",
-      //       pt: "A variável 'total' não foi encontrada no código.",
-      //     })
-      //     .withAssignation("num1 + num2 + num3 + num4 + num5").catch({
-      //       es: "Debe sumar los cinco números aleatorios y guardar el resultado en la variable 'total'.",
-      //       en: "It must sum the five random numbers and store the result in the 'total' variable.",
-      //       pt: "Deve somar os cinco números aleatórios e armazenar o resultado na variável 'total'."
-      //     })
-      // },
-      // {
-      //   "description": "El código debe hacer un print() con el texto 'La suma de los números generados es: ' y concatenar el resultado de la suma.",
-      //   "test": (assert) => assert
-      //     .$functionCall("print")
-      //     .withArguments(["\"La suma de los números generados es: \" + str(total)"]).catch({
-      //       es: "El print() debe mostrar el mensaje con la suma total de los números generados.",
-      //       en: "The print() must display the message with the total sum of the generated numbers.",
-      //       pt: "O print() deve mostrar a mensagem com a soma total dos números gerados."
-      //     })
-      // }
-    ],
-    // "validationCodeSimulator": {
-    //   "description": "Al ejecutar el programa, deberían generarse 5 números aleatorios y mostrar su suma.",
-    //   "test": ($) => {
-
-    //     $.print("La suma de los números generados es: ").catch({
-    //       es: "Se debería imprimir el mensaje 'La suma de los números generados es: 150' si los números generados son 10, 20, 30, 40 y 50.",
-    //       en: "The message 'La suma de los números generados es: 150' should be printed if the generated numbers are 10, 20, 30, 40, and 50.",
-    //       pt: "A mensagem 'La suma de los números gerados é: 150' deve ser impressa se os números gerados forem 10, 20, 30, 40 e 50.",
-    //     });
-    //   }
-    // }
+    ]
   },
   {
     "id": "modulo-02",
@@ -559,218 +1042,297 @@ export const exercises = [
         "description": "El código debe importar el módulo 'datetime'.",
         "test": (assert) => assert
           .$custom(code => {
+            const norm = code.replace(/\r/g, "");
 
-            if (!code.includes("import datetime")) {
-              return [{
-                es: "Debe importar el módulo 'datetime'.",
-                en: "The 'datetime' module must be imported.",
-                pt: "O módulo 'datetime' deve ser importado."
-              }]
-            } else if (!code.replace(/\s/g, '').trim().includes("ahora=") && !code.replace(/\s/g, '').trim().includes("now=")) {
-              return [{
-                es: "Debe crearse una variable 'ahora' que guarde la fecha actual.",
-                en: "A variable 'now' that stores the current date must be created.",
-                pt: "Uma variável 'agora' que armazena a data atual deve ser criada."
-              }]
+            // Helpers
+            const hasVar = (name) => new RegExp(`(?<![A-Za-z0-9_])${name}(?![A-Za-z0-9_])`).test(norm);
+            const anyPrintBodies = [...norm.matchAll(/print\s*\(([\s\S]*?)\)\s*$/gm)].map(m => m[1]);
+            const printsSomething = (name) =>
+              anyPrintBodies.some(b => new RegExp(`(?<![A-Za-z0-9_])${name}(?![A-Za-z0-9_])`).test(b));
 
-            } else if (!code.replace(/\s/g, '').trim().includes("ahora=datetime.datetime.now()") && !code.replace(/\s/g, '').trim().includes("now=datetime.datetime.now()")) {
-              return [{
-                es: "La variable 'ahora' debe guardar la fecha actual.",
-                en: "The 'now' variable must store the current date.",
-                pt: "A variável 'agora' deve armazenar a data atual."
-              }]
-            } else if (!code.replace(/\s/g, '').trim().includes("ahora=datetime.datetime.now()print(ahora)") && !code.replace(/\s/g, '').trim().includes("now=datetime.datetime.now()print(now)")) {
-              return [{
-                es: "Debes imprimir el valor de la variable 'ahora'.",
-                en: "The value of the 'now' variable must be printed.",
-                pt: "O valor da variável 'agora' deve ser impresso."
-              }]
-            } else if (!code.replace(/\s/g, '').trim().includes("fecha=") && !code.replace(/\s/g, '').trim().includes("date=")) {
-              return [{
-                es: "Debe crearse una variable 'fecha' que guarde la fecha de tu cumpleaños.",
-                en: "A variable 'date' that stores your birthday date must be created.",
-                pt: "Uma variável 'data' que armazena a data de seu aniversário deve ser criada."
-              }]
+            const printedPhrase = (re) => anyPrintBodies.some(b => re.test(b));
+
+            // 1) Import datetime: aceptar "import datetime" o "from datetime import datetime"
+            const hasImportDatetime =
+              /\bimport\s+datetime\b/.test(norm) || /\bfrom\s+datetime\s+import\s+datetime\b/.test(norm);
+            if (!hasImportDatetime) {
+              return [{ es: "Debe importar el módulo 'datetime' (por ejemplo, 'import datetime' o 'from datetime import datetime')." }];
             }
-            else if (code.replace(/\s/g, '').trim().includes("fecha=datetime.datetime(") || code.replace(/\s/g, '').trim().includes("date=datetime.datetime(")) {
-              // Expresión regular para capturar el contenido dentro de datetime.datetime(...)
-              const match = code.match(/datetime\.datetime\((.*?)\)/);
 
-              if (match) {
-                const contenido = match[1]; // Obtener el contenido dentro de los paréntesis
-                // Verificar si todos los valores separados por comas son números
-                const numerosValidos = contenido.split(",").every(part => {
-                  const valor = part.trim(); // Quitar espacios
-                  return /^\d+$/.test(valor) && !/^0\d+/.test(valor); // Es un número y no empieza con 0
-                });
-                // console.log(numerosValidos);
+            // 2) ahora/now = datetime.datetime.now() o datetime.now()
+            const reNowAssign = [
+              /^\s*(ahora|now)\s*=\s*datetime\.datetime\.now\s*\(\s*\)\s*$/m,
+              /^\s*(ahora|now)\s*=\s*datetime\.now\s*\(\s*\)\s*$/m
+            ];
+            let nowVar = null;
+            if (reNowAssign.some(r => r.test(norm))) {
+              const m = norm.match(/^\s*(ahora|now)\s*=/m);
+              nowVar = m ? m[1] : "ahora";
+            } else {
+              return [{ es: "Debe asignar la fecha y hora actual, por ejemplo: ahora = datetime.datetime.now() o ahora = datetime.now()." }];
+            }
 
-                if (numerosValidos) {
-                  // console.log("El contenido contiene solo números.");
-                } else {
-                  return [{
-                    es: "Los valores dentro de la función datetime.datetime() deben ser números enteros y no deben empezar con 0.",
-                    en: "The values inside the datetime.datetime() function must be integers and must not start with 0.",
-                    pt: "Os valores dentro da função datetime.datetime() devem ser inteiros e não devem começar com 0."
-                  }]
-                }
+            // Debe imprimirse 'ahora'
+            if (!printsSomething(nowVar)) {
+              return [{ es: `Debes imprimir el valor de '${nowVar}'.` }];
+            }
+
+            // 3) fecha/date = datetime.datetime(YYYY, M, D) o datetime(YYYY, M, D)
+            // Capturamos la llamada y verificamos que sean enteros simples (flexible con espacios)
+            const reFechaAssign =
+              /^\s*(fecha|date)\s*=\s*(?:datetime\.datetime|datetime)\s*\(\s*([^)]+?)\s*\)\s*$/m;
+            const mFecha = norm.match(reFechaAssign);
+            let fechaVar = null;
+            if (!mFecha) {
+              return [{ es: "Debe crear una variable 'fecha' (o 'date') con datetime.datetime(YYYY, M, D) o datetime(YYYY, M, D)." }];
+            } else {
+              fechaVar = mFecha[1];
+              const inside = mFecha[2].split(",").map(s => s.trim());
+              const numsOK = inside.length >= 3 && inside.every(x => /^\d+$/.test(x));
+              if (!numsOK) {
+                return [{ es: "Los valores de datetime(...) deben ser números enteros (por ejemplo, 2000, 5, 15)." }];
               }
             }
-            if (!code.replace(/\s/g, '').trim().includes("print(fecha)") && !code.replace(/\s/g, '').trim().includes("print(date)")) {
-              return [{
-                es: "Debes imprimir el valor de 'fecha'.",
-                en: "The value of 'date' must be printed.",
-                pt: "O valor da variável 'data' deve ser impresso."
-              }]
+
+            // Debe imprimirse 'fecha'
+            if (!printsSomething(fechaVar)) {
+              return [{ es: `Debes imprimir el valor de '${fechaVar}'.` }];
             }
-            else if (!code.replace(/\s/g, '').trim().includes("diferencia=ahora-fecha") && !code.replace(/\s/g, '').trim().includes("difference=now-date")) {
-              return [{
-                es: "Debe crearse una variable 'diferencia' que guarde la resta de las fechas.",
-                en: "A variable 'difference' that stores the subtraction of the dates must be created.",
-                pt: "Uma variável 'diferença' que armazena a subtração das datas deve ser criada."
-              }]
-            } else if (!code.replace(/\s/g, '').trim().includes("diferencia=ahora-fechaprint(diferencia)") && !code.replace(/\s/g, '').trim().includes("difference=now-dateprint(difference)")) {
-              return [{
-                es: "Debes imprimir el valor de 'diferencia'.",
-                en: "The value of 'difference' must be printed.",
-                pt: "O valor da variável 'diferença' deve ser impresso."
-              }]
+
+            // 4) diferencia/difference = ahora - fecha (aceptamos orden estándar ahora - fecha)
+            const reDiffAssign =
+              /^\s*(diferencia|difference)\s*=\s*([A-Za-z_]\w*)\s*-\s*([A-Za-z_]\w*)\s*$/m;
+            const mDiff = norm.match(reDiffAssign);
+            let diffVar = null;
+            if (!mDiff) {
+              return [{ es: "Debe crear 'diferencia' (o 'difference') como resta entre las fechas, por ejemplo: diferencia = ahora - fecha." }];
+            } else {
+              diffVar = mDiff[1];
+              // (No forzamos el orden, pero sugerimos ahora - fecha en la consigna.)
             }
-            else if (!code.replace(/\s/g, '').trim().includes("diferenciaEnDias=diferencia.days") && !code.replace(/\s/g, '').trim().includes("differenceInDays=difference.days")) {
-              return [{
-                es: "Debe crearse una variable 'diferenciaEnDias' que guarde solo los días de la diferencia.",
-                en: "A variable 'differenceInDays' that stores only the days of the difference must be created.",
-                pt: "Uma variável 'differenceInDays' que armazena apenas os dias da diferença deve ser criada."
-              }]
-            } else if (!code.replace(/\s/g, '').trim().includes("diferenciaEnDias=diferencia.daysprint(diferenciaEnDias)") && !code.replace(/\s/g, '').trim().includes("differenceInDays=difference.daysprint(differenceInDays)")) {
-              return [{
-                es: "Debes imprimir el valor de 'diferenciaEnDias'.",
-                en: "The value of 'differenceInDays' must be printed.",
-                pt: "O valor da variável 'differenceInDays' deve ser impresso."
-              }]
+
+            // Debe imprimirse 'diferencia'
+            if (!printsSomething(diffVar)) {
+              return [{ es: `Debes imprimir el valor de '${diffVar}'.` }];
             }
-            else if (!code.replace(/\s/g, '').trim().includes("anios=diferenciaEnDias/365") && !code.replace(/\s/g, '').trim().includes("years=differenceInDays/365")) {
-              return [{
-                es: "Debe crearse una variable 'anios' que divida 'diferenciaEnDias' por 365.",
-                en: "A variable 'years' that divides 'differenceInDays' by 365 must be created.",
-                pt: "Uma variável 'anos' que divide 'differenceInDays' por 365 deve ser criada."
-              }]
-            } else if (!code.replace(/\s/g, '').trim().includes("anios=diferenciaEnDias/365print(anios)") && !code.replace(/\s/g, '').trim().includes("years=differenceInDays/365print(years)")) {
-              return [{
-                es: "Debes imprimir el valor de 'anios'.",
-                en: "The value of 'years' must be printed.",
-                pt: "O valor da variável 'anos' deve ser impresso."
-              }]
+
+            // 5) diferenciaEnDias/differenceInDays = diferencia.days
+            const reDaysAssign =
+              /^\s*(diferenciaEnDias|differenceInDays)\s*=\s*([A-Za-z_]\w*)\s*\.\s*days\s*$/m;
+            const mDays = norm.match(reDaysAssign);
+            let daysVar = null;
+            if (!mDays) {
+              return [{ es: "Debe crear 'diferenciaEnDias' (o 'differenceInDays') con la propiedad '.days' de la diferencia." }];
+            } else {
+              daysVar = mDays[1];
             }
-            else if (!code.replace(/\s/g, '').trim().includes('print("Tengo"+str(int(anios))+"años")') && !code.replace(/\s/g, '').trim().includes("print('Tengo'+str(int(anios))+'años')") && !code.replace(/\s/g, '').trim().includes('print("Iam"+str(int(years))+"years")') && !code.replace(/\s/g, '').trim().includes("print('Iam'+str(int(years))+'years')")) {
-              return [{
-                es: "Debe imprimir un mensaje que contenga 'anios' convertida a texto. Recuerda utilizar el metodo int() para quitar los decimales.",
-                en: "A message containing 'years' converted to text must be printed. Remember to use the int() method to remove the decimals.",
-                pt: "Uma mensagem contendo 'anos' convertida para texto deve ser impressa. Lembre-se de usar o método int() para remover as casas decimais."
-              }]
+
+            // Debe imprimirse 'diferenciaEnDias'
+            if (!printsSomething(daysVar)) {
+              return [{ es: `Debes imprimir el valor de '${daysVar}'.` }];
             }
+
+            // 6) anios/years = diferenciaEnDias / 365  (aceptamos / 365, / 365.0 o // 365)
+            const reYearsAssign =
+              /^\s*(anios|years)\s*=\s*([A-Za-z_]\w*)\s*(?:\/|\/\/)\s*365(?:\.0)?\s*$/m;
+            const mYears = norm.match(reYearsAssign);
+            let yearsVar = null;
+            if (!mYears) {
+              return [{ es: "Debe crear 'anios' (o 'years') dividiendo los días por 365 (por ejemplo: anios = diferenciaEnDias / 365)." }];
+            } else {
+              yearsVar = mYears[1];
+            }
+
+            // Debe imprimirse 'anios/years'
+            if (!printsSomething(yearsVar)) {
+              return [{ es: `Debes imprimir el valor de '${yearsVar}'.` }];
+            }
+
+            // 7) Mensaje final: "Tengo ... años" con entero
+            // Aceptamos:
+            //  - print("Tengo ..." + str(int(anios)))
+            //  - print("Tengo ...", int(anios))
+            //  - print(f"Tengo {int(anios)} ...")
+            //  - print("Tengo {} años".format(int(anios)))
+            //
+            // La frase debe contener "Tengo ... años" (toleramos espacios/acentos/casing)
+            const phraseRe = /tengo[\s\S]*a[nñ]os/i;
+
+            // ¿Algún print contiene la frase "Tengo ... años"?
+            const hasPhraseSomewhere = printedPhrase(phraseRe);
+            if (!hasPhraseSomewhere) {
+              return [{ es: "El mensaje final debe incluir la frase “Tengo … años”." }];
+            }
+
+            // Y además debe mostrar un entero de 'anios/years'
+            const yearsName = yearsVar;
+            const yearsNameRe = new RegExp(`(?<![A-Za-z0-9_])${yearsName}(?![A-Za-z0-9_])`);
+
+            const okFinal = anyPrintBodies.some(body => {
+              if (!phraseRe.test(body)) return false;
+
+              const hasIntWrap = new RegExp(`int\\s*\\(\\s*${yearsName}\\s*\\)`).test(body);
+              const hasDirectYears = yearsNameRe.test(body);
+
+              // Si no se redondeó con int(), aceptamos otras formas válidas:
+              // - f-strings con int()
+              const isFString = /f["']/.test(body);
+              const fWithYears = isFString && (hasIntWrap || yearsNameRe.test(body));
+
+              // - .format con int()
+              const hasFormat = /\.format\s*\(/.test(body) && (hasIntWrap || yearsNameRe.test(body));
+
+              // - con comas: print("Tengo ...", int(anios), "años")
+              const hasComma = /,/.test(body) && (hasIntWrap || yearsNameRe.test(body));
+
+              // - concatenación + str(int(anios))
+              const usesPlus = /\+/.test(body);
+              const hasStringLiteral = /["'][\s\S]*?["']/.test(body);
+              const hasStrInt = new RegExp(`str\\s*\\(\\s*int\\s*\\(\\s*${yearsName}\\s*\\)\\s*\\)`).test(body);
+
+              // Bloquear concatenación texto + years sin str(...)
+              const badConcat =
+                usesPlus && hasStringLiteral && yearsNameRe.test(body) && !/str\s*\(/.test(body);
+
+              if (badConcat) return false;
+
+              // Reglas de aprobación:
+              // a) si hay int(anios), aprobar en cualquier estilo
+              if (hasIntWrap) return true;
+
+              // b) si no hay int(), pero igual aparece years → permitir solo si usó coma o .format o f-string (texto seguro)
+              if (fWithYears || hasFormat || hasComma) return true;
+
+              // c) concatenación explícita: debe ser con str(int(...))
+              if (usesPlus && hasStrInt) return true;
+
+              return false;
+            });
+
+            if (!okFinal) {
+              return [{
+                es: "El mensaje final debe decir “Tengo … años” y mostrar un entero (usa int(anios)). Acepta comas, f-strings, .format o + str(int(anios))."
+              }];
+            }
+
+            // Si llega acá, aprobó
+
+
+
+
+            // VALIDACION VIEJA
+            // if (!code.includes("import datetime")) {
+            //   return [{
+            //     es: "Debe importar el módulo 'datetime'.",
+            //     en: "The 'datetime' module must be imported.",
+            //     pt: "O módulo 'datetime' deve ser importado."
+            //   }]
+            // } else if (!code.replace(/\s/g, '').trim().includes("ahora=") && !code.replace(/\s/g, '').trim().includes("now=")) {
+            //   return [{
+            //     es: "Debe crearse una variable 'ahora' que guarde la fecha actual.",
+            //     en: "A variable 'now' that stores the current date must be created.",
+            //     pt: "Uma variável 'agora' que armazena a data atual deve ser criada."
+            //   }]
+
+            // } else if (!code.replace(/\s/g, '').trim().includes("ahora=datetime.datetime.now()") && !code.replace(/\s/g, '').trim().includes("now=datetime.datetime.now()")) {
+            //   return [{
+            //     es: "La variable 'ahora' debe guardar la fecha actual.",
+            //     en: "The 'now' variable must store the current date.",
+            //     pt: "A variável 'agora' deve armazenar a data atual."
+            //   }]
+            // } else if (!code.replace(/\s/g, '').trim().includes("ahora=datetime.datetime.now()print(ahora)") && !code.replace(/\s/g, '').trim().includes("now=datetime.datetime.now()print(now)")) {
+            //   return [{
+            //     es: "Debes imprimir el valor de la variable 'ahora'.",
+            //     en: "The value of the 'now' variable must be printed.",
+            //     pt: "O valor da variável 'agora' deve ser impresso."
+            //   }]
+            // } else if (!code.replace(/\s/g, '').trim().includes("fecha=") && !code.replace(/\s/g, '').trim().includes("date=")) {
+            //   return [{
+            //     es: "Debe crearse una variable 'fecha' que guarde la fecha de tu cumpleaños.",
+            //     en: "A variable 'date' that stores your birthday date must be created.",
+            //     pt: "Uma variável 'data' que armazena a data de seu aniversário deve ser criada."
+            //   }]
+            // }
+            // else if (code.replace(/\s/g, '').trim().includes("fecha=datetime.datetime(") || code.replace(/\s/g, '').trim().includes("date=datetime.datetime(")) {
+            //   // Expresión regular para capturar el contenido dentro de datetime.datetime(...)
+            //   const match = code.match(/datetime\.datetime\((.*?)\)/);
+
+            //   if (match) {
+            //     const contenido = match[1]; // Obtener el contenido dentro de los paréntesis
+            //     // Verificar si todos los valores separados por comas son números
+            //     const numerosValidos = contenido.split(",").every(part => {
+            //       const valor = part.trim(); // Quitar espacios
+            //       return /^\d+$/.test(valor) && !/^0\d+/.test(valor); // Es un número y no empieza con 0
+            //     });
+            //     // console.log(numerosValidos);
+
+            //     if (numerosValidos) {
+            //       // console.log("El contenido contiene solo números.");
+            //     } else {
+            //       return [{
+            //         es: "Los valores dentro de la función datetime.datetime() deben ser números enteros y no deben empezar con 0.",
+            //         en: "The values inside the datetime.datetime() function must be integers and must not start with 0.",
+            //         pt: "Os valores dentro da função datetime.datetime() devem ser inteiros e não devem começar com 0."
+            //       }]
+            //     }
+            //   }
+            // }
+            // if (!code.replace(/\s/g, '').trim().includes("print(fecha)") && !code.replace(/\s/g, '').trim().includes("print(date)")) {
+            //   return [{
+            //     es: "Debes imprimir el valor de 'fecha'.",
+            //     en: "The value of 'date' must be printed.",
+            //     pt: "O valor da variável 'data' deve ser impresso."
+            //   }]
+            // }
+            // else if (!code.replace(/\s/g, '').trim().includes("diferencia=ahora-fecha") && !code.replace(/\s/g, '').trim().includes("difference=now-date")) {
+            //   return [{
+            //     es: "Debe crearse una variable 'diferencia' que guarde la resta de las fechas.",
+            //     en: "A variable 'difference' that stores the subtraction of the dates must be created.",
+            //     pt: "Uma variável 'diferença' que armazena a subtração das datas deve ser criada."
+            //   }]
+            // } else if (!code.replace(/\s/g, '').trim().includes("diferencia=ahora-fechaprint(diferencia)") && !code.replace(/\s/g, '').trim().includes("difference=now-dateprint(difference)")) {
+            //   return [{
+            //     es: "Debes imprimir el valor de 'diferencia'.",
+            //     en: "The value of 'difference' must be printed.",
+            //     pt: "O valor da variável 'diferença' deve ser impresso."
+            //   }]
+            // }
+            // else if (!code.replace(/\s/g, '').trim().includes("diferenciaEnDias=diferencia.days") && !code.replace(/\s/g, '').trim().includes("differenceInDays=difference.days")) {
+            //   return [{
+            //     es: "Debe crearse una variable 'diferenciaEnDias' que guarde solo los días de la diferencia.",
+            //     en: "A variable 'differenceInDays' that stores only the days of the difference must be created.",
+            //     pt: "Uma variável 'differenceInDays' que armazena apenas os dias da diferença deve ser criada."
+            //   }]
+            // } else if (!code.replace(/\s/g, '').trim().includes("diferenciaEnDias=diferencia.daysprint(diferenciaEnDias)") && !code.replace(/\s/g, '').trim().includes("differenceInDays=difference.daysprint(differenceInDays)")) {
+            //   return [{
+            //     es: "Debes imprimir el valor de 'diferenciaEnDias'.",
+            //     en: "The value of 'differenceInDays' must be printed.",
+            //     pt: "O valor da variável 'differenceInDays' deve ser impresso."
+            //   }]
+            // }
+            // else if (!code.replace(/\s/g, '').trim().includes("anios=diferenciaEnDias/365") && !code.replace(/\s/g, '').trim().includes("years=differenceInDays/365")) {
+            //   return [{
+            //     es: "Debe crearse una variable 'anios' que divida 'diferenciaEnDias' por 365.",
+            //     en: "A variable 'years' that divides 'differenceInDays' by 365 must be created.",
+            //     pt: "Uma variável 'anos' que divide 'differenceInDays' por 365 deve ser criada."
+            //   }]
+            // } else if (!code.replace(/\s/g, '').trim().includes("anios=diferenciaEnDias/365print(anios)") && !code.replace(/\s/g, '').trim().includes("years=differenceInDays/365print(years)")) {
+            //   return [{
+            //     es: "Debes imprimir el valor de 'anios'.",
+            //     en: "The value of 'years' must be printed.",
+            //     pt: "O valor da variável 'anos' deve ser impresso."
+            //   }]
+            // }
+            // else if (!code.replace(/\s/g, '').trim().includes('print("Tengo"+str(int(anios))+"años")') && !code.replace(/\s/g, '').trim().includes("print('Tengo'+str(int(anios))+'años')") && !code.replace(/\s/g, '').trim().includes('print("Iam"+str(int(years))+"years")') && !code.replace(/\s/g, '').trim().includes("print('Iam'+str(int(years))+'years')")) {
+            //   return [{
+            //     es: "Debe imprimir un mensaje que contenga 'anios' convertida a texto. Recuerda utilizar el metodo int() para quitar los decimales.",
+            //     en: "A message containing 'years' converted to text must be printed. Remember to use the int() method to remove the decimals.",
+            //     pt: "Uma mensagem contendo 'anos' convertida para texto deve ser impressa. Lembre-se de usar o método int() para remover as casas decimais."
+            //   }]
+            // }
           })
       }
-      //   {
-      //     "description": "El código debe importar el módulo 'datetime'.",
-      //     "test": (assert) => assert
-      //       .$import("datetime").catch({
-      //         es: "Debe importar el módulo 'datetime'.",
-      //         en: "The 'datetime' module must be imported.",
-      //         pt: "O módulo 'datetime' deve ser importado."
-      //       })
-      //   },
-      //   {
-      //     "description": "El código debe crear la variable 'ahora' y almacenar la fecha actual con datetime.datetime.now().",
-      //     "test": (assert) => assert
-      //       .$variable("ahora").catch({
-      //         es: "No se encontró la variable 'ahora' en el código.",
-      //         en: "The variable 'ahora' was not found in the code.",
-      //         pt: "A variável 'ahora' não foi encontrada no código.",
-      //       })
-      //       .withAssignation("datetime.datetime.now()").catch({
-      //         es: "La variable 'ahora' debe almacenar la fecha y hora actual.",
-      //         en: "The 'ahora' variable must store the current date and time.",
-      //         pt: "A variável 'ahora' deve armazenar a data e hora atuais."
-      //       })
-      //   },
-      //   {
-      //     "description": "El código debe crear la variable 'fecha' con la fecha de tu cumpleaños usando datetime.datetime(AÑO, MES, DÍA).",
-      //     "test": (assert) => assert
-      //       .$variable("fecha").catch({
-      //         es: "No se encontró la variable 'fecha' en el código.",
-      //         en: "The variable 'fecha' was not found in the code.",
-      //         pt: "A variável 'fecha' não foi encontrada no código.",
-      //       })
-      //       .withAssignation("datetime.datetime(2000, 1, 1)").catch({
-      //         es: "La variable 'fecha' debe almacenar tu fecha de cumpleaños.",
-      //         en: "The 'fecha' variable must store your birthday date.",
-      //         pt: "A variável 'fecha' deve armazenar a sua data de nascimento."
-      //       })
-      //   },
-      //   {
-      //     "description": "El código debe crear la variable 'diferencia' que almacene la diferencia entre 'ahora' y 'fecha'.",
-      //     "test": (assert) => assert
-      //       .$variable("diferencia").catch({
-      //         es: "No se encontró la variable 'diferencia' en el código.",
-      //         en: "The variable 'diferencia' was not found in the code.",
-      //         pt: "A variável 'diferencia' não foi encontrada no código.",
-      //       })
-      //       .withAssignation("ahora - fecha").catch({
-      //         es: "La variable 'diferencia' debe almacenar la resta de las fechas.",
-      //         en: "The 'diferencia' variable must store the date difference.",
-      //         pt: "A variável 'diferencia' deve armazenar a diferença entre as datas."
-      //       })
-      //   },
-      //   {
-      //     "description": "El código debe crear la variable 'diferenciaEnDias' que almacene solo los días de la diferencia.",
-      //     "test": (assert) => assert
-      //       .$variable("diferenciaEnDias").catch({
-      //         es: "No se encontró la variable 'diferenciaEnDias' en el código.",
-      //         en: "The variable 'diferenciaEnDias' was not found in the code.",
-      //         pt: "A variável 'diferenciaEnDias' não foi encontrada no código.",
-      //       })
-      //       .withAssignation("diferencia.days").catch({
-      //         es: "La variable 'diferenciaEnDias' debe almacenar solo los días de la diferencia.",
-      //         en: "The 'diferenciaEnDias' variable must store only the days from the difference.",
-      //         pt: "A variável 'diferenciaEnDias' deve armazenar apenas os dias da diferença."
-      //       })
-      //   },
-      //   {
-      //     "description": "El código debe crear la variable 'anios' que divida 'diferenciaEnDias' por 365 para obtener el número de años.",
-      //     "test": (assert) => assert
-      //       .$variable("anios").catch({
-      //         es: "No se encontró la variable 'anios' en el código.",
-      //         en: "The variable 'anios' was not found in the code.",
-      //         pt: "A variável 'anios' não foi encontrada no código.",
-      //       })
-      //       .withAssignation("diferenciaEnDias / 365").catch({
-      //         es: "La variable 'anios' debe almacenar el número de años de diferencia.",
-      //         en: "The 'anios' variable must store the number of years from the difference.",
-      //         pt: "A variável 'anios' deve armazenar o número de anos da diferença."
-      //       })
-      //   },
-      //   // {
-      //   //   "description": "El código debe hacer un print() con el texto 'Tengo ____ años', concatenando la variable 'anios'.",
-      //   //   "test": (assert) => assert
-      //   //     .$functionCall("print")
-      //   //     .withArguments(["\"Tengo \" + str(int(anios)) + \" años\""]).catch({
-      //   //       es: "El print() debe mostrar correctamente el número de años como texto.",
-      //   //       en: "The print() must correctly display the number of years as text.",
-      //   //       pt: "O print() deve exibir corretamente o número de anos como texto."
-      //   //     })
-      //   // }
-    ],
-    // "validationCodeSimulator": {
-    //   "description": "Al ejecutar el programa, debería mostrarse tu edad en años.",
-    //   "test": ($) => {
-    //     $.print("Tengo 21 años").catch({
-    //       es: "Se debería imprimir el mensaje 'Tengo 21 años' si la fecha actual es 2021-01-01 y tu fecha de nacimiento es 2000-01-01.",
-    //       en: "The message 'Tengo 21 años' should be printed if the current date is 2021-01-01 and your birth date is 2000-01-01.",
-    //       pt: "A mensagem 'Tengo 21 años' deve ser impressa se a data atual for 2021-01-01 e sua data de nascimento for 2000-01-01.",
-    //     });
-    //   }
-    // }
+    ]
   },
   {
     "id": "funciones-01",
@@ -788,152 +1350,225 @@ export const exercises = [
         "description": "El código debe definir una función llamada 'calcular_densidad' que reciba dos argumentos: 'masa' y 'volumen'.",
         "test": (assert) => assert
           .$custom(code => {
-            if (!code.replace(/\s/g, '').trim().includes("defcalcular_densidad(masa,volumen):") && !code.replace(/\s/g, '').trim().includes("defcalculate_density(mass,volume):")) {
-              return [{
-                es: "Debes definir una función llamada 'calcular_densidad' que reciba dos argumentos: 'masa' y 'volumen'.",
-                en: "You must define a function called 'calculate_density' that receives two arguments: 'mass' and 'volume'.",
-                pt: "Você deve definir uma função chamada 'calcular_densidade' que receba dois argumentos: 'massa' e 'volume'."
+            const norm = code.replace(/\r/g, "");
 
-              }]
-            } else if (!code.replace(/\s/g, '').trim().includes("defcalcular_densidad(masa,volumen):returnmasa/volumen") && !code.replace(/\s/g, '').trim().includes("defcalculate_density(mass,volume):returnmass/volume")) {
+            // === Helpers ===
+            const printBodies = [...norm.matchAll(/print\s*\(([\s\S]*?)\)\s*$/gm)].map(m => m[1]);
+            const hasPrintVar = (name) =>
+              printBodies.some(body =>
+                new RegExp(`(?<![A-Za-z0-9_])${name}(?![A-Za-z0-9_])`).test(body)
+              );
+
+            // === 1) Definición de la función ===
+            const hasFuncES = /def\s+calcular_densidad\s*\(\s*masa\s*,\s*volumen\s*\)\s*:/m.test(norm);
+            const hasFuncEN = /def\s+calculate_density\s*\(\s*mass\s*,\s*volume\s*\)\s*:/m.test(norm);
+
+            if (!hasFuncES && !hasFuncEN) {
               return [{
-                es: "La función 'calcular_densidad' debe retornar la división de 'masa' entre 'volumen'.",
-                en: "The 'calculate_density' function must return the division of 'mass' by 'volume'.",
-                pt: "A função 'calcular_densidade' deve retornar a divisão de 'massa' por 'volume'."
-              }]
-            } else if (!code.replace(/\s/g, '').trim().includes("densidad1=calcular_densidad(10,2)") && !code.replace(/\s/g, '').trim().includes("density1=calculate_density(10,2)")) {
-              return [{
-                es: "Debe calcular y guardar en 'densidad1' la densidad de un objeto de masa 10 kg y volumen 2 m³.",
-                en: "It must calculate and store in 'density1' the density of an object with mass 10 kg and volume 2 m³.",
-                pt: "Deve calcular e armazenar em 'densidade1' a densidade de um objeto com massa de 10 kg e volume de 2 m³."
-              }]
-            } else if (!code.includes("print(densidad1)") && !code.includes("print(density1)")) {
-              return [{
-                es: "Luego de calcular y guardar el resultado en la variable 'densidad1', debes mostrar su valor por consola.",
-                en: "After calculating and storing the result in the 'density1' variable, you must display its value in the console.",
-                pt: "Após calcular e armazenar o resultado na variável 'densidade1', você deve exibir seu valor no console."
-              }]
-            } else if (!code.replace(/\s/g, '').trim().includes("densidad2=calcular_densidad(270,33)") && !code.replace(/\s/g, '').trim().includes("density2=calculate_density(270,33)")) {
-              return [{
-                es: "Debe calcular y guardar en 'densidad2' la densidad de un objeto de masa 270 kg y volumen 33 m³.",
-                en: "It must calculate and store in 'density2' the density of an object with mass 270 kg and volume 33 m³.",
-                pt: "Deve calcular e armazenar em 'densidade2' a densidade de um objeto com massa de 270 kg e volume de 33 m³."
-              }]
-            } else if (!code.includes("print(densidad2)") && !code.includes("print(density2)")) {
-              return [{
-                es: "Luego de calcular y guardar el resultado en la variable 'densidad2', debes mostrar su valor por consola.",
-                en: "After calculating and storing the result in the 'density2' variable, you must display its value in the console.",
-                pt: "Após calcular e armazenar o resultado na variável 'densidade2', você deve exibir seu valor no console."
-              }]
-            } else if (!code.replace(/\s/g, '').trim().includes("print('Ladensidadtotales:'+str(densidad1+densidad2)") && !code.replace(/\s/g, '').trim().includes('print("Ladensidadtotales:"+str(densidad1+densidad2)') && !code.replace(/\s/g, '').trim().includes("print('Thetotaldensityis:'+str(density1+density2)") && !code.replace(/\s/g, '').trim().includes('print("Thetotaldensityis:"+str(density1+density2)')) {
-              return [{
-                es: 'Debes sumar ambas densidades y mostrarlas con el texto "La densidad total es: _____ ".',
-                en: 'You must add both densities and display them with the text "The total density is: _____ ".',
-                pt: 'Você deve adicionar ambas as densidades e exibi-las com o texto "A densidade total é: _____ ".'
-              }]
+                es: "Debes definir una función llamada 'calcular_densidad' que reciba 'masa' y 'volumen'.",
+                en: "You must define a function called 'calculate_density' that receives 'mass' and 'volume'.",
+                pt: "Você deve definir uma função chamada 'calcular_densidade' que receba 'massa' e 'volume'."
+              }];
             }
+
+            // Debe retornar masa/volumen o mass/volume
+            const returnsES = /def\s+calcular_densidad\s*\(\s*masa\s*,\s*volumen\s*\)\s*:[\s\S]*?return\s+masa\s*\/\s*volumen/m.test(norm);
+            const returnsEN = /def\s+calculate_density\s*\(\s*mass\s*,\s*volume\s*\)\s*:[\s\S]*?return\s+mass\s*\/\s*volume/m.test(norm);
+
+            if (hasFuncES && !returnsES) {
+              return [{
+                es: "La función 'calcular_densidad' debe retornar 'masa / volumen'.",
+                en: "The 'calcular_densidad' function must return 'masa / volumen'.",
+                pt: "A função 'calcular_densidade' deve retornar 'massa / volume'."
+              }];
+            } else if (hasFuncEN && !returnsEN) {
+              return [{
+                es: "La función 'calculate_density' debe retornar 'mass / volume'.",
+                en: "The 'calculate_density' function must return 'mass / volume'.",
+                pt: "A função 'calculate_density' deve retornar 'mass / volume'."
+              }];
+            }
+
+            const usingES = hasFuncES;
+
+            // === 2) Calcular densidad1 ===
+            const callD1ES = /densidad1\s*=\s*calcular_densidad\s*\(\s*10\s*,\s*2\s*\)/;
+            const callD1EN = /density1\s*=\s*calculate_density\s*\(\s*10\s*,\s*2\s*\)/;
+            if (!callD1ES.test(norm) && !callD1EN.test(norm)) {
+              return [{
+                es: "Debe calcular y guardar en 'densidad1' (o 'density1') la densidad de masa 10 y volumen 2.",
+                en: "You must compute and store in 'density1' (or 'densidad1') the density of mass 10 and volume 2.",
+                pt: "Você deve calcular e armazenar em 'densidade1' (ou 'density1') a densidade com massa 10 e volume 2."
+              }];
+            }
+
+            const d1Name = usingES ? "densidad1" : "density1";
+            if (!hasPrintVar(d1Name)) {
+              return [{
+                es: `Luego de calcular '${d1Name}', debes mostrar su valor por consola con print().`,
+                en: `After computing '${d1Name}', you must display its value in the console with print().`,
+                pt: `Depois de calcular '${d1Name}', você deve exibir seu valor no console com print().`
+              }];
+            }
+
+            // === 3) Calcular densidad2 ===
+            const callD2ES = /densidad2\s*=\s*calcular_densidad\s*\(\s*270\s*,\s*33\s*\)/;
+            const callD2EN = /density2\s*=\s*calculate_density\s*\(\s*270\s*,\s*33\s*\)/;
+            if (!callD2ES.test(norm) && !callD2EN.test(norm)) {
+              return [{
+                es: "Debe calcular y guardar en 'densidad2' (o 'density2') la densidad de masa 270 y volumen 33.",
+                en: "You must compute and store in 'density2' the density of mass 270 and volume 33.",
+                pt: "Você deve calcular e armazenar em 'densidade2' a densidade com massa 270 e volume 33."
+              }];
+            }
+
+            const d2Name = usingES ? "densidad2" : "density2";
+            if (!hasPrintVar(d2Name)) {
+              return [{
+                es: `Luego de calcular '${d2Name}', debes mostrar su valor por consola con print().`,
+                en: `After computing '${d2Name}', you must display its value in the console with print().`,
+                pt: `Depois de calcular '${d2Name}', você deve exibir seu valor no console com print().`
+              }];
+            }
+
+            // === 4) Suma de densidades y mensaje final ===
+            const phraseEs = /la\s*densidad\s*total\s*es/i;
+            const phraseEn = /the\s*total\s*density\s*is/i;
+
+            const sumVarName = usingES ? "densidad" : "density";
+            const d1Re = new RegExp(`(?<![A-Za-z0-9_])${d1Name}(?![A-Za-z0-9_])`);
+            const d2Re = new RegExp(`(?<![A-Za-z0-9_])${d2Name}(?![A-Za-z0-9_])`);
+
+            // Puede existir una variable total = densidad1 + densidad2
+            const totalAssign = [...norm.matchAll(/^\s*([A-Za-z_]\w*)\s*=\s*(.+)$/gm)];
+            let totalVar = null;
+            for (const m of totalAssign) {
+              const lhs = m[1];
+              const rhs = m[2];
+              if (/\+/.test(rhs) && d1Re.test(rhs) && d2Re.test(rhs)) {
+                totalVar = lhs; // e.g., 'total' o algo similar
+                break;
+              }
+            }
+
+            // Chequeos para prints
+            const usesPlus = (body) => /\+/.test(body);
+            const hasStringLiteral = (body) => /["'][\s\S]*?["']/.test(body);
+            const hasStrCall = (body) => /str\s*\(/.test(body);
+            const containsTotalVar = (body) =>
+              totalVar && new RegExp(`(?<![A-Za-z0-9_])${totalVar}(?![A-Za-z0-9_])`).test(body);
+            const containsBothDensities = (body) => d1Re.test(body) && d2Re.test(body);
+
+            const isFString = (body) => /f["']/.test(body);
+            const hasFormat = (body) => /\.format\s*\(/.test(body);
+            const hasComma = (body) => /,/.test(body);
+
+            // Detectar MAL: "texto" + densidad1/densidad2/total sin str()
+            const badConcat = printBodies.some(body => {
+              if (!usesPlus(body) || !hasStringLiteral(body)) return false;
+              const hasNumericPieces = containsTotalVar(body) || containsBothDensities(body);
+              if (!hasNumericPieces) return false;
+              // Si concatena texto + algo numérico y no veo 'str(', lo considero incorrecto
+              return !hasStrCall(body);
+            });
+            if (badConcat) {
+              return [{
+                es: "Si concatenás texto con un número (densidades o total), debés usar str(...). Ej.: str(densidad1 + densidad2) o str(total).",
+                en: "If you concatenate text with a number (densities or total), you must use str(...). e.g., str(density1 + density2) or str(total).",
+                pt: "Se concatenar texto com um número (densidades ou total), deve usar str(...). Ex.: str(densidade1 + densidade2) ou str(total)."
+              }];
+            }
+
+            // Buscar un print final que:
+            //  - contenga la frase (ES o EN)
+            //  - muestre la suma de densidad1+densidad2 (ya sea a través de 'total' o directamente)
+            const finalOK = printBodies.some(body => {
+              const hasPhrase = phraseEs.test(body) || phraseEn.test(body);
+              if (!hasPhrase) return false;
+
+              const showsTotal =
+                (totalVar && containsTotalVar(body)) ||
+                containsBothDensities(body); // densidad1 y densidad2 presentes
+
+              if (!showsTotal) return false;
+
+              // Aceptamos:
+              // - f-string con densidades o total
+              // - .format(...)
+              // - print("...", total) con coma
+              // - print("...", str(...)) con +
+              const okF = isFString(body) && (containsTotalVar(body) || containsBothDensities(body));
+              const okFormat = hasFormat(body);
+              const okComma = hasComma(body) && (containsTotalVar(body) || containsBothDensities(body));
+              const okPlusStr = usesPlus(body) && hasStrCall(body); // ya filtramos badConcat arriba
+
+              return okF || okFormat || okComma || okPlusStr;
+            });
+
+            if (!finalOK) {
+              return [{
+                es: 'Debes sumar ambas densidades y mostrarlas con el texto "La densidad total es: ..." (o "The total density is: ..."), asegurando convertir el resultado a texto.',
+                en: 'You must add both densities and display them with the text "The total density is: ...", ensuring the result is converted to text.',
+                pt: 'Você deve somar ambas as densidades e exibi-las com o texto "A densidade total é: ...", convertendo o resultado para texto.'
+              }];
+            }
+
+            // Si llegó hasta acá, está todo bien 🎉
+
+
+
+
+
+
+            // VALIDACION VIEJA
+            // if (!code.replace(/\s/g, '').trim().includes("defcalcular_densidad(masa,volumen):") && !code.replace(/\s/g, '').trim().includes("defcalculate_density(mass,volume):")) {
+            //   return [{
+            //     es: "Debes definir una función llamada 'calcular_densidad' que reciba dos argumentos: 'masa' y 'volumen'.",
+            //     en: "You must define a function called 'calculate_density' that receives two arguments: 'mass' and 'volume'.",
+            //     pt: "Você deve definir uma função chamada 'calcular_densidade' que receba dois argumentos: 'massa' e 'volume'."
+
+            //   }]
+            // } else if (!code.replace(/\s/g, '').trim().includes("defcalcular_densidad(masa,volumen):returnmasa/volumen") && !code.replace(/\s/g, '').trim().includes("defcalculate_density(mass,volume):returnmass/volume")) {
+            //   return [{
+            //     es: "La función 'calcular_densidad' debe retornar la división de 'masa' entre 'volumen'.",
+            //     en: "The 'calculate_density' function must return the division of 'mass' by 'volume'.",
+            //     pt: "A função 'calcular_densidade' deve retornar a divisão de 'massa' por 'volume'."
+            //   }]
+            // } else if (!code.replace(/\s/g, '').trim().includes("densidad1=calcular_densidad(10,2)") && !code.replace(/\s/g, '').trim().includes("density1=calculate_density(10,2)")) {
+            //   return [{
+            //     es: "Debe calcular y guardar en 'densidad1' la densidad de un objeto de masa 10 kg y volumen 2 m³.",
+            //     en: "It must calculate and store in 'density1' the density of an object with mass 10 kg and volume 2 m³.",
+            //     pt: "Deve calcular e armazenar em 'densidade1' a densidade de um objeto com massa de 10 kg e volume de 2 m³."
+            //   }]
+            // } else if (!code.includes("print(densidad1)") && !code.includes("print(density1)")) {
+            //   return [{
+            //     es: "Luego de calcular y guardar el resultado en la variable 'densidad1', debes mostrar su valor por consola.",
+            //     en: "After calculating and storing the result in the 'density1' variable, you must display its value in the console.",
+            //     pt: "Após calcular e armazenar o resultado na variável 'densidade1', você deve exibir seu valor no console."
+            //   }]
+            // } else if (!code.replace(/\s/g, '').trim().includes("densidad2=calcular_densidad(270,33)") && !code.replace(/\s/g, '').trim().includes("density2=calculate_density(270,33)")) {
+            //   return [{
+            //     es: "Debe calcular y guardar en 'densidad2' la densidad de un objeto de masa 270 kg y volumen 33 m³.",
+            //     en: "It must calculate and store in 'density2' the density of an object with mass 270 kg and volume 33 m³.",
+            //     pt: "Deve calcular e armazenar em 'densidade2' a densidade de um objeto com massa de 270 kg e volume de 33 m³."
+            //   }]
+            // } else if (!code.includes("print(densidad2)") && !code.includes("print(density2)")) {
+            //   return [{
+            //     es: "Luego de calcular y guardar el resultado en la variable 'densidad2', debes mostrar su valor por consola.",
+            //     en: "After calculating and storing the result in the 'density2' variable, you must display its value in the console.",
+            //     pt: "Após calcular e armazenar o resultado na variável 'densidade2', você deve exibir seu valor no console."
+            //   }]
+            // } else if (!code.replace(/\s/g, '').trim().includes("print('Ladensidadtotales:'+str(densidad1+densidad2)") && !code.replace(/\s/g, '').trim().includes('print("Ladensidadtotales:"+str(densidad1+densidad2)') && !code.replace(/\s/g, '').trim().includes("print('Thetotaldensityis:'+str(density1+density2)") && !code.replace(/\s/g, '').trim().includes('print("Thetotaldensityis:"+str(density1+density2)')) {
+            //   return [{
+            //     es: 'Debes sumar ambas densidades y mostrarlas con el texto "La densidad total es: _____ ".',
+            //     en: 'You must add both densities and display them with the text "The total density is: _____ ".',
+            //     pt: 'Você deve adicionar ambas as densidades e exibi-las com o texto "A densidade total é: _____ ".'
+            //   }]
+            // }
           })
 
       }
-      // {
-      //   "description": "El código debe definir una función llamada 'calcular_densidad' que reciba dos argumentos: 'masa' y 'volumen'.",
-      //   "test": (assert) => assert
-      //     .$function("calcular_densidad").catch({
-      //       es: "No se encontró la función 'calcular_densidad' en el código.",
-      //       en: "The function 'calcular_densidad' was not found in the code.",
-      //       pt: "A função 'calcular_densidad' não foi encontrada no código."
-      //     })
-      //     .withArguments([{ name: "masa" }, { name: "volumen" }]).catch({
-      //       es: "La función 'calcular_densidad' debe recibir dos argumentos: 'masa' y 'volumen'.",
-      //       en: "The function 'calcular_densidad' must receive two arguments: 'masa' and 'volumen'.",
-      //       pt: "A função 'calcular_densidad' deve receber dois argumentos: 'masa' e 'volumen'."
-      //     })
-      // },
-      // {
-      //   "description": "El código debe guardar en una variable la densidad calculada para un objeto de masa 10 kg y volumen 2 m³, y mostrarla por consola.",
-      //   "test": (assert) => assert
-      //     .$variable("densidad1").catch({
-      //       es: "No se encontró la variable 'densidad1' en el código.",
-      //       en: "The variable 'densidad1' was not found in the code.",
-      //       pt: "A variável 'densidad1' não foi encontrada no código."
-      //     })
-      //     .withAssignation("calcular_densidad(10, 2)").catch({
-      //       es: "Debe calcular y guardar en 'densidad1' la densidad de un objeto de masa 10 kg y volumen 2 m³.",
-      //       en: "It must calculate and store in 'densidad1' the density of an object with mass 10 kg and volume 2 m³.",
-      //       pt: "Deve calcular e armazenar em 'densidad1' a densidade de um objeto com massa de 10 kg e volume de 2 m³."
-      //     })
-      // },
-      // {
-      //   "description": "El código debe guardar en una variable la densidad calculada para un objeto de masa 270 kg y volumen 33 m³, y mostrarla por consola.",
-      //   "test": (assert) => assert
-      //     .$functionCall("print").catch({
-      //       es: "No se encontró la función 'print' en el código.",
-      //       en: "The 'print' function was not found in the code.",
-      //       pt: "A função 'print' não foi encontrada no código."
-      //     })
-      //     .withArguments([{ name: "densidad1" }]).catch({
-      //       es: "El print() debe mostrar la densidad calculada para un objeto de masa 10 kg y volumen 2 m³.",
-      //       en: "The print() must display the calculated density for an object with mass 10 kg and volume 2 m³.",
-      //       pt: "O print() deve exibir a densidade calculada para um objeto com massa de 10 kg e volume de 2 m³."
-      //     })
-      // },
-      // {
-      //   "description": "El código debe guardar en una variable la densidad calculada para un objeto de masa 270 kg y volumen 33 m³, y mostrarla por consola.",
-      //   "test": (assert) => assert
-      //     .$variable("densidad2").catch({
-      //       es: "No se encontró la variable 'densidad2' en el código.",
-      //       en: "The variable 'densidad2' was not found in the code.",
-      //       pt: "A variável 'densidad2' não foi encontrada no código."
-      //     })
-      //     .withAssignation("calcular_densidad(270, 33)").catch({
-      //       es: "Debe calcular y guardar en 'densidad2' la densidad de un objeto de masa 270 kg y volumen 33 m³.",
-      //       en: "It must calculate and store in 'densidad2' the density of an object with mass 270 kg and volume 33 m³.",
-      //       pt: "Deve calcular e armazenar em 'densidad2' a densidade de um objeto com massa de 270 kg e volume de 33 m³."
-      //     })
 
-      // },
-      // {
-      //   "description": "El código debe sumar ambas densidades y mostrarlas con el texto 'La densidad total es: _____ '.",
-      //   "test": (assert) => assert
-      //     .$functionCall("print").catch({
-      //       es: "No se encontró la función 'print' en el código.",
-      //       en: "The 'print' function was not found in the code.",
-      //       pt: "A função 'print' não foi encontrada no código."
-      //     })
-      //     .withArguments([{ name: "\"La densidad total es: \" + str(densidad_total)" }]).catch({
-      //       es: "El print() debe mostrar la suma de las densidades con el texto 'La densidad total es: '.",
-      //       en: "The print() must display the sum of the densities with the text 'La densidad total es: '.",
-      //       pt: "O print() deve exibir a soma das densidades com o texto 'La densidad total es: '."
-      //     })
-      // },
-      // {
-      //   "description": "El código debe sumar ambas densidades y mostrarlas con el texto 'La densidad total es: _____ '.",
-      //   "test": (assert) => assert
-      //     .$variable("densidad_total").catch({
-      //       es: "No se encontró la variable 'densidad_total' en el código.",
-      //       en: "The variable 'densidad_total' was not found in the code.",
-      //       pt: "A variável 'densidad_total' não foi encontrada no código."
-      //     })
-      //     .withAssignation("densidad1 + densidad2").catch({
-      //       es: "Debe calcular y guardar en 'densidad_total' la suma de las dos densidades.",
-      //       en: "It must calculate and store in 'densidad_total' the sum of the two densities.",
-      //       pt: "Deve calcular e armazenar em 'densidad_total' a soma das duas densidades."
-      //     })
-      // },
-      // {
-      //   "description": "El código debe sumar ambas densidades y mostrarlas con el texto 'La densidad total es: _____ '.",
-      //   "test": (assert) => assert
-      //     .$functionCall("print").catch({
-      //       es: "No se encontró la función 'print' en el código.",
-      //       en: "The 'print' function was not found in the code.",
-      //       pt: "A função 'print' não foi encontrada no código."
-      //     })
-      //     .withArguments([{ name: "\"La densidad total es: \" + str(densidad_total)" }]).catch({
-      //       es: "El print() debe mostrar la suma de las densidades con el texto 'La densidad total es: '.",
-      //       en: "The print() must display the sum of the densities with the text 'La densidad total es: '.",
-      //       pt: "O print() deve exibir a soma das densidades com o texto 'La densidad total es: '."
-      //     })
-      // },
     ]
   },
   {
@@ -951,14 +1586,17 @@ export const exercises = [
       {
         "description": "El código debe importar el módulo 'random'.",
         test: (assert) => assert.$custom((code) => {
-          // 1. Creamos un array para recolectar todos los errores
           const errors = [];
+          const norm = code.replace(/\r/g, "");
+          const codeNoSpaces = norm.replace(/\s/g, "").trim();
 
-          // 2. Hacemos un 'if' por cada validación, y en caso de que falle,
-          //    en lugar de return, usamos 'errors.push(...)'.
+          // === 1) Validar import random (flexible) ===
+          const hasImportRandom =
+            /\bimport\s+random\b/.test(norm) ||
+            /\bimport\s+random\s+as\s+[A-Za-z_]\w*/.test(norm) ||
+            /\bfrom\s+random\s+import\s+(?:\*|randint)\b/.test(norm);
 
-          // Validar que se importe 'random'
-          if (!code.includes("import random") && !codecode.replace(/\s/g, '').trim().includes('importrandomasrd')) {
+          if (!hasImportRandom) {
             errors.push({
               es: "Debe importar el módulo 'random'.",
               en: "The 'random' module must be imported.",
@@ -966,8 +1604,7 @@ export const exercises = [
             });
           }
 
-          // Validar que exista la variable puntos_vida_dragon con un valor numérico
-          const codeNoSpaces = code.replace(/\s/g, '').trim();
+          // === 2) Validar variable puntos_vida_dragon numérica ===
           if (
             !codeNoSpaces.includes("puntos_vida_dragon=") &&
             !codeNoSpaces.includes("dragon_life_points=")
@@ -975,33 +1612,30 @@ export const exercises = [
             errors.push({
               es: "Debe crear una variable 'puntos_vida_dragon' con un valor inicial.",
               en: "A 'dragon_life_points' variable with an initial value must be created.",
-              pt: "Uma variável 'punktos_vida_dragon' com um valor inicial deve ser criada."
+              pt: "Uma variável 'pontos_vida_dragon' com um valor inicial deve ser criada."
             });
           } else {
-            // Si detectamos que sí declara una de las dos:
-            // p. ej. puntos_vida_dragon=60
-            const match1 = code.match(/puntos_vida_dragon\s*=\s*(.+)/);
-            const match2 = code.match(/dragon_life_points\s*=\s*(.+)/);
+            const match1 = norm.match(/puntos_vida_dragon\s*=\s*(.+)/);
+            const match2 = norm.match(/dragon_life_points\s*=\s*(.+)/);
 
             const valorAsignado = match1?.[1]?.trim();
             const valorAsignado2 = match2?.[1]?.trim();
+            const valor = valorAsignado ?? valorAsignado2;
 
-            // Verificamos si alguno de esos matches existe y si es un número
-            if (valorAsignado || valorAsignado2) {
-              // Toma el que no sea undefined
-              const valor = valorAsignado ?? valorAsignado2;
-              // Chequea si es número
-              if (!/^\d+$/.test(valor)) {
+            if (valor) {
+              // cortar comentarios si hubiera
+              const sinComentario = valor.split("#")[0].trim();
+              if (!/^\d+$/.test(sinComentario)) {
                 errors.push({
-                  es: `El valor de 'puntos_vida_dragon' no es un número. Está definido como: ${valor}`,
-                  en: `The value of 'dragon_life_points' is not a number. It is defined as: ${valor}`,
-                  pt: `O valor de 'punktos_vida_dragon' não é um número. Está definido como: ${valor}`
+                  es: `El valor de 'puntos_vida_dragon' no es un número. Está definido como: ${sinComentario}`,
+                  en: `The value of 'dragon_life_points' is not a number. It is defined as: ${sinComentario}`,
+                  pt: `O valor de 'pontos_vida_dragon' não é um número. Está definido como: ${sinComentario}`
                 });
               }
             }
           }
 
-          // Validar que exista la función tirarDado/rollDice
+          // === 3) Validar función tirarDado / rollDice ===
           if (
             !codeNoSpaces.includes("deftirarDado(lados):") &&
             !codeNoSpaces.includes("defrollDice(sides):")
@@ -1012,22 +1646,24 @@ export const exercises = [
               pt: "Uma função 'tirarDado' que receba um argumento para o número de lados deve ser definida."
             });
           } else {
-            // Validar que retorne random.randint(1, lados) o random.randint(1, sides)
+            // Aceptar: random.randint, rd.randint o randint directo
             if (
               !codeNoSpaces.includes("returnrandom.randint(1,lados)") &&
               !codeNoSpaces.includes("returnrandom.randint(1,sides)") &&
               !codeNoSpaces.includes("returnrd.randint(1,lados)") &&
-              !codeNoSpaces.includes("returnrd.randint(1,sides)")
+              !codeNoSpaces.includes("returnrd.randint(1,sides)") &&
+              !codeNoSpaces.includes("returnrandint(1,lados)") &&
+              !codeNoSpaces.includes("returnrandint(1,sides)")
             ) {
               errors.push({
-                es: "La función 'tirarDado' debe retornar un número aleatorio entre 1 dependiendo de los lados.",
-                en: "The 'rollDice' function must return a random number between 1 depending on the sides.",
-                pt: "A função 'tirarDado' deve retornar um número aleatório entre 1 dependendo dos lados."
+                es: "La función 'tirarDado' debe retornar un número aleatorio entre 1 y la cantidad de lados.",
+                en: "The 'rollDice' function must return a random number between 1 and the number of sides.",
+                pt: "A função 'tirarDado' deve retornar um número aleatório entre 1 e o número de lados."
               });
             }
           }
 
-          // Validar que exista la función atacarDragon/attackDragon
+          // === 4) Validar función atacarDragon / attackDragon ===
           if (
             !codeNoSpaces.includes("defatacarDragon():") &&
             !codeNoSpaces.includes("defattackDragon():")
@@ -1038,7 +1674,6 @@ export const exercises = [
               pt: "Uma função 'atacarDragon' que retorne a soma de 'tirarDado(20)' e 'tirarDado(4)' deve ser definida."
             });
           } else {
-            // Validar que exista la variable 'ataque' en dicha función
             if (
               !codeNoSpaces.includes("ataque=") &&
               !codeNoSpaces.includes("attack=")
@@ -1048,74 +1683,41 @@ export const exercises = [
                 en: "You must create an 'attack' variable that stores the result of the sum of 'rollDice(20)' and 'rollDice(4)'.",
                 pt: "Você deve criar uma variável 'ataque' que armazene o resultado da soma de 'tirarDado(20)' e 'tirarDado(4)'."
               });
-            } else {
-              // Verificar si realmente es la suma de tirarDado(20)+tirarDado(4)
-              // Buscamos la expresión "ataque = tirarDado(20) + tirarDado(4)" etc.
-              if (
-                !(
-                  codeNoSpaces.includes("ataque=tirarDado(20)+tirarDado(4)") ||
-                  codeNoSpaces.includes("ataque=tirarDado(4)+tirarDado(20)") ||
-                  codeNoSpaces.includes("attack=rollDice(20)+rollDice(4)") ||
-                  codeNoSpaces.includes("attack=rollDice(4)+rollDice(20)")
-                )
-              ) {
-                errors.push({
-                  es: "La variable 'ataque' debe guardar la suma de 'tirarDado(20)' y 'tirarDado(4)'.",
-                  en: "The 'attack' variable must store the sum of 'rollDice(20)' and 'rollDice(4)'.",
-                  pt: "A variável 'ataque' deve armazenar a soma de 'tirarDado(20)' e 'tirarDado(4)'."
-                });
-              } else {
-                // Validar que los argumentos sean numéricos
-                const matchAtaque = code.match(/ataque\s*=\s*(.+)/);
-                const matchAttack = code.match(/attack\s*=\s*(.+)/);
-                const expAtaque = matchAtaque?.[1] ?? "";
-                const expAttack = matchAttack?.[1] ?? "";
-
-                const llamadasTirarDado = [...expAtaque.matchAll(/tirarDado\(([^)]+)\)/g)];
-                const llamadasRollDice = [...expAttack.matchAll(/rollDice\(([^)]+)\)/g)];
-
-                const argumentosInvalidos = [];
-                llamadasTirarDado.forEach(llamada => {
-                  const arg = llamada[1].trim();
-                  if (!/^\d+$/.test(arg)) {
-                    argumentosInvalidos.push(arg);
-                  }
-                });
-                llamadasRollDice.forEach(llamada => {
-                  const arg = llamada[1].trim();
-                  if (!/^\d+$/.test(arg)) {
-                    argumentosInvalidos.push(arg);
-                  }
-                });
-
-                if (argumentosInvalidos.length > 0) {
-                  errors.push({
-                    es: `En la variable 'ataque', se encontraron llamadas a 'tirarDado' con parametros no numéricos: ${argumentosInvalidos.join(", ")}`,
-                    en: `In the 'attack' variable, calls to 'rollDice' with non-numeric arguments were found: ${argumentosInvalidos.join(", ")}`,
-                    pt: `Na variável 'ataque', chamadas para 'tirarDado' com argumentos não numéricos foram encontradas: ${argumentosInvalidos.join(", ")}`
-                  });
-                }
-              }
+            } else if (
+              !(
+                codeNoSpaces.includes("ataque=tirarDado(20)+tirarDado(4)") ||
+                codeNoSpaces.includes("ataque=tirarDado(4)+tirarDado(20)") ||
+                codeNoSpaces.includes("attack=rollDice(20)+rollDice(4)") ||
+                codeNoSpaces.includes("attack=rollDice(4)+rollDice(20)")
+              )
+            ) {
+              errors.push({
+                es: "La variable 'ataque' debe guardar la suma de 'tirarDado(20)' y 'tirarDado(4)'.",
+                en: "The 'attack' variable must store the sum of 'rollDice(20)' and 'rollDice(4)'.",
+                pt: "A variável 'ataque' deve armazenar a soma de 'tirarDado(20)' e 'tirarDado(4)'."
+              });
             }
           }
 
-          // Validar que se reste atacarDragon() a los puntos de vida
+          // === 5) Validar actualización de puntos de vida ===
           if (
             !(
               codeNoSpaces.includes("puntos_vida_dragon-=atacarDragon()") ||
               codeNoSpaces.includes("puntos_vida_dragon=puntos_vida_dragon-atacarDragon()") ||
+              codeNoSpaces.includes("dragon_life_points-=attackDragon()") ||
+              codeNoSpaces.includes("dragon_life_points=dragon_life_points-attackDragon()") ||
               codeNoSpaces.includes("dragon_life_points-=attack()") ||
               codeNoSpaces.includes("dragon_life_points=dragon_life_points-attack()")
             )
           ) {
             errors.push({
               es: "Debe actualizar los puntos de vida del dragón restando el resultado de 'atacarDragon()'.",
-              en: "You must update the dragon's life points by subtracting the result of 'attack()'.",
+              en: "You must update the dragon's life points by subtracting the result of 'attackDragon()'.",
               pt: "Você deve atualizar os pontos de vida do dragão subtraindo o resultado de 'atacarDragon()'."
             });
           }
 
-          // Validar que haga un print() de los puntos de vida
+          // === 6) Validar print final de puntos de vida ===
           if (
             !(
               codeNoSpaces.includes("print('Lospuntosdevidadeldragónson:'+str(puntos_vida_dragon))") ||
@@ -1131,106 +1733,13 @@ export const exercises = [
             });
           }
 
-          // 3. Al final, si hay errores en el array, los retornamos
           if (errors.length > 0) {
             return errors;
           }
-
-          // 4. Si no hubo errores, no retornamos nada (significa que todo está OK).
-          //   (O bien podemos retornar un array vacío)
           return [];
         }),
       }
-      // {
-      //   "description": "El código debe importar el módulo 'random'.",
-      //   "test": (assert) => assert
-      //     .$import("random").catch({
-      //       es: "Debe importar el módulo 'random'.",
-      //       en: "The 'random' module must be imported.",
-      //       pt: "O módulo 'random' deve ser importado."
-      //     })
-      // },
-      // {
-      //   "description": "El código debe crear una variable llamada 'puntos_vida_dragon' con un valor inicial (ejemplo: 60).",
-      //   "test": (assert) => assert
-      //     .$variable("puntos_vida_dragon").catch({
-      //       es: "No se encontró la variable 'puntos_vida_dragon' en el código.",
-      //       en: "The variable 'puntos_vida_dragon' was not found in the code.",
-      //       pt: "A variável 'puntos_vida_dragon' não foi encontrada no código."
-      //     })
-      //     .withAssignation("60").catch({
-      //       es: "Debe crear la variable 'puntos_vida_dragon' con un valor inicial, como 60.",
-      //       en: "It must create the 'puntos_vida_dragon' variable with an initial value, such as 60.",
-      //       pt: "Deve criar a variável 'puntos_vida_dragon' com um valor inicial, como 60."
-      //     })
-      // },
-      // {
-      //   "description": "El código debe definir una función 'tirarDado' que reciba un argumento para la cantidad de lados y retorne un número aleatorio.",
-      //   "test": (assert) => assert
 
-      //     .$function("tirarDado").catch({
-      //       es: "No se encontró la función 'tirarDado' en el código.",
-      //       en: "The 'tirarDado' function was not found in the code.",
-      //       pt: "A função 'tirarDado' não foi encontrada no código."
-      //     })
-
-      //     .withArguments([{ name: "lados" }]).catch({
-      //       es: "La función 'tirarDado' debe recibir un argumento para la cantidad de lados del dado.",
-      //       en: "The 'tirarDado' function must receive an argument for the number of sides of the die.",
-      //       pt: "A função 'tirarDado' deve receber um argumento para a quantidade de lados do dado."
-      //     })
-      //     .withBody(assert => assert
-      //       .$return("random.randint(1, lados)").catch({
-      //         es: "La función 'tirarDado' debe retornar un número aleatorio dependiendo de los lados especificados.",
-      //         en: "The 'tirarDado' function must return a random number based on the specified sides.",
-      //         pt: "A função 'tirarDado' deve retornar um número aleatório com base nos lados especificados."
-      //       })
-      //     )
-
-      // },
-      // {
-      //   "description": "El código debe definir una función 'atacarDragon' que retorne la suma de 'tirarDado(20)' y 'tirarDado(4)'.",
-      //   "test": (assert) => assert
-      //     .$function("atacarDragon").catch({
-      //       es: "No se encontró la función 'atacarDragon' en el código.",
-      //       en: "The 'atacarDragon' function was not found in the code.",
-      //       pt: "A função 'atacarDragon' não foi encontrada no código."
-      //     })
-      //     .withArguments([{ name: "tirarDado(20) + tirarDado(4)" }]).catch({
-      //       es: "La función 'atacarDragon' debe retornar la suma de los resultados de 'tirarDado(20)' y 'tirarDado(4)'.",
-      //       en: "The 'atacarDragon' function must return the sum of the results from 'tirarDado(20)' and 'tirarDado(4)'.",
-      //       pt: "A função 'atacarDragon' deve retornar a soma dos resultados de 'tirarDado(20)' e 'tirarDado(4)'."
-      //     })
-      // },
-      // {
-      //   "description": "El código debe actualizar los puntos de vida del dragón restando el resultado de 'atacarDragon()'.",
-      //   "test": (assert) => assert
-      //     .$variable("puntos_vida_dragon").catch({
-      //       es: "No se encontró la variable 'puntos_vida_dragon' en el código.",
-      //       en: "The variable 'puntos_vida_dragon' was not found in the code.",
-      //       pt: "A variável 'puntos_vida_dragon' não foi encontrada no código."
-      //     })
-      //     .withAssignation("puntos_vida_dragon - atacarDragon()").catch({
-      //       es: "Debe actualizar los puntos de vida del dragón restando el resultado de 'atacarDragon()'.",
-      //       en: "It must update the dragon's life points by subtracting the result of 'atacarDragon()'.",
-      //       pt: "Deve atualizar os pontos de vida do dragão subtraindo o resultado de 'atacarDragon()'."
-      //     })
-
-      // },
-      // {
-      //   "description": "El código debe hacer un print() con el texto 'Los puntos de vida del dragón son: ______ '.",
-      //   "test": (assert) => assert
-      //     .$functionCall("print").catch({
-      //       es: "No se encontró el print() en el código.",
-      //       en: "The print() was not found in the code.",
-      //       pt: "O print() não foi encontrado no código."
-      //     })
-      //     .withArguments([{ name: "\"Los puntos de vida del dragón son: \" + str(puntos_vida_dragon)" }]).catch({
-      //       es: "Debe imprimir el mensaje con los puntos de vida actuales del dragón.",
-      //       en: "It must print the message with the dragon's current life points.",
-      //       pt: "Deve imprimir a mensagem com os pontos de vida atuais do dragão."
-      //     })
-      // }
     ]
   },
   {
@@ -1249,146 +1758,220 @@ export const exercises = [
         "description": "El código debe crear una variable llamada 'edad' que almacene la edad ingresada por el usuario.",
         "test": (assert) => assert
           .$custom(code => {
+            const norm = code.replace(/\r/g, "");
 
-            if (!code.replace(/\s/g, '').trim().includes("edad=") && !code.replace(/\s/g, '').trim().includes("age=")) {
+            // === 1) Variable edad/age con int(input(...)) ===
+            const hasEdadInt = /edad\s*=\s*int\s*\(\s*input\s*\(/.test(norm);
+            const hasAgeInt = /age\s*=\s*int\s*\(\s*input\s*\(/.test(norm);
+
+            if (!hasEdadInt && !hasAgeInt) {
               return [{
-                es: "Debes crear la variable 'edad' que almacene la edad ingresada por el usuario.",
-                en: "It must create the 'edad' variable to store the user's entered age.",
-                pt: "Deve criar a variável 'edad' para armazenar a idade inserida pelo usuário."
-              }]
-            } else if (!code.replace(/\s/g, '').trim().includes("edad=int(input(") && !code.replace(/\s/g, '').trim().includes("age=int(input(")) {
+                es: "Debes crear la variable 'edad' (o 'age') usando int(input(...)) para almacenar la edad ingresada por el usuario.",
+                en: "You must create the 'edad' (or 'age') variable using int(input(...)) to store the user's age.",
+                pt: "Você deve criar a variável 'edad' (ou 'age') usando int(input(...)) para armazenar a idade do usuário."
+              }];
+            }
+
+            // Extraer la primera llamada a input(...) y analizar el texto de la pregunta
+            const inputMatch = code.match(/input\(["'](.*?)["']\)/);
+            if (!inputMatch) {
               return [{
-                es: "La edad ingresada por el usuario debe estar en formato de número entero.",
-                en: "The age entered by the user must be in integer number format.",
-                pt: "A idade inserida pelo usuário deve estar no formato de número inteiro."
-              }]
-            } else if (code.replace(/\s/g, '').trim().includes("edad=int(input(")) {
-              const lineasInput = code.match(/input\(["'].*?["']\)/g);
-              // console.log(lineasInput);
+                es: "Debes usar input() para pedir la edad al usuario.",
+                en: "You must use input() to ask the user for their age.",
+                pt: "Você deve usar input() para pedir a idade do usuário."
+              }];
+            }
 
-              if (lineasInput) {
-                const pregunta = lineasInput[0].match(/["'](.*?)["']/)?.[1]; // Extraer el texto de la pregunta
-                if (pregunta) {
-                  // Validar si contiene "edad" o "años"
-                  const contieneEdadOAnios = /edad|años/i.test(pregunta);
-                  if (contieneEdadOAnios) {
-                    // console.log(`La pregunta "${pregunta}" es válida porque menciona "edad" o "años".`);
-                  } else {
-                    return [{
-                      es: `La pregunta del input "${pregunta}" no es válida porque no menciona "edad" o "años".`,
-                      en: `The input question "${pregunta}" is not valid because it does not mention "edad" or "años".`,
-                      pt: `A pergunta do input "${pregunta}" não é válida porque não menciona "edad" ou "años".`
+            const pregunta = inputMatch[1]; // texto entre comillas
+            if (!pregunta || pregunta.trim().length === 0) {
+              return [{
+                es: "La pregunta del input no puede estar vacía. Debes pedir la edad del usuario.",
+                en: "The input question cannot be empty. You must ask for the user's age.",
+                pt: "A pergunta do input não pode estar vazia. Você deve pedir a idade do usuário."
+              }];
+            }
 
-                      // console.log(`La pregunta "${pregunta}" no es válida porque no menciona "edad" ni "años".`);
-                    }]
-                  }
-                }
+            // Validar que mencione edad/años o age/old, respetando idioma según variable usada
+            if (hasEdadInt) {
+              const contieneEdadOAnios = /edad|años/i.test(pregunta);
+              if (!contieneEdadOAnios) {
+                return [{
+                  es: `La pregunta del input "${pregunta}" no es válida porque no menciona "edad" o "años".`,
+                  en: `The input question "${pregunta}" is not valid because it does not mention "edad" or "años".`,
+                  pt: `A pergunta do input "${pregunta}" não é válida porque não menciona "edad" ou "años".`
+                }];
+              }
+            } else if (hasAgeInt) {
+              const contieneAgeOld = /age|old/i.test(pregunta);
+              if (!contieneAgeOld) {
+                return [{
+                  es: `La pregunta del input "${pregunta}" no es válida porque no menciona "age" o "old".`,
+                  en: `The input question "${pregunta}" is not valid because it does not mention "age" or "old".`,
+                  pt: `A pergunta do input "${pregunta}" não é válida porque não menciona "age" ou "old".`
+                }];
               }
             }
-            if (code.replace(/\s/g, '').trim().includes("age=int(input(")) {
-              const lineasInput = code.match(/input\(["'].*?["']\)/g);
-              // console.log(lineasInput);
 
-              if (lineasInput) {
-                const pregunta = lineasInput[0].match(/["'](.*?)["']/)?.[1]; // Extraer el texto de la pregunta
-                if (pregunta.length < 1) {
-                  return [{
-                    es: "La pregunta del input no puede estar vacía.",
-                    en: "The input question cannot be empty.",
-                    pt: "A pergunta do input não pode estar vazia."
-                  }]
-                }
-                if (pregunta) {
-                  // Validar si contiene "edad" o "años"
-                  const contieneEdadOAnios = /age|old/i.test(pregunta);
-                  if (contieneEdadOAnios) {
-                    // console.log(`La pregunta "${pregunta}" es válida porque menciona "edad" o "años".`);
-                  } else {
-                    return [{
-                      es: `La pregunta del input "${pregunta}" no es válida porque no menciona "edad" o "años".`,
-                      en: `The input question "${pregunta}" is not valid because it does not mention "age" or "old".`,
-                      pt: `A pergunta do input "${pregunta}" não é válida porque não menciona "edad" ou "años".`
+            // === 2) Estructura condicional if edad >= 16 (o age >= 16) ===
+            const hasIfEdad16 = /if\s*edad\s*>=\s*16\s*:/.test(norm);
+            const hasIfAge16 = /if\s*age\s*>=\s*16\s*:/.test(norm);
 
-                      // console.log(`La pregunta "${pregunta}" no es válida porque no menciona "edad" ni "años".`);
-                    }]
-                  }
-                }
-              }
-            }
-            if (!code.replace(/\s/g, '').trim().includes("ifedad>=16:") && !code.replace(/\s/g, '').trim().includes("ifage>=16:")) {
+            if (!hasIfEdad16 && !hasIfAge16) {
               return [{
-                es: "Debe incluir una estructura condicional para verificar si el usuario tiene 16 años o más.",
-                en: "It must include a conditional structure to check if the user is 16 years old or older.",
-                pt: "Deve incluir uma estrutura condicional para verificar se o usuário tem 16 anos ou mais."
-              }]
-            } else if (!code.replace(/\s/g, '').trim().includes('print("Tienespermitidoconducir")') && !code.replace(/\s/g, '').trim().includes("print('Tienespermitidoconducir')") && !code.replace(/\s/g, '').trim().includes('print("Youareallowedtodrive")') && !code.replace(/\s/g, '').trim().includes("print('Youareallowedtodrive')")) {
+                es: "Debe incluir una estructura condicional para verificar si el usuario tiene 16 años o más (if edad >= 16:).",
+                en: "You must include a conditional structure to check if the user is 16 or older (if age >= 16:).",
+                pt: "Deve incluir uma estrutura condicional para verificar se o usuário tem 16 anos ou mais (if idade >= 16:)."
+              }];
+            }
+
+            // === 3) else presente ===
+            if (!/\belse\s*:/.test(norm)) {
+              return [{
+                es: "Debes incluir un 'else:' para el caso en que la edad sea menor a 16.",
+                en: "You must include an 'else:' for the case when the age is less than 16.",
+                pt: "Você deve incluir um 'else:' para o caso em que a idade seja menor que 16."
+              }];
+            }
+
+            // === 4) Mensaje si puede conducir ===
+            // Aceptamos solo texto exacto de consigna (ES o EN):
+            // "Tienes permitido conducir" o "You are allowed to drive"
+            const hasPrintPermitES = /print\s*\(\s*["']Tienes permitido conducir["']\s*\)/.test(norm);
+            const hasPrintPermitEN = /print\s*\(\s*["']You are allowed to drive["']\s*\)/.test(norm);
+
+            if (!hasPrintPermitES && !hasPrintPermitEN) {
               return [{
                 es: "Debe mostrar el mensaje 'Tienes permitido conducir' si el usuario tiene 16 años o más.",
-                en: "It must display the message 'You are allowed to drive' if the user is 16 years old or older.",
+                en: "You must display the message 'You are allowed to drive' if the user is 16 or older.",
                 pt: "Deve exibir a mensagem 'Você tem permissão para dirigir' se o usuário tiver 16 anos ou mais."
-              }]
-            } else if (!code.replace(/\s/g, '').trim().includes("ifedad>=16:print(\"Tienespermitidoconducir\")") && !code.replace(/\s/g, '').trim().includes("ifedad>=16:print('Tienespermitidoconducir')") && !code.replace(/\s/g, '').trim().includes("ifage>=16:print(\"Youareallowedtodrive\")") && !code.replace(/\s/g, '').trim().includes("ifage>=16:print('Youareallowedtodrive')")) {
-              return [{
-                es: 'Si la edad ingresada es mayor o igual a 16, debes mostrar el mensaje "Tienes permitido conducir".',
-                en: 'If the entered age is 16 or older, you must display the message "You are allowed to drive".',
-                pt: 'Se a idade inserida for 16 ou mais, você deve exibir a mensagem "Você tem permissão para dirigir".'
-              }]
-            } else if (!code.includes("else:")) {
-              return [{
-                es: "Debe incluir una estructura condicional para verificar si el usuario tiene 16 años o más.",
-                en: "It must include a conditional structure to check if the user is 16 years old or older.",
-                pt: "Deve incluir uma estrutura condicional para verificar se o usuário tem 16 anos ou mais."
-              }]
-            } else if (!code.replace(/\s/g, '').trim().includes('print("Notienespermitidoconducir")') && !code.replace(/\s/g, '').trim().includes("print('Notienespermitidoconducir')") && !code.replace(/\s/g, '').trim().includes('print("Youarenotallowedtodrive")') && !code.replace(/\s/g, '').trim().includes("print('Youarenotallowedtodrive')")) {
+              }];
+            }
+
+            // === 5) Mensaje si NO puede conducir ===
+            const hasPrintNoPermitES = /print\s*\(\s*["']No tienes permitido conducir["']\s*\)/.test(norm);
+            const hasPrintNoPermitEN = /print\s*\(\s*["']You are not allowed to drive["']\s*\)/.test(norm);
+
+            if (!hasPrintNoPermitES && !hasPrintNoPermitEN) {
               return [{
                 es: "Debe mostrar el mensaje 'No tienes permitido conducir' si el usuario tiene menos de 16 años.",
-                en: "It must display the message 'You are not allowed to drive' if the user is under 16 years old.",
+                en: "You must display the message 'You are not allowed to drive' if the user is under 16.",
                 pt: "Deve exibir a mensagem 'Você não tem permissão para dirigir' se o usuário tiver menos de 16 anos."
-              }]
-            } else if (!code.replace(/\s/g, '').trim().includes('else:print("Notienespermitidoconducir")') && !code.replace(/\s/g, '').trim().includes("else:print('Notienespermitidoconducir')") && !code.replace(/\s/g, '').trim().includes('else:print("Youarenotallowedtodrive")') && !code.replace(/\s/g, '').trim().includes("else:print('Youarenotallowedtodrive')")) {
-              return [{
-                es: 'Si la edad ingresada es menor a 16, debes mostrar el mensaje "No tienes permitido conducir".',
-                en: 'If the entered age is less than 16, you must display the message "You are not allowed to drive".',
-                pt: 'Se a idade inserida for menor que 16, você deve exibir a mensagem "Você não tem permissão para dirigir".'
-              }]
+              }];
             }
+
+            // Si todo está OK, no devolvemos errores
+            return [];
+
+
+
+
+
+            // VALIDACION VIEJA
+            // if (!code.replace(/\s/g, '').trim().includes("edad=") && !code.replace(/\s/g, '').trim().includes("age=")) {
+            //   return [{
+            //     es: "Debes crear la variable 'edad' que almacene la edad ingresada por el usuario.",
+            //     en: "It must create the 'edad' variable to store the user's entered age.",
+            //     pt: "Deve criar a variável 'edad' para armazenar a idade inserida pelo usuário."
+            //   }]
+            // } else if (!code.replace(/\s/g, '').trim().includes("edad=int(input(") && !code.replace(/\s/g, '').trim().includes("age=int(input(")) {
+            //   return [{
+            //     es: "La edad ingresada por el usuario debe estar en formato de número entero.",
+            //     en: "The age entered by the user must be in integer number format.",
+            //     pt: "A idade inserida pelo usuário deve estar no formato de número inteiro."
+            //   }]
+            // } else if (code.replace(/\s/g, '').trim().includes("edad=int(input(")) {
+            //   const lineasInput = code.match(/input\(["'].*?["']\)/g);
+            //   // console.log(lineasInput);
+
+            //   if (lineasInput) {
+            //     const pregunta = lineasInput[0].match(/["'](.*?)["']/)?.[1]; // Extraer el texto de la pregunta
+            //     if (pregunta) {
+            //       // Validar si contiene "edad" o "años"
+            //       const contieneEdadOAnios = /edad|años/i.test(pregunta);
+            //       if (contieneEdadOAnios) {
+            //         // console.log(`La pregunta "${pregunta}" es válida porque menciona "edad" o "años".`);
+            //       } else {
+            //         return [{
+            //           es: `La pregunta del input "${pregunta}" no es válida porque no menciona "edad" o "años".`,
+            //           en: `The input question "${pregunta}" is not valid because it does not mention "edad" or "años".`,
+            //           pt: `A pergunta do input "${pregunta}" não é válida porque não menciona "edad" ou "años".`
+
+            //           // console.log(`La pregunta "${pregunta}" no es válida porque no menciona "edad" ni "años".`);
+            //         }]
+            //       }
+            //     }
+            //   }
+            // }
+            // if (code.replace(/\s/g, '').trim().includes("age=int(input(")) {
+            //   const lineasInput = code.match(/input\(["'].*?["']\)/g);
+            //   // console.log(lineasInput);
+
+            //   if (lineasInput) {
+            //     const pregunta = lineasInput[0].match(/["'](.*?)["']/)?.[1]; // Extraer el texto de la pregunta
+            //     if (pregunta.length < 1) {
+            //       return [{
+            //         es: "La pregunta del input no puede estar vacía.",
+            //         en: "The input question cannot be empty.",
+            //         pt: "A pergunta do input não pode estar vazia."
+            //       }]
+            //     }
+            //     if (pregunta) {
+            //       // Validar si contiene "edad" o "años"
+            //       const contieneEdadOAnios = /age|old/i.test(pregunta);
+            //       if (contieneEdadOAnios) {
+            //         // console.log(`La pregunta "${pregunta}" es válida porque menciona "edad" o "años".`);
+            //       } else {
+            //         return [{
+            //           es: `La pregunta del input "${pregunta}" no es válida porque no menciona "edad" o "años".`,
+            //           en: `The input question "${pregunta}" is not valid because it does not mention "age" or "old".`,
+            //           pt: `A pergunta do input "${pregunta}" não é válida porque não menciona "edad" ou "años".`
+
+            //           // console.log(`La pregunta "${pregunta}" no es válida porque no menciona "edad" ni "años".`);
+            //         }]
+            //       }
+            //     }
+            //   }
+            // }
+            // if (!code.replace(/\s/g, '').trim().includes("ifedad>=16:") && !code.replace(/\s/g, '').trim().includes("ifage>=16:")) {
+            //   return [{
+            //     es: "Debe incluir una estructura condicional para verificar si el usuario tiene 16 años o más.",
+            //     en: "It must include a conditional structure to check if the user is 16 years old or older.",
+            //     pt: "Deve incluir uma estrutura condicional para verificar se o usuário tem 16 anos ou mais."
+            //   }]
+            // } else if (!code.replace(/\s/g, '').trim().includes('print("Tienespermitidoconducir")') && !code.replace(/\s/g, '').trim().includes("print('Tienespermitidoconducir')") && !code.replace(/\s/g, '').trim().includes('print("Youareallowedtodrive")') && !code.replace(/\s/g, '').trim().includes("print('Youareallowedtodrive')")) {
+            //   return [{
+            //     es: "Debe mostrar el mensaje 'Tienes permitido conducir' si el usuario tiene 16 años o más.",
+            //     en: "It must display the message 'You are allowed to drive' if the user is 16 years old or older.",
+            //     pt: "Deve exibir a mensagem 'Você tem permissão para dirigir' se o usuário tiver 16 anos ou mais."
+            //   }]
+            // } else if (!code.replace(/\s/g, '').trim().includes("ifedad>=16:print(\"Tienespermitidoconducir\")") && !code.replace(/\s/g, '').trim().includes("ifedad>=16:print('Tienespermitidoconducir')") && !code.replace(/\s/g, '').trim().includes("ifage>=16:print(\"Youareallowedtodrive\")") && !code.replace(/\s/g, '').trim().includes("ifage>=16:print('Youareallowedtodrive')")) {
+            //   return [{
+            //     es: 'Si la edad ingresada es mayor o igual a 16, debes mostrar el mensaje "Tienes permitido conducir".',
+            //     en: 'If the entered age is 16 or older, you must display the message "You are allowed to drive".',
+            //     pt: 'Se a idade inserida for 16 ou mais, você deve exibir a mensagem "Você tem permissão para dirigir".'
+            //   }]
+            // } else if (!code.includes("else:")) {
+            //   return [{
+            //     es: "Debe incluir una estructura condicional para verificar si el usuario tiene 16 años o más.",
+            //     en: "It must include a conditional structure to check if the user is 16 years old or older.",
+            //     pt: "Deve incluir uma estrutura condicional para verificar se o usuário tem 16 anos ou mais."
+            //   }]
+            // } else if (!code.replace(/\s/g, '').trim().includes('print("Notienespermitidoconducir")') && !code.replace(/\s/g, '').trim().includes("print('Notienespermitidoconducir')") && !code.replace(/\s/g, '').trim().includes('print("Youarenotallowedtodrive")') && !code.replace(/\s/g, '').trim().includes("print('Youarenotallowedtodrive')")) {
+            //   return [{
+            //     es: "Debe mostrar el mensaje 'No tienes permitido conducir' si el usuario tiene menos de 16 años.",
+            //     en: "It must display the message 'You are not allowed to drive' if the user is under 16 years old.",
+            //     pt: "Deve exibir a mensagem 'Você não tem permissão para dirigir' se o usuário tiver menos de 16 anos."
+            //   }]
+            // } else if (!code.replace(/\s/g, '').trim().includes('else:print("Notienespermitidoconducir")') && !code.replace(/\s/g, '').trim().includes("else:print('Notienespermitidoconducir')") && !code.replace(/\s/g, '').trim().includes('else:print("Youarenotallowedtodrive")') && !code.replace(/\s/g, '').trim().includes("else:print('Youarenotallowedtodrive')")) {
+            //   return [{
+            //     es: 'Si la edad ingresada es menor a 16, debes mostrar el mensaje "No tienes permitido conducir".',
+            //     en: 'If the entered age is less than 16, you must display the message "You are not allowed to drive".',
+            //     pt: 'Se a idade inserida for menor que 16, você deve exibir a mensagem "Você não tem permissão para dirigir".'
+            //   }]
+            // }
           })
       }
-      // {
-      //   "description": "El código debe crear una variable llamada 'edad' que almacene la edad ingresada por el usuario.",
-      //   "test": (assert) => assert
-      //     .$variable("edad").catch({
-      //       es: "Debe crear la variable 'edad' que almacene la edad ingresada por el usuario.",
-      //       en: "It must create the 'edad' variable to store the user's entered age.",
-      //       pt: "Deve criar a variável 'edad' para armazenar a idade inserida pelo usuário."
-      //     })
-      //     .withAssignation("int(input(\"¿Cuál es tu edad? => \"))").catch({
-      //       es: "Debe crear la variable 'edad' que almacene la edad ingresada por el usuario.",
-      //       en: "It must create the 'edad' variable to store the user's entered age.",
-      //       pt: "Deve criar a variável 'edad' para armazenar a idade inserida pelo usuário."
-      //     })
-      // },
-      // {
-      //   "description": "El código debe incluir una estructura condicional que evalúe si el usuario tiene 16 años o más.",
-      //   "test": (assert) => assert
-      //     .$if("edad >= 16").catch({
-      //       es: "Debe incluir una estructura condicional para verificar si el usuario tiene 16 años o más.",
-      //       en: "It must include a conditional structure to check if the user is 16 years old or older.",
-      //       pt: "Deve incluir uma estrutura condicional para verificar se o usuário tem 16 anos ou mais."
-      //     })
-      //     .withBody((assert) => assert
-      //       .$functionCall("print")
-      //       .withArguments(["\"Tienes permitido conducir\""])
-      //     )
-      //     .withElse((assert) => assert
-      //       .$functionCall("print")
-      //       .withArguments(["\"No tienes permitido conducir\""])
-      //     ).catch({
-      //       es: "Debe incluir una estructura condicional para verificar si el usuario tiene 16 años o más.",
-      //       en: "It must include a conditional structure to check if the user is 16 years old or older.",
-      //       pt: "Deve incluir uma estrutura condicional para verificar se o usuário tem 16 anos ou mais."
-      //     })
-      // }
+
     ],
 
   },
@@ -2215,7 +2798,7 @@ export const exercises = [
                 pt: "No seu código, você deve declarar a variável animalesSalvajes."
               }]
             }
-            else if (!code.replace(/\s+/g, '').trim().includes("animalesSalvajes=animales[:5]") && !code.replace(/\s+/g, '').trim().includes("wildAnimals=animals[:5]")&& !code.replace(/\s+/g, '').trim().includes("animalesSalvajes=animales[0:5]")&& !code.replace(/\s+/g, '').trim().includes("wildAnimals=animals[0:5]")) {
+            else if (!code.replace(/\s+/g, '').trim().includes("animalesSalvajes=animales[:5]") && !code.replace(/\s+/g, '').trim().includes("wildAnimals=animals[:5]") && !code.replace(/\s+/g, '').trim().includes("animalesSalvajes=animales[0:5]") && !code.replace(/\s+/g, '').trim().includes("wildAnimals=animals[0:5]")) {
               return [{
                 es: "En tu código debes extraer los animales salvajes presentes en la variable animalesSalvajes. Recuerda utilizar la técnica correspondiente.",
                 en: "In your code you must extract the wild animals present in the animals variable. Remember to use the corresponding technique.",
@@ -5362,7 +5945,7 @@ export const exercises = [
                 pt: "Deve iterar a lista 'players'."
               }];
             }
-            if (!code.replace(/\s/g, '').trim().includes('indice=1forjugadorinjugadores:print("Losdatosdeljugador"+str(indice)+"son:"+jugador["nombre"]+""+jugador["apellido"]+",Edad:"+jugador["edad"]+",Clubes:"+jugador["club1"]+"y"+jugador["club2"])indice+=1') && !code.replace(/\s/g, '').trim().includes('index=1forplayerinplayers:print("Thedataofplayer"+str(index)+"are:"+player["name"]+""+player["lastname"]+",Age:"+player["age"]+","+"Teams:"+player["team1"]+"and"+player["team2"])index+=1') && !code.replace(/\s/g, '').trim().includes(`indice=1forjugadorinjugadores:print("Losdatosdeljugador"+str(indice)+"son:"+jugador["nombre"]+""+jugador["apellido"]+",Edad:"+jugador["edad"]+",Clubes:"+jugador["club1"]+"y"+jugador["club2"])indice+=1`) && !code.replace(/\s/g, '').trim().includes(`index=1forplayerinplayers:print("Thedataofplayer"+str(index)+"are:"+player["name"]+""+player["lastname"]+",Age:"+player["age"]+","+"Teams:"+player["team1"]+"and"+player["team2"])index+=1`)&& !code.replace(/\s/g, '').trim().includes('forjugadorinjugadores:print("Losdatosdeljugador"+str(indice)+"son:"+jugador["nombre"]+""+jugador["apellido"]+",Edad:"+jugador["edad"]+","+"Clubes:"+jugador["club1"]+"y"+jugador["club2"])indice+=1') && !code.replace(/\s/g, '').trim().includes('forplayerinplayers:print("Thedataofplayer"+str(index)+"are:"+player["name"]+""+player["lastname"]+",Age:"+player["age"]+","+"Teams:"+player["team1"]+"and"+player["team2"])index+=1') && !code.replace(/\s/g, '').trim().includes(`forjugadorinjugadores:print('Los datos del jugador '+str(indice)+' son: '+jugador["nombre"]+' '+jugador["apellido"]+', Edad: '+str(jugador["edad"])+', Clubes: '+jugador["club1"]+' y '+jugador["club2"])indice+=1`) && !code.replace(/\s/g, '').trim().includes(`forplayerinplayers:print('The data of player '+str(index)+' are: '+player["name"]+' '+player["lastname"]+', Age: '+str(player["age"])+', Teams: '+player["team1"]+' and '+player["team2"])index+=1`)&& !code.replace(/\s/g, '').trim().includes(`forjugadorinjugadores:print('Los datos del jugador '+str(indice)+' son: '+jugador["nombre"]+' '+jugador["apellido"]+', Edad: '+str(jugador["edad"])+','+' Clubes: '+jugador["club1"]+' y '+jugador["club2"])indice+=1`) && !code.replace(/\s/g, '').trim().includes(`forplayerinplayers:print('The data of player '+str(index)+' are: '+player["name"]+' '+player["lastname"]+', Age: '+str(player["age"])+', Teams: '+player["team1"]+' and '+player["team2"])index+=1`)) {
+            if (!code.replace(/\s/g, '').trim().includes('indice=1forjugadorinjugadores:print("Losdatosdeljugador"+str(indice)+"son:"+jugador["nombre"]+""+jugador["apellido"]+",Edad:"+jugador["edad"]+",Clubes:"+jugador["club1"]+"y"+jugador["club2"])indice+=1') && !code.replace(/\s/g, '').trim().includes('index=1forplayerinplayers:print("Thedataofplayer"+str(index)+"are:"+player["name"]+""+player["lastname"]+",Age:"+player["age"]+","+"Teams:"+player["team1"]+"and"+player["team2"])index+=1') && !code.replace(/\s/g, '').trim().includes(`indice=1forjugadorinjugadores:print("Losdatosdeljugador"+str(indice)+"son:"+jugador["nombre"]+""+jugador["apellido"]+",Edad:"+jugador["edad"]+",Clubes:"+jugador["club1"]+"y"+jugador["club2"])indice+=1`) && !code.replace(/\s/g, '').trim().includes(`index=1forplayerinplayers:print("Thedataofplayer"+str(index)+"are:"+player["name"]+""+player["lastname"]+",Age:"+player["age"]+","+"Teams:"+player["team1"]+"and"+player["team2"])index+=1`) && !code.replace(/\s/g, '').trim().includes('forjugadorinjugadores:print("Losdatosdeljugador"+str(indice)+"son:"+jugador["nombre"]+""+jugador["apellido"]+",Edad:"+jugador["edad"]+","+"Clubes:"+jugador["club1"]+"y"+jugador["club2"])indice+=1') && !code.replace(/\s/g, '').trim().includes('forplayerinplayers:print("Thedataofplayer"+str(index)+"are:"+player["name"]+""+player["lastname"]+",Age:"+player["age"]+","+"Teams:"+player["team1"]+"and"+player["team2"])index+=1') && !code.replace(/\s/g, '').trim().includes(`forjugadorinjugadores:print('Los datos del jugador '+str(indice)+' son: '+jugador["nombre"]+' '+jugador["apellido"]+', Edad: '+str(jugador["edad"])+', Clubes: '+jugador["club1"]+' y '+jugador["club2"])indice+=1`) && !code.replace(/\s/g, '').trim().includes(`forplayerinplayers:print('The data of player '+str(index)+' are: '+player["name"]+' '+player["lastname"]+', Age: '+str(player["age"])+', Teams: '+player["team1"]+' and '+player["team2"])index+=1`) && !code.replace(/\s/g, '').trim().includes(`forjugadorinjugadores:print('Los datos del jugador '+str(indice)+' son: '+jugador["nombre"]+' '+jugador["apellido"]+', Edad: '+str(jugador["edad"])+','+' Clubes: '+jugador["club1"]+' y '+jugador["club2"])indice+=1`) && !code.replace(/\s/g, '').trim().includes(`forplayerinplayers:print('The data of player '+str(index)+' are: '+player["name"]+' '+player["lastname"]+', Age: '+str(player["age"])+', Teams: '+player["team1"]+' and '+player["team2"])index+=1`)) {
               seguirValidando = false;
               return [{
                 es: "Debes mostrar los datos de cada jugador en la lista.",
@@ -7353,7 +7936,7 @@ export const exercises = [
             return [{ es: "Debes calcular el coeficiente de correlación y guardarlo en la variable 'correlacion'.", en: "You must calculate the correlation coefficient and store it in the 'correlacion' variable.", pt: "Você deve calcular o coeficiente de correlação e armazená-lo na variável 'correlacion'." }];
           }
 
-          if (!code.includes('print("ElcoeficientedecorrelacióndePearsones:"+str(')&& !code.includes('print("ThePearsoncorrelationcoefficientis:"+str(') && !code.includes("print('ElcoeficientedecorrelacióndePearsones:'+str(") && !code.includes("print('ThePearsoncorrelationcoefficientis:'+str(")) {
+          if (!code.includes('print("ElcoeficientedecorrelacióndePearsones:"+str(') && !code.includes('print("ThePearsoncorrelationcoefficientis:"+str(') && !code.includes("print('ElcoeficientedecorrelacióndePearsones:'+str(") && !code.includes("print('ThePearsoncorrelationcoefficientis:'+str(")) {
             return [{ es: "Debes imprimir el coeficiente de correlación con 'print(...)'.", en: "You must print the correlation coefficient using 'print(...)'.", pt: "Você deve imprimir o coeficiente de correlação usando 'print(...)'." }];
           }
         })
@@ -7457,7 +8040,7 @@ export const exercises = [
                 pt: "Você deve criar um gráfico de dispersão com os dados de 'x' e 'y'."
               }];
             }
-            if (!code.replace(/\s/g, '').trim().includes("slope,intercept,r,p,std_err=stats.linregress(x,y)") && !code.replace(/\s/g, '').trim().includes("slope,intercept,r,p,std_err=stats.linregress(x,y)")&& !code.replace(/\s/g, '').trim().includes("slope,intercept,r_value,p_value,std_err=stats.linregress(x,y)")) {
+            if (!code.replace(/\s/g, '').trim().includes("slope,intercept,r,p,std_err=stats.linregress(x,y)") && !code.replace(/\s/g, '').trim().includes("slope,intercept,r,p,std_err=stats.linregress(x,y)") && !code.replace(/\s/g, '').trim().includes("slope,intercept,r_value,p_value,std_err=stats.linregress(x,y)")) {
               return [{
                 es: "Debes calcular la regresión lineal entre 'x' e y'.",
                 en: "You must calculate the linear regression between 'x' and 'y'.",
@@ -7499,10 +8082,10 @@ export const exercises = [
                 pt: "Você deve exibir o gráfico."
               }];
             }
-             if (!code.includes("x.corr(y)")) {
-            return [{ es: "Debes calcular el coeficiente de correlación y guardarlo en la variable 'correlacion'.", en: "You must calculate the correlation coefficient and store it in the 'correlacion' variable.", pt: "Você deve calcular o coeficiente de correlação e armazená-lo na variável 'correlacion'." }];
-          }
-            if (!code.replace(/\s/g, '').trim().includes('print("ElcoeficientedecorrelacióndePearsones:"+str(')&& !code.replace(/\s/g, '').trim().includes('print("ThePearsoncorrelationcoefficientis:"+str(') && !code.replace(/\s/g, '').trim().includes('print("ElcoeficientedecorrelacióndePearsones:"+str(') && !code.replace(/\s/g, '').trim().includes('print("ThePearsoncorrelationcoefficientis:"+str(')){
+            if (!code.includes("x.corr(y)")) {
+              return [{ es: "Debes calcular el coeficiente de correlación y guardarlo en la variable 'correlacion'.", en: "You must calculate the correlation coefficient and store it in the 'correlacion' variable.", pt: "Você deve calcular o coeficiente de correlação e armazená-lo na variável 'correlacion'." }];
+            }
+            if (!code.replace(/\s/g, '').trim().includes('print("ElcoeficientedecorrelacióndePearsones:"+str(') && !code.replace(/\s/g, '').trim().includes('print("ThePearsoncorrelationcoefficientis:"+str(') && !code.replace(/\s/g, '').trim().includes('print("ElcoeficientedecorrelacióndePearsones:"+str(') && !code.replace(/\s/g, '').trim().includes('print("ThePearsoncorrelationcoefficientis:"+str(')) {
               return [{
                 es: "Debes imprimir el coeficiente de correlación de Pearson entre 'x' e 'y'.",
                 en: "You must print the Pearson correlation coefficient between 'x' and 'y'.",
@@ -7781,7 +8364,7 @@ export const exercises = [
                 pt: "Você deve criar uma variável chamada 'date_mask' para armazenar as datas de setembro de 2022."
               }];
             }
-            if (!code.replace(/\s/g, '').trim().includes("mascara_fechas=(data['FECHA']>='2022-09-01')&(data['FECHA']<='2022-09-30')") && !code.replace(/\s/g, '').trim().includes("date_mask=(data['DATE']>='2022-09-01')&(data['DATE']<='2022-09-30')") && !code.replace(/\s/g, '').trim().includes('date_mask=(data["DATE"]>="2022-09-01")&(data["DATE"]<="2022-09-30")') && !code.replace(/\s/g, '').trim().includes('date_mask=(data["DATE"]>="2022-09-01")&(data["DATE"]<="2022-09-30")')&& !code.replace(/\s/g, '').trim().includes(`mascara_fechas=(data['FECHA']>="2022-09-01")&(data['FECHA']<="2022-09-30")`) && !code.replace(/\s/g, '').trim().includes(`date_mask=(data['DATE']>="2022-09-01")&(data['DATE']<="2022-09-30")`)&& !code.replace(/\s/g, '').trim().includes(`mascara_fechas=(data["FECHA"]>='2022-09-01')&(data["FECHA"]<='2022-09-30')`) && !code.replace(/\s/g, '').trim().includes(`date_mask=(data["DATE"]>='2022-09-01')&(data["DATE"]<='2022-09-30')`)) {
+            if (!code.replace(/\s/g, '').trim().includes("mascara_fechas=(data['FECHA']>='2022-09-01')&(data['FECHA']<='2022-09-30')") && !code.replace(/\s/g, '').trim().includes("date_mask=(data['DATE']>='2022-09-01')&(data['DATE']<='2022-09-30')") && !code.replace(/\s/g, '').trim().includes('date_mask=(data["DATE"]>="2022-09-01")&(data["DATE"]<="2022-09-30")') && !code.replace(/\s/g, '').trim().includes('date_mask=(data["DATE"]>="2022-09-01")&(data["DATE"]<="2022-09-30")') && !code.replace(/\s/g, '').trim().includes(`mascara_fechas=(data['FECHA']>="2022-09-01")&(data['FECHA']<="2022-09-30")`) && !code.replace(/\s/g, '').trim().includes(`date_mask=(data['DATE']>="2022-09-01")&(data['DATE']<="2022-09-30")`) && !code.replace(/\s/g, '').trim().includes(`mascara_fechas=(data["FECHA"]>='2022-09-01')&(data["FECHA"]<='2022-09-30')`) && !code.replace(/\s/g, '').trim().includes(`date_mask=(data["DATE"]>='2022-09-01')&(data["DATE"]<='2022-09-30')`)) {
               return [{
                 es: "Debes crear una máscara con las fechas del mes de septiembre de 2022.",
                 en: "You must create a mask with the dates of September 2022.",
@@ -7809,7 +8392,7 @@ export const exercises = [
                 pt: "Você deve criar uma variável chamada 'max_viewers_data' para armazenar o máximo de 'AVERAGE_VIEWERS'."
               }];
             }
-            if (!code.replace(/\s/g, '').trim().includes("data_max_espectadores=data_fechas.groupby('FECHA')['ESPECTADORES_PROMEDIO'].max()") && !code.replace(/\s/g, '').trim().includes("max_viewers_data=date_data.groupby('DATE')['AVERAGE_VIEWERS'].max()") && !code.replace(/\s/g, '').trim().includes('max_viewers_data=date_data.groupby("DATE")["AVERAGE_VIEWERS"].max()') && !code.replace(/\s/g, '').trim().includes('max_viewers_data=date_data.groupby("DATE")["AVERAGE_VIEWERS"].max()')&& !code.replace(/\s/g, '').trim().includes(`data_max_espectadores=data_fechas.groupby('FECHA')["ESPECTADORES_PROMEDIO"].max()`) && !code.replace(/\s/g, '').trim().includes(`max_viewers_data=date_data.groupby('DATE')["AVERAGE_VIEWERS"].max()`)&& !code.replace(/\s/g, '').trim().includes(`data_max_espectadores=data_fechas.groupby("FECHA")['ESPECTADORES_PROMEDIO'].max()`) && !code.replace(/\s/g, '').trim().includes(`max_viewers_data=date_data.groupby("DATE")['AVERAGE_VIEWERS'].max()`)) {
+            if (!code.replace(/\s/g, '').trim().includes("data_max_espectadores=data_fechas.groupby('FECHA')['ESPECTADORES_PROMEDIO'].max()") && !code.replace(/\s/g, '').trim().includes("max_viewers_data=date_data.groupby('DATE')['AVERAGE_VIEWERS'].max()") && !code.replace(/\s/g, '').trim().includes('max_viewers_data=date_data.groupby("DATE")["AVERAGE_VIEWERS"].max()') && !code.replace(/\s/g, '').trim().includes('max_viewers_data=date_data.groupby("DATE")["AVERAGE_VIEWERS"].max()') && !code.replace(/\s/g, '').trim().includes(`data_max_espectadores=data_fechas.groupby('FECHA')["ESPECTADORES_PROMEDIO"].max()`) && !code.replace(/\s/g, '').trim().includes(`max_viewers_data=date_data.groupby('DATE')["AVERAGE_VIEWERS"].max()`) && !code.replace(/\s/g, '').trim().includes(`data_max_espectadores=data_fechas.groupby("FECHA")['ESPECTADORES_PROMEDIO'].max()`) && !code.replace(/\s/g, '').trim().includes(`max_viewers_data=date_data.groupby("DATE")['AVERAGE_VIEWERS'].max()`)) {
               return [{
                 es: "Debes agrupar los datos filtrados por fecha y calcular el máximo de 'ESPECTADORES_PROMEDIO'.",
                 en: "You must group the filtered data by date and calculate the maximum 'AVERAGE_VIEWERS'.",
@@ -7832,7 +8415,7 @@ export const exercises = [
                 pt: "Você deve criar uma figura com um tamanho de 10x6."
               }];
             }
-            if (!code.replace(/\s/g, '').trim().includes(`data.groupby('FECHA')["ESPECTADORES_PROMEDIO"].plot.line(marker='o',color='blue')`) && !code.replace(/\s/g, '').trim().includes(`max_viewers_data.plot.line(marker='o',color='blue')`) && !code.replace(/\s/g, '').trim().includes(`data.groupby("FECHA")["ESPECTADORES_PROMEDIO"].plot.line(marker="o",color="blue")`) && !code.replace(/\s/g, '').trim().includes(`max_viewers_data.plot.line(marker="o",color="blue")`)&& !code.replace(/\s/g, '').trim().includes(`data.groupby('FECHA')["ESPECTADORES_PROMEDIO"].plot.line(color='blue',marker='o')`) && !code.replace(/\s/g, '').trim().includes(`max_viewers_data.plot.line(color='blue',marker='o')`)&& !code.replace(/\s/g, '').trim().includes(`data.groupby("FECHA")["ESPECTADORES_PROMEDIO"].plot.line(color="blue",marker="o")`) && !code.replace(/\s/g, '').trim().includes(`max_viewers_data.plot.line(color="blue",marker="o")`)) {
+            if (!code.replace(/\s/g, '').trim().includes(`data.groupby('FECHA')["ESPECTADORES_PROMEDIO"].plot.line(marker='o',color='blue')`) && !code.replace(/\s/g, '').trim().includes(`max_viewers_data.plot.line(marker='o',color='blue')`) && !code.replace(/\s/g, '').trim().includes(`data.groupby("FECHA")["ESPECTADORES_PROMEDIO"].plot.line(marker="o",color="blue")`) && !code.replace(/\s/g, '').trim().includes(`max_viewers_data.plot.line(marker="o",color="blue")`) && !code.replace(/\s/g, '').trim().includes(`data.groupby('FECHA')["ESPECTADORES_PROMEDIO"].plot.line(color='blue',marker='o')`) && !code.replace(/\s/g, '').trim().includes(`max_viewers_data.plot.line(color='blue',marker='o')`) && !code.replace(/\s/g, '').trim().includes(`data.groupby("FECHA")["ESPECTADORES_PROMEDIO"].plot.line(color="blue",marker="o")`) && !code.replace(/\s/g, '').trim().includes(`max_viewers_data.plot.line(color="blue",marker="o")`)) {
               return [{
                 es: "Debes mostrar los datos en un gráfico de líneas con marcadores de color azul.",
                 en: "You must display the data in a line chart with blue markers.",
@@ -7942,7 +8525,7 @@ export const exercises = [
                 pt: "Você deve criar uma variável chamada 'data_grouped' para armazenar os dados agrupados."
               }];
             }
-            else if (!code.replace(/\s/g, '').trim().includes("data_grouped=data.groupby(['RANGO','IDIOMA'])['VISTAS_GANADAS'].sum()") && !code.replace(/\s/g, '').trim().includes("data_grouped=data.groupby(['RANGE','LANGUAGE'])['VISITS_GAINED'].sum()") && !code.replace(/\s/g, '').trim().includes(`data_grouped=data.groupby(["RANGO",'IDIOMA'])['VISTAS_GANADAS'].sum()`) && !code.replace(/\s/g, '').trim().includes(`data_grouped=data.groupby(["RANGE",'LANGUAGE'])['VISITS_GAINED'].sum()`) && !code.replace(/\s/g, '').trim().includes(`data_grouped=data.groupby(['RANGO',"IDIOMA"])['VISTAS_GANADAS'].sum()`) && !code.replace(/\s/g, '').trim().includes(`data_grouped=data.groupby(['RANGE',"LANGUAGE"])['VISITS_GAINED'].sum()`) && !code.replace(/\s/g, '').trim().includes(`data_grouped=data.groupby(["RANGO","IDIOMA"])['VISTAS_GANADAS'].sum()`) && !code.replace(/\s/g, '').trim().includes(`data_grouped=data.groupby(["RANGE","LANGUAGE"])['VISITS_GAINED'].sum()`) && !code.replace(/\s/g, '').trim().includes(`data_grouped=data.groupby(['RANGO','IDIOMA'])["VISTAS_GANADAS"].sum()`) && !code.replace(/\s/g, '').trim().includes(`data_grouped=data.groupby(['RANGE','LANGUAGE'])["VISITS_GAINED"].sum()`) && !code.replace(/\s/g, '').trim().includes(`data_grouped=data.groupby(["RANGO","IDIOMA"])["VISTAS_GANADAS"].sum()`) && !code.replace(/\s/g, '').trim().includes(`data_grouped=data.groupby(["RANGE","LANGUAGE"])["VISITS_GAINED"].sum()`))  {
+            else if (!code.replace(/\s/g, '').trim().includes("data_grouped=data.groupby(['RANGO','IDIOMA'])['VISTAS_GANADAS'].sum()") && !code.replace(/\s/g, '').trim().includes("data_grouped=data.groupby(['RANGE','LANGUAGE'])['VISITS_GAINED'].sum()") && !code.replace(/\s/g, '').trim().includes(`data_grouped=data.groupby(["RANGO",'IDIOMA'])['VISTAS_GANADAS'].sum()`) && !code.replace(/\s/g, '').trim().includes(`data_grouped=data.groupby(["RANGE",'LANGUAGE'])['VISITS_GAINED'].sum()`) && !code.replace(/\s/g, '').trim().includes(`data_grouped=data.groupby(['RANGO',"IDIOMA"])['VISTAS_GANADAS'].sum()`) && !code.replace(/\s/g, '').trim().includes(`data_grouped=data.groupby(['RANGE',"LANGUAGE"])['VISITS_GAINED'].sum()`) && !code.replace(/\s/g, '').trim().includes(`data_grouped=data.groupby(["RANGO","IDIOMA"])['VISTAS_GANADAS'].sum()`) && !code.replace(/\s/g, '').trim().includes(`data_grouped=data.groupby(["RANGE","LANGUAGE"])['VISITS_GAINED'].sum()`) && !code.replace(/\s/g, '').trim().includes(`data_grouped=data.groupby(['RANGO','IDIOMA'])["VISTAS_GANADAS"].sum()`) && !code.replace(/\s/g, '').trim().includes(`data_grouped=data.groupby(['RANGE','LANGUAGE'])["VISITS_GAINED"].sum()`) && !code.replace(/\s/g, '').trim().includes(`data_grouped=data.groupby(["RANGO","IDIOMA"])["VISTAS_GANADAS"].sum()`) && !code.replace(/\s/g, '').trim().includes(`data_grouped=data.groupby(["RANGE","LANGUAGE"])["VISITS_GAINED"].sum()`)) {
               return [{
                 es: "Debes agrupar los datos por 'RANGO' e 'IDIOMA' y calcular la suma de 'VISTAS_GANADAS'.",
                 en: "You must group the data by 'RANGE' and 'LANGUAGE' and calculate the sum of 'VISITS_GAINED'.",
@@ -7984,9 +8567,9 @@ export const exercises = [
                 pt: "Você deve adicionar um título ao eixo Y com o texto 'Quantidade de visualizações ganhas'."
               }];
             }
-           
-            if (!code.replace(/\s/g, '').trim().includes("plt.title('Vistasganadasporrangoeidioma')") && !code.replace(/\s/g, '').trim().includes("plt.title('Visitsgainedbyrankandlanguage')") && !code.replace(/\s/g, '').trim().includes('plt.title("Vistasganadasporrangoeidioma")') && !code.replace(/\s/g, '').trim().includes('plt.title("Visitsgainedbyrankandlanguage")')&& !code.replace(/\s/g, '').trim().includes(`plt.title("Vistasganadasporrangoeidioma")`) && !code.replace(/\s/g, '').trim().includes(`plt.title("Visitsgainedbyrankandlanguage")`)&& !code.replace(/\s/g, '').trim().includes(`plt.title('Vistasganadasporrangoeidioma')`) && !code.replace(/\s/g, '').trim().includes(`plt.title('Visitsgainedbyrankandlanguage')`)&& !code.replace(/\s/g, '').trim().includes(`plt.title("Vistasganadasporrangoeidioma")`) && !code.replace(/\s/g, '').trim().includes(`plt.title("Visitsgainedbyrankandlanguage")`)) {
-               
+
+            if (!code.replace(/\s/g, '').trim().includes("plt.title('Vistasganadasporrangoeidioma')") && !code.replace(/\s/g, '').trim().includes("plt.title('Visitsgainedbyrankandlanguage')") && !code.replace(/\s/g, '').trim().includes('plt.title("Vistasganadasporrangoeidioma")') && !code.replace(/\s/g, '').trim().includes('plt.title("Visitsgainedbyrankandlanguage")') && !code.replace(/\s/g, '').trim().includes(`plt.title("Vistasganadasporrangoeidioma")`) && !code.replace(/\s/g, '').trim().includes(`plt.title("Visitsgainedbyrankandlanguage")`) && !code.replace(/\s/g, '').trim().includes(`plt.title('Vistasganadasporrangoeidioma')`) && !code.replace(/\s/g, '').trim().includes(`plt.title('Visitsgainedbyrankandlanguage')`) && !code.replace(/\s/g, '').trim().includes(`plt.title("Vistasganadasporrangoeidioma")`) && !code.replace(/\s/g, '').trim().includes(`plt.title("Visitsgainedbyrankandlanguage")`)) {
+
               return [{
                 es: "Debes agregar un título al gráfico con el texto 'Vistas ganadas por rango e idioma'.",
                 en: "You must add a title to the chart with the text 'Visits gained by rank and language'.",
@@ -8205,7 +8788,7 @@ export const exercises = [
                 pt: "Você deve criar uma máscara 'mask_date' para filtrar as datas de 1 a 30 de outubro de 2022."
               }];
             }
-            if (!code.replace(/\s/g, '').trim().includes("mask_fecha=(data['FECHA']>='2022-10-01')&(data['FECHA']<='2022-10-30')") && !code.replace(/\s/g, '').trim().includes("mask_date=(data['DATE']>='2022-10-01')&(data['DATE']<='2022-10-30')") && !code.replace(/\s/g, '').trim().includes('mask_date=(data["DATE"]>="2022-10-01")&(data["DATE"]<="2022-10-30")') && !code.replace(/\s/g, '').trim().includes('mask_date=(data["DATE"]>="2022-10-01")&(data["DATE"]<="2022-10-30")')&& !code.replace(/\s/g, '').trim().includes(`mask_fecha=(data['FECHA']>="2022-10-01")&(data['FECHA']<="2022-10-30")`) && !code.replace(/\s/g, '').trim().includes(`mask_date=(data["FECHA"]>='2022-10-01')&(data["FECHA"]<='2022-10-30')`) && !code.replace(/\s/g, '').trim().includes(`mask_date=(data["DATE"]>="2022-10-01")&(data["DATE"]<="2022-10-30")`) && !code.replace(/\s/g, '').trim().includes(`mask_date=(data["DATE"]>="2022-10-01")&(data["DATE"]<="2022-10-30")`)) {
+            if (!code.replace(/\s/g, '').trim().includes("mask_fecha=(data['FECHA']>='2022-10-01')&(data['FECHA']<='2022-10-30')") && !code.replace(/\s/g, '').trim().includes("mask_date=(data['DATE']>='2022-10-01')&(data['DATE']<='2022-10-30')") && !code.replace(/\s/g, '').trim().includes('mask_date=(data["DATE"]>="2022-10-01")&(data["DATE"]<="2022-10-30")') && !code.replace(/\s/g, '').trim().includes('mask_date=(data["DATE"]>="2022-10-01")&(data["DATE"]<="2022-10-30")') && !code.replace(/\s/g, '').trim().includes(`mask_fecha=(data['FECHA']>="2022-10-01")&(data['FECHA']<="2022-10-30")`) && !code.replace(/\s/g, '').trim().includes(`mask_date=(data["FECHA"]>='2022-10-01')&(data["FECHA"]<='2022-10-30')`) && !code.replace(/\s/g, '').trim().includes(`mask_date=(data["DATE"]>="2022-10-01")&(data["DATE"]<="2022-10-30")`) && !code.replace(/\s/g, '').trim().includes(`mask_date=(data["DATE"]>="2022-10-01")&(data["DATE"]<="2022-10-30")`)) {
               return [{
                 es: "Debes filtrar las fechas del 1 al 30 de octubre de 2022 con la máscara 'mask_fecha'.",
                 en: "You must filter the dates from October 1 to 30, 2022 with the 'mask_date' mask.",
