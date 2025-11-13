@@ -66,8 +66,8 @@ const Exercise = () => {
       "condicionales-02": true,
 
       // Bucles → mostrar en los que ya combinan lógica
-      "while-01": false,
-      "while-02": true,
+      "while-01": true,
+      "while-02": false,
       "forIn-01": true,
 
       // Listas → los primeros ocultos, los siguientes con feedback

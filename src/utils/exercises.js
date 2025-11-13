@@ -1991,173 +1991,264 @@ export const exercises = [
         "description": "El código debe crear una variable llamada 'gustoHelado' que almacene el gusto de helado ingresado por el usuario.",
         "test": (assert) => assert
           .$custom(code => {
+            const norm = code.replace(/\r/g, "");
 
-            if (!code.replace(/\s/g, '').trim().includes("gustoHelado=") && !code.replace(/\s/g, '').trim().includes("iceCreamFlavor=")) {
+            // === 1) Variable gustoHelado / iceCreamFlavor con input() ===
+            const hasGusto = /gustoHelado\s*=\s*input\s*\(/.test(norm);
+            const hasFlavor = /iceCreamFlavor\s*=\s*input\s*\(/.test(norm);
+
+            if (!hasGusto && !hasFlavor) {
               return [{
-                es: "Debe crear la variable 'gustoHelado' que almacene el gusto de helado ingresado por el usuario.",
-                en: "You must create the 'iceCreamFlavor' variable to store the ice cream flavor entered by the user.",
-                pt: "Você deve criar a variável 'gustoHelado' para armazenar o sabor do sorvete inserido pelo usuário."
-              }]
-            } else if (code.replace(/\s/g, '').trim().includes("gustoHelado=input(")) {
-              const lineasInput = code.match(/input\(["'].*?["']\)/g);
-              // console.log(lineasInput[0]);
+                es: "Debe crear la variable 'gustoHelado' (o 'iceCreamFlavor') que almacene el gusto de helado ingresado por el usuario.",
+                en: "You must create the 'gustoHelado' (or 'iceCreamFlavor') variable to store the ice cream flavor entered by the user.",
+                pt: "Você deve criar a variável 'gustoHelado' (ou 'iceCreamFlavor') para armazenar o sabor do sorvete inserido pelo usuário."
+              }];
+            }
 
-              const pregunta = lineasInput[0].match(/["'](.*?)["']/)?.[1]; // Extraer el texto de la pregunta
-              if (pregunta) {
-                const contieneEdadOAnios = /gusto|sabor/i.test(pregunta);
-                if (!contieneEdadOAnios) {
-                  seguirValidando = false
-                  // console.log("La pregunta del input no es válida porque no menciona 'gusto' o 'sabor'.");
-                  return [{
-                    es: 'La pregunta del input "' + pregunta + '" no es válida porque no menciona "gusto" o "sabor".',
-                    en: 'The input question ' + pregunta + ' is not valid because it does not mention "gusto" or "sabor".',
-                    pt: 'A pergunta do input ' + pregunta + ' não é válida porque não menciona "gusto" ou "sabor".'
-                  }]
-                }
+            // Extraer texto del input
+            const inputMatch = code.match(/input\(["'](.*?)["']\)/);
+            if (!inputMatch) {
+              return [{
+                es: "Debe usar input() para pedir el gusto de helado al usuario.",
+                en: "You must use input() to ask the user for their ice cream flavor.",
+                pt: "Você deve usar input() para pedir ao usuário o sabor do sorvete."
+              }];
+            }
 
-              }
-            } else if (code.replace(/\s/g, '').trim().includes("iceCreamFlavor=input(")) {
-              const lineasInput = code.match(/input\(["'].*?["']\)/g);
-              // console.log(lineasInput[0]);
-              const pregunta = lineasInput[0].match(/["'](.*?)["']/)?.[1]; // Extraer el texto de la pregunta
-              if (pregunta.length < 1) {
+            const pregunta = inputMatch[1];
+            if (!pregunta || pregunta.trim().length === 0) {
+              return [{
+                es: "La pregunta del input no puede estar vacía. Debes pedir el gusto de helado.",
+                en: "The input question cannot be empty. You must ask for the ice cream flavor.",
+                pt: "A pergunta do input não pode estar vazia. Você deve pedir o sabor do sorvete."
+              }];
+            }
+
+            if (hasGusto) {
+              const okPreguntaES = /gusto|sabor/i.test(pregunta);
+              if (!okPreguntaES) {
                 return [{
-                  es: "La pregunta del input no puede estar vacía.",
-                  en: "The input question cannot be empty.",
-                  pt: "A pergunta do input não pode estar vazia."
-                }]
+                  es: `La pregunta del input "${pregunta}" no es válida porque no menciona "gusto" o "sabor".`,
+                  en: `The input question "${pregunta}" is not valid because it does not mention "gusto" or "sabor".`,
+                  pt: `A pergunta do input "${pregunta}" não é válida porque não menciona "gusto" ou "sabor".`
+                }];
               }
-              if (pregunta) {
-                const contieneEdadOAnios = /flavor/i.test(pregunta);
-                if (!contieneEdadOAnios) {
-                  seguirValidando = false
-                  // console.log("La pregunta del input no es válida porque no menciona 'gusto' o 'sabor'.");
-                  return [{
-                    es: 'La pregunta del input "' + pregunta + '" no es válida porque no menciona "gusto" o "sabor".',
-                    en: 'The input question ' + pregunta + ' is not valid because it does not mention "flavor".',
-                    pt: 'A pergunta do input ' + pregunta + ' não é válida porque não menciona "gusto" ou "sabor".'
-                  }]
-                }
+            } else if (hasFlavor) {
+              const okPreguntaEN = /flavor/i.test(pregunta);
+              if (!okPreguntaEN) {
+                return [{
+                  es: `La pregunta del input "${pregunta}" no es válida porque no menciona "flavor".`,
+                  en: `The input question "${pregunta}" is not valid because it does not mention "flavor".`,
+                  pt: `A pergunta do input "${pregunta}" não é válida porque não menciona "flavor".`
+                }];
               }
             }
-            else {
-              return [{
-                es: "Debe solicitar al usuario que ingrese el gusto de helado.",
-                en: "You must ask the user to enter the ice cream flavor.",
-                pt: "Você deve pedir ao usuário para inserir o sabor do sorvete."
-              }]
+
+            const varName = hasGusto ? "gustoHelado" : "iceCreamFlavor";
+
+            // Helper para buscar comparaciones if/elif == "sabor"
+            const hasCheck = (flavor) => {
+              const reES = new RegExp(`\\b(if|elif)\\s+${varName}\\s*==\\s*["']${flavor}["']\\s*:`);
+              return reES.test(norm);
+            };
+
+            // Helper para buscar prints "Sí, hay " + variable (o "Yes, there is ")
+            const hasPrintYes = (flavor) => {
+              const reES = new RegExp(
+                `\\b(if|elif)\\s+${varName}\\s*==\\s*["']${flavor}["']\\s*:[\\s\\S]*?print\\s*\\(\\s*["']Sí, hay\\s*["']\\s*\\+\\s*${varName}\\s*\\)`,
+                "m"
+              );
+              const reEN = new RegExp(
+                `\\b(if|elif)\\s+${varName}\\s*==\\s*["']${flavor}["']\\s*:[\\s\\S]*?print\\s*\\(\\s*["']Yes, there is\\s*["']\\s*\\+\\s*${varName}\\s*\\)`,
+                "m"
+              );
+              return reES.test(norm) || reEN.test(norm);
+            };
+
+            // === 2) Condicionales para cada sabor ===
+            const sabores = ["chocolate", "vainilla", "fresa", "pistacho"];
+
+            for (const sabor of sabores) {
+              if (!hasCheck(sabor)) {
+                return [{
+                  es: `Debe incluir una condición que evalúe si el gusto de helado coincide con la opción "${sabor}".`,
+                  en: `You must include a condition that checks if the ice cream flavor matches the "${sabor}" option.`,
+                  pt: `Você deve incluir uma condição que verifique se o sabor do sorvete corresponde à opção "${sabor}".`
+                }];
+              }
+              if (!hasPrintYes(sabor)) {
+                return [{
+                  es: `Si el gusto es "${sabor}", debes mostrar el mensaje "Sí, hay " (o "Yes, there is ") seguido del gusto de helado.`,
+                  en: `If the flavor is "${sabor}", you must display the message "Yes, there is " (or "Sí, hay ") followed by the ice cream flavor.`,
+                  pt: `Se o sabor for "${sabor}", você deve exibir a mensagem "Sim, há " (ou "Sí, hay ") seguida do sabor do sorvete.`
+                }];
+              }
             }
 
-            if (!code.replace(/\s/g, '').trim().includes('ifgustoHelado=="chocolate":') && !code.replace(/\s/g, '').trim().includes('ificeCreamFlavor=="chocolate":')) {
-              seguirValidando = false
+            // === 3) else con "No hay ..." / "There is no ..." ===
+            if (!/\belse\s*:/.test(norm)) {
               return [{
-                es: "Debe incluir una estructura condicional que evalúe si el gusto de helado coincide con la opción chocolate.",
-                en: "It must include a conditional structure to check if the ice cream flavor matches the chocolate option.",
-                pt: "Deve incluir uma estrutura condicional para verificar se o sabor de sorvete corresponde à opção chocolate."
-              }]
-            } else if (!code.replace(/\s/g, '').trim().includes('ifgustoHelado=="chocolate":print("Sí,hay"+gustoHelado)') && !code.replace(/\s/g, '').trim().includes(`ificeCreamFlavor=="chocolate":print("Yes,thereis"+iceCreamFlavor)`)) {
-              seguirValidando = false
-              return [{
-                es: "Debes mostrar el mensaje 'Sí, hay ' seguido del gusto de helado ingresado por el usuario si coincide con el gusto chocolate.",
-                en: "It must display the message 'Yes, there is ' followed by the ice cream flavor entered by the user if it matches the chocolate flavor.",
-                pt: "Deve exibir a mensagem 'Sim, há ' seguida do sabor de sorvete inserido pelo usuário se corresponder ao sabor chocolate."
-              }]
-            } else if (!code.replace(/\s/g, '').trim().includes('elifgustoHelado=="vainilla":') && !code.replace(/\s/g, '').trim().includes('elificeCreamFlavor=="vainilla":')) {
-              seguirValidando = false
-              return [{
-                es: "Debe incluir una estructura condicional que evalúe si el gusto de helado coincide con la opción vainilla.",
-                en: "It must include a conditional structure to check if the ice cream flavor matches the vanilla option.",
-                pt: "Deve incluir uma estrutura condicional para verificar se o sabor de sorvete corresponde à opção baunilha."
-              }]
-            } else if (!code.replace(/\s/g, '').trim().includes('elifgustoHelado=="vainilla":print("Sí,hay"+gustoHelado)') && !code.replace(/\s/g, '').trim().includes(`elificeCreamFlavor=="vainilla":print("Yes,thereis"+iceCreamFlavor)`)) {
-              seguirValidando = false
-              return [{
-                es: "Debe mostrar el mensaje 'Sí, hay ' seguido del gusto de helado ingresado por el usuario si coincide con el gusto vainilla.",
-                en: "It must display the message 'Yes, there is ' followed by the ice cream flavor entered by the user if it matches the vanilla flavor.",
-                pt: "Deve exibir a mensagem 'Sí, há ' seguida do sabor de sorvete inserido pelo usuário se corresponder ao sabor baunilha."
-              }]
-            } else if (!code.replace(/\s/g, '').trim().includes('elifgustoHelado=="fresa":') && !code.replace(/\s/g, '').trim().includes('elificeCreamFlavor=="fresa":')) {
-              seguirValidando = false
-              return [{
-                es: "Debe incluir una estructura condicional que evalúe si el gusto de helado coincide con la opción fresa.",
-                en: "It must include a conditional structure to check if the ice cream flavor matches the strawberry option.",
-                pt: "Deve incluir uma estrutura condicional para verificar se o sabor de sorvete corresponde à opção morango."
-              }]
-            } else if (!code.replace(/\s/g, '').trim().includes('elifgustoHelado=="fresa":print("Sí,hay"+gustoHelado)') && !code.replace(/\s/g, '').trim().includes(`elificeCreamFlavor=="fresa":print("Yes,thereis"+iceCreamFlavor)`)) {
-              seguirValidando = false
-              return [{
-                es: "Debe mostrar el mensaje 'Sí, hay ' seguido del gusto de helado ingresado por el usuario si coincide con el gusto fresa.",
-                en: "It must display the message 'Yes, there is ' followed by the ice cream flavor entered by the user if it matches the strawberry flavor.",
-                pt: "Deve exibir a mensagem 'Sí, há ' seguida do sabor de sorvete inserido pelo usuário se corresponder ao sabor morango."
+                es: "Debe incluir un 'else:' para el caso en que el gusto no esté en la lista.",
+                en: "You must include an 'else:' for the case when the flavor is not in the list.",
+                pt: "Você deve incluir um 'else:' para o caso em que o sabor não esteja na lista."
+              }];
+            }
 
-              }]
-            } else if (!code.replace(/\s/g, '').trim().includes('elifgustoHelado=="pistacho":') && !code.replace(/\s/g, '').trim().includes('elificeCreamFlavor=="pistacho":')) {
-              seguirValidando = false
+            const reElsePrintES = new RegExp(
+              `else\\s*:[\\s\\S]*?print\\s*\\(\\s*["']No hay\\s*["']\\s*\\+\\s*${varName}\\s*\\)`,
+              "m"
+            );
+            const reElsePrintEN = new RegExp(
+              `else\\s*:[\\s\\S]*?print\\s*\\(\\s*["']There is no\\s*["']\\s*\\+\\s*${varName}\\s*\\)`,
+              "m"
+            );
+
+            if (!reElsePrintES.test(norm) && !reElsePrintEN.test(norm)) {
               return [{
-                es: "Debe incluir una estructura condicional que evalúe si el gusto de helado coincide con la opción pistacho.",
-                en: "It must include a conditional structure to check if the ice cream flavor matches the lemon option.",
-                pt: "Deve incluir uma estrutura condicional para verificar se o sabor de sorvete corresponde à opção limão."
-              }]
-            } else if (!code.replace(/\s/g, '').trim().includes('elifgustoHelado=="pistacho":print("Sí,hay"+gustoHelado)') && !code.replace(/\s/g, '').trim().includes(`elificeCreamFlavor=="pistacho":print("Yes,thereis"+iceCreamFlavor)`)) {
-              seguirValidando = false
-              return [{
-                es: "Debe mostrar el mensaje 'Sí, hay ' seguido del gusto de helado ingresado por el usuario si coincide con el gusto pistacho.",
-                en: "It must display the message 'Yes, there is ' followed by the ice cream flavor entered by the user if it matches the pistachio flavor.",
-                pt: "Deve exibir a mensagem 'Sí, há ' seguida do sabor de sorvete inserido pelo usuário se corresponder ao sabor pistache."
-              }]
+                es: 'En el caso "else" debes mostrar el mensaje "No hay " (o "There is no ") seguido del gusto ingresado.',
+                en: 'In the "else" case you must display the message "There is no " (or "No hay ") followed by the entered flavor.',
+                pt: 'No caso "else" você deve exibir a mensagem "Não há " (ou "There is no ") seguida do sabor inserido.'
+              }];
             }
-            else if (!code.includes("else:")) {
-              seguirValidando = false
-              return [{
-                es: "Debe incluir una estructura condicional que evalúe si el gusto de helado coincide con las opciones disponibles.",
-                en: "It must include a conditional structure to check if the ice cream flavor matches the available options.",
-                pt: "Deve incluir uma estrutura condicional para verificar se o sabor de sorvete corresponde às opções disponíveis."
-              }]
-            } else if (!code.replace(/\s/g, '').trim().includes('else:print("Nohay"+gustoHelado)') && !code.replace(/\s/g, '').trim().includes('else:print("Thereisno"+iceCreamFlavor)')) {
-              seguirValidando = false
-              return [{
-                es: "Debe mostrar el mensaje 'No hay ' seguido del gusto de helado ingresado por el usuario.",
-                en: "It must display the message 'There is no ' followed by the ice cream flavor entered by the user.",
-                pt: "Deve exibir a mensagem 'Não há ' seguida do sabor de sorvete inserido pelo usuário."
-              }]
-            }
+
+            // Todo OK
+            return [];
+
+
+
+            //VALIDACION VIEJA
+            // if (!code.replace(/\s/g, '').trim().includes("gustoHelado=") && !code.replace(/\s/g, '').trim().includes("iceCreamFlavor=")) {
+            //   return [{
+            //     es: "Debe crear la variable 'gustoHelado' que almacene el gusto de helado ingresado por el usuario.",
+            //     en: "You must create the 'iceCreamFlavor' variable to store the ice cream flavor entered by the user.",
+            //     pt: "Você deve criar a variável 'gustoHelado' para armazenar o sabor do sorvete inserido pelo usuário."
+            //   }]
+            // } else if (code.replace(/\s/g, '').trim().includes("gustoHelado=input(")) {
+            //   const lineasInput = code.match(/input\(["'].*?["']\)/g);
+            //   // console.log(lineasInput[0]);
+
+            //   const pregunta = lineasInput[0].match(/["'](.*?)["']/)?.[1]; // Extraer el texto de la pregunta
+            //   if (pregunta) {
+            //     const contieneEdadOAnios = /gusto|sabor/i.test(pregunta);
+            //     if (!contieneEdadOAnios) {
+            //       seguirValidando = false
+            //       // console.log("La pregunta del input no es válida porque no menciona 'gusto' o 'sabor'.");
+            //       return [{
+            //         es: 'La pregunta del input "' + pregunta + '" no es válida porque no menciona "gusto" o "sabor".',
+            //         en: 'The input question ' + pregunta + ' is not valid because it does not mention "gusto" or "sabor".',
+            //         pt: 'A pergunta do input ' + pregunta + ' não é válida porque não menciona "gusto" ou "sabor".'
+            //       }]
+            //     }
+
+            //   }
+            // } else if (code.replace(/\s/g, '').trim().includes("iceCreamFlavor=input(")) {
+            //   const lineasInput = code.match(/input\(["'].*?["']\)/g);
+            //   // console.log(lineasInput[0]);
+            //   const pregunta = lineasInput[0].match(/["'](.*?)["']/)?.[1]; // Extraer el texto de la pregunta
+            //   if (pregunta.length < 1) {
+            //     return [{
+            //       es: "La pregunta del input no puede estar vacía.",
+            //       en: "The input question cannot be empty.",
+            //       pt: "A pergunta do input não pode estar vazia."
+            //     }]
+            //   }
+            //   if (pregunta) {
+            //     const contieneEdadOAnios = /flavor/i.test(pregunta);
+            //     if (!contieneEdadOAnios) {
+            //       seguirValidando = false
+            //       // console.log("La pregunta del input no es válida porque no menciona 'gusto' o 'sabor'.");
+            //       return [{
+            //         es: 'La pregunta del input "' + pregunta + '" no es válida porque no menciona "gusto" o "sabor".',
+            //         en: 'The input question ' + pregunta + ' is not valid because it does not mention "flavor".',
+            //         pt: 'A pergunta do input ' + pregunta + ' não é válida porque não menciona "gusto" ou "sabor".'
+            //       }]
+            //     }
+            //   }
+            // }
+            // else {
+            //   return [{
+            //     es: "Debe solicitar al usuario que ingrese el gusto de helado.",
+            //     en: "You must ask the user to enter the ice cream flavor.",
+            //     pt: "Você deve pedir ao usuário para inserir o sabor do sorvete."
+            //   }]
+            // }
+
+            // if (!code.replace(/\s/g, '').trim().includes('ifgustoHelado=="chocolate":') && !code.replace(/\s/g, '').trim().includes('ificeCreamFlavor=="chocolate":')) {
+            //   seguirValidando = false
+            //   return [{
+            //     es: "Debe incluir una estructura condicional que evalúe si el gusto de helado coincide con la opción chocolate.",
+            //     en: "It must include a conditional structure to check if the ice cream flavor matches the chocolate option.",
+            //     pt: "Deve incluir uma estrutura condicional para verificar se o sabor de sorvete corresponde à opção chocolate."
+            //   }]
+            // } else if (!code.replace(/\s/g, '').trim().includes('ifgustoHelado=="chocolate":print("Sí,hay"+gustoHelado)') && !code.replace(/\s/g, '').trim().includes(`ificeCreamFlavor=="chocolate":print("Yes,thereis"+iceCreamFlavor)`)) {
+            //   seguirValidando = false
+            //   return [{
+            //     es: "Debes mostrar el mensaje 'Sí, hay ' seguido del gusto de helado ingresado por el usuario si coincide con el gusto chocolate.",
+            //     en: "It must display the message 'Yes, there is ' followed by the ice cream flavor entered by the user if it matches the chocolate flavor.",
+            //     pt: "Deve exibir a mensagem 'Sim, há ' seguida do sabor de sorvete inserido pelo usuário se corresponder ao sabor chocolate."
+            //   }]
+            // } else if (!code.replace(/\s/g, '').trim().includes('elifgustoHelado=="vainilla":') && !code.replace(/\s/g, '').trim().includes('elificeCreamFlavor=="vainilla":')) {
+            //   seguirValidando = false
+            //   return [{
+            //     es: "Debe incluir una estructura condicional que evalúe si el gusto de helado coincide con la opción vainilla.",
+            //     en: "It must include a conditional structure to check if the ice cream flavor matches the vanilla option.",
+            //     pt: "Deve incluir uma estrutura condicional para verificar se o sabor de sorvete corresponde à opção baunilha."
+            //   }]
+            // } else if (!code.replace(/\s/g, '').trim().includes('elifgustoHelado=="vainilla":print("Sí,hay"+gustoHelado)') && !code.replace(/\s/g, '').trim().includes(`elificeCreamFlavor=="vainilla":print("Yes,thereis"+iceCreamFlavor)`)) {
+            //   seguirValidando = false
+            //   return [{
+            //     es: "Debe mostrar el mensaje 'Sí, hay ' seguido del gusto de helado ingresado por el usuario si coincide con el gusto vainilla.",
+            //     en: "It must display the message 'Yes, there is ' followed by the ice cream flavor entered by the user if it matches the vanilla flavor.",
+            //     pt: "Deve exibir a mensagem 'Sí, há ' seguida do sabor de sorvete inserido pelo usuário se corresponder ao sabor baunilha."
+            //   }]
+            // } else if (!code.replace(/\s/g, '').trim().includes('elifgustoHelado=="fresa":') && !code.replace(/\s/g, '').trim().includes('elificeCreamFlavor=="fresa":')) {
+            //   seguirValidando = false
+            //   return [{
+            //     es: "Debe incluir una estructura condicional que evalúe si el gusto de helado coincide con la opción fresa.",
+            //     en: "It must include a conditional structure to check if the ice cream flavor matches the strawberry option.",
+            //     pt: "Deve incluir uma estrutura condicional para verificar se o sabor de sorvete corresponde à opção morango."
+            //   }]
+            // } else if (!code.replace(/\s/g, '').trim().includes('elifgustoHelado=="fresa":print("Sí,hay"+gustoHelado)') && !code.replace(/\s/g, '').trim().includes(`elificeCreamFlavor=="fresa":print("Yes,thereis"+iceCreamFlavor)`)) {
+            //   seguirValidando = false
+            //   return [{
+            //     es: "Debe mostrar el mensaje 'Sí, hay ' seguido del gusto de helado ingresado por el usuario si coincide con el gusto fresa.",
+            //     en: "It must display the message 'Yes, there is ' followed by the ice cream flavor entered by the user if it matches the strawberry flavor.",
+            //     pt: "Deve exibir a mensagem 'Sí, há ' seguida do sabor de sorvete inserido pelo usuário se corresponder ao sabor morango."
+
+            //   }]
+            // } else if (!code.replace(/\s/g, '').trim().includes('elifgustoHelado=="pistacho":') && !code.replace(/\s/g, '').trim().includes('elificeCreamFlavor=="pistacho":')) {
+            //   seguirValidando = false
+            //   return [{
+            //     es: "Debe incluir una estructura condicional que evalúe si el gusto de helado coincide con la opción pistacho.",
+            //     en: "It must include a conditional structure to check if the ice cream flavor matches the lemon option.",
+            //     pt: "Deve incluir uma estrutura condicional para verificar se o sabor de sorvete corresponde à opção limão."
+            //   }]
+            // } else if (!code.replace(/\s/g, '').trim().includes('elifgustoHelado=="pistacho":print("Sí,hay"+gustoHelado)') && !code.replace(/\s/g, '').trim().includes(`elificeCreamFlavor=="pistacho":print("Yes,thereis"+iceCreamFlavor)`)) {
+            //   seguirValidando = false
+            //   return [{
+            //     es: "Debe mostrar el mensaje 'Sí, hay ' seguido del gusto de helado ingresado por el usuario si coincide con el gusto pistacho.",
+            //     en: "It must display the message 'Yes, there is ' followed by the ice cream flavor entered by the user if it matches the pistachio flavor.",
+            //     pt: "Deve exibir a mensagem 'Sí, há ' seguida do sabor de sorvete inserido pelo usuário se corresponder ao sabor pistache."
+            //   }]
+            // }
+            // else if (!code.includes("else:")) {
+            //   seguirValidando = false
+            //   return [{
+            //     es: "Debe incluir una estructura condicional que evalúe si el gusto de helado coincide con las opciones disponibles.",
+            //     en: "It must include a conditional structure to check if the ice cream flavor matches the available options.",
+            //     pt: "Deve incluir uma estrutura condicional para verificar se o sabor de sorvete corresponde às opções disponíveis."
+            //   }]
+            // } else if (!code.replace(/\s/g, '').trim().includes('else:print("Nohay"+gustoHelado)') && !code.replace(/\s/g, '').trim().includes('else:print("Thereisno"+iceCreamFlavor)')) {
+            //   seguirValidando = false
+            //   return [{
+            //     es: "Debe mostrar el mensaje 'No hay ' seguido del gusto de helado ingresado por el usuario.",
+            //     en: "It must display the message 'There is no ' followed by the ice cream flavor entered by the user.",
+            //     pt: "Deve exibir a mensagem 'Não há ' seguida do sabor de sorvete inserido pelo usuário."
+            //   }]
+            // }
           })
       }
-      // {
-      //   "description": "El código debe crear una variable llamada 'gusto_helado' que almacene el gusto de helado ingresado por el usuario.",
-      //   "test": (assert) => assert
-      //     .$variable("gusto_helado").catch({
-      //       es: "Debe crear la variable 'gusto_helado' que almacene el gusto de helado ingresado por el usuario.",
-      //       en: "It must create the 'gusto_helado' variable to store the user's entered ice cream flavor.",
-      //       pt: "Deve criar a variável 'gusto_helado' para armazenar o sabor de sorvete inserido pelo usuário."
-      //     })
-      //     .withAssignation("input(\"¿Cuál es tu gusto de helado favorito? => \").lower()").catch({
-      //       es: "Debe crear la variable 'gusto_helado' que almacene el gusto de helado ingresado por el usuario.",
-      //       en: "It must create the 'gusto_helado' variable to store the user's entered ice cream flavor.",
-      //       pt: "Deve criar a variável 'gusto_helado' para armazenar o sabor de sorvete inserido pelo usuário."
-      //     })
-      // },
-      // {
-      //   "description": "El código debe incluir una estructura condicional que evalúe si el gusto de helado coincide con cuatro opciones.",
-      //   "test": (assert) => assert
-      //     .$if("gusto_helado in ['vainilla', 'chocolate', 'fresa', 'dulce de leche']").catch({
-      //       es: "Debe incluir una estructura condicional que evalúe si el gusto de helado coincide con las opciones disponibles, por ejemplo gusto_helado in ['vainilla', 'chocolate', 'fresa', 'dulce de leche'].",
-      //       en: "It must include a conditional structure to check if the ice cream flavor matches the available options, for example gusto_helado in ['vainilla', 'chocolate', 'fresa', 'dulce de leche'].",
-      //       pt: "Deve incluir uma estrutura condicional para verificar se o sabor de sorvete corresponde às opções disponíveis, por exemplo gusto_helado in ['vainilla', 'chocolate', 'fresa', 'dulce de leche']."
-      //     })
-      //     .withBody((assert) => assert
-      //       .$functionCall("print")
-      //       .withArguments(["\"Sí, hay \" + gusto_helado"])
-      //     )
-      //     .withElse((assert) => assert
-      //       .$functionCall("print")
-      //       .withArguments(["\"No hay \" + gusto_helado"])
-      //     ).catch({
-      //       es: "Debe incluir una estructura condicional que evalúe si el gusto de helado coincide con las opciones disponibles.",
-      //       en: "It must include a conditional structure to check if the ice cream flavor matches the available options.",
-      //       pt: "Deve incluir uma estrutura condicional para verificar se o sabor de sorvete corresponde às opções disponíveis."
-      //     })
-      // }
+
     ]
   },
   {
@@ -2177,201 +2268,271 @@ export const exercises = [
         "test": (assert) => assert
           .$custom(code => {
 
-            if (!code.includes("from random import randint")) {
-              return [{
+            const norm = code.replace(/\r/g, "");
+
+            // Helpers
+            const noSpace = norm.replace(/\s/g, "");
+            const has = (re) => re.test(norm);
+
+            const errors = [];
+
+            // === 1) Importar randint de random ===
+            if (!/from\s+random\s+import\s+randint\b/.test(norm)) {
+              errors.push({
                 es: "Debe importar la función 'randint' del módulo 'random'.",
-                en: "It must import the 'randint' function from the 'random' module.",
-                pt: "Deve importar a função 'randint' do módulo 'random'."
-              }]
-            } else if (!code.replace(/\s/g, '').trim().includes("dado=0") && !code.replace(/\s/g, '').trim().includes("dice=0")) {
-              return [{
+                en: "You must import the 'randint' function from the 'random' module.",
+                pt: "Você deve importar a função 'randint' do módulo 'random'."
+              });
+            }
+
+            // === 2) Variables inicializadas en 0 ===
+            const hasDado0 = /\b(dado|dice)\s*=\s*0\b/.test(norm);
+            const hasCont0 = /\b(contador|counter)\s*=\s*0\b/.test(norm);
+            const hasScore0 = /\b(puntaje|score)\s*=\s*0\b/.test(norm);
+
+            if (!hasDado0) {
+              errors.push({
                 es: "Debe crear la variable 'dado' inicializada en 0.",
-                en: "It must create the 'dice' variable initialized to 0.",
-                pt: "Deve criar a variável 'dado' inicializada em 0."
-              }]
-            } else if (!code.replace(/\s/g, '').trim().includes("contador=0") && !code.replace(/\s/g, '').trim().includes("counter=0")) {
-              return [{
+                en: "You must create the 'dice' variable initialized to 0.",
+                pt: "Você deve criar a variável 'dado' inicializada em 0."
+              });
+            }
+            if (!hasCont0) {
+              errors.push({
                 es: "Debe crear la variable 'contador' inicializada en 0.",
-                en: "It must create the 'counter' variable initialized to 0.",
-                pt: "Deve criar a variável 'contador' inicializada em 0."
-              }]
-            } else if (!code.replace(/\s/g, '').trim().includes("puntaje=0") && !code.replace(/\s/g, '').trim().includes("score=0")) {
-              return [{
+                en: "You must create the 'counter' variable initialized to 0.",
+                pt: "Você deve criar a variável 'contador' inicializada em 0."
+              });
+            }
+            if (!hasScore0) {
+              errors.push({
                 es: "Debe crear la variable 'puntaje' inicializada en 0.",
-                en: "It must create the 'score' variable initialized to 0.",
-                pt: "Deve criar a variável 'puntaje' inicializada em 0."
-              }]
-            } else if (!code.replace(/\s/g, '').trim().includes("whilecontador<10andpuntaje<38:") && !code.replace(/\s/g, '').trim().includes("whilecounter<10andscore<38:")) {
-              return [{
+                en: "You must create the 'score' variable initialized to 0.",
+                pt: "Você deve criar a variável 'puntaje' inicializada em 0."
+              });
+            }
+
+            // Detectar nombres según idioma (para reutilizar en regex)
+            const dadoName = /\bdado\s*=/.test(norm) ? "dado" : "dice";
+            const contadorName = /\bcontador\s*=/.test(norm) ? "contador" : "counter";
+            const scoreName = /\bpuntaje\s*=/.test(norm) ? "puntaje" : "score";
+
+            // === 3) while contador < 10 and puntaje < 38 ===
+            const reWhile = new RegExp(
+              `while\\s+${contadorName}\\s*<\\s*10\\s*and\\s*${scoreName}\\s*<\\s*38\\s*:`
+            );
+            if (!reWhile.test(norm)) {
+              errors.push({
                 es: "Debe incluir un bucle while que evalúe las condiciones 'contador < 10' y 'puntaje < 38'.",
-                en: "It must include a while loop that evaluates the 'counter < 10' and 'score < 38' conditions.",
-                pt: "Deve incluir um loop while que avalie as condições 'contador < 10' e 'puntaje < 38'."
-              }]
-            } else if (!code.replace(/\s/g, '').trim().includes("dado=randint(1,6)") && !code.replace(/\s/g, '').trim().includes("dice=randint(1,6)")) {
-              return [{
-                es: "Debe crear la variable 'dado' con un número aleatorio entre 1 y 6.",
-                en: "It must create the 'dice' variable with a random number between 1 and 6.",
-                pt: "Deve criar a variável 'dado' com um número aleatório entre 1 e 6."
-              }]
-            } else if (!code.includes("print(dado)") && !code.includes("print(dice)")) {
-              return [{
-                es: "Debe mostrar el valor del dado en cada iteración del bucle.",
-                en: "It must display the die value in each loop iteration.",
-                pt: "Deve exibir o valor do dado em cada iteração do loop."
-              }]
-            } else if (!code.replace(/\s/g, '').trim().includes("puntaje+=dado") && !code.replace(/\s/g, '').trim().includes("score+=dice")) {
-              return [{
-                es: "Debe sumar el valor del dado al puntaje en cada iteración del bucle.",
-                en: "It must add the die value to the score in each loop iteration.",
-                pt: "Deve adicionar o valor do dado ao placar em cada iteração do loop."
-              }]
-            } else if (!code.replace(/\s/g, '').trim().includes("contador+=1") && !code.replace(/\s/g, '').trim().includes("counter+=1")) {
-              return [{
-                es: "Debe incrementar el contador en 1 en cada iteración del bucle.",
-                en: "It must increment the counter by 1 in each loop iteration.",
-                pt: "Deve incrementar o contador em 1 em cada iteração do loop."
-              }]
-            } else if (!code.replace(/\s/g, '').trim().includes('print("Elpuntajetotales:"+str(puntaje))') && !code.replace(/\s/g, '').trim().includes('print("Thetotalscoreis:"+str(score))')) {
-              return [{
-                es: "Debe mostrar el puntaje total al finalizar el bucle.",
-                en: "It must display the total score at the end of the loop.",
-                pt: "Deve exibir o placar total ao final do loop."
-              }]
+                en: "You must include a while loop that checks 'counter < 10' and 'score < 38'.",
+                pt: "Você deve incluir um loop while que verifique 'contador < 10' e 'pontuação < 38'."
+              });
             }
-            else if (!code.replace(/\s/g, '').trim().includes("ifpuntaje>=38") && !code.replace(/\s/g, '').trim().includes("ifscore>=38")) {
-              return [{
+
+            // === 4) Asignar valor aleatorio al dado: dado = randint(1, 6) ===
+            const reDadoRand = new RegExp(
+              `${dadoName}\\s*=\\s*randint\\s*\\(\\s*1\\s*,\\s*6\\s*\\)`
+            );
+            if (!reDadoRand.test(norm)) {
+              errors.push({
+                es: "Debe crear la variable del dado con un número aleatorio entre 1 y 6 usando randint(1, 6).",
+                en: "You must create the dice variable with a random number between 1 and 6 using randint(1, 6).",
+                pt: "Você deve criar a variável do dado com um número aleatório entre 1 e 6 usando randint(1, 6)."
+              });
+            }
+
+            // === 5) Mostrar el valor del dado en cada iteración (print(dado)) ===
+            if (!new RegExp(`print\\s*\\(\\s*${dadoName}\\s*\\)`).test(norm)) {
+              errors.push({
+                es: "Debe mostrar el valor del dado en cada iteración del bucle (print(dado)).",
+                en: "You must display the dice value in each loop iteration (print(dice)).",
+                pt: "Você deve exibir o valor do dado em cada iteração do loop (print(dado))."
+              });
+            }
+
+            // === 6) Sumar valor del dado al puntaje: puntaje += dado ===
+            const reAddScore = new RegExp(
+              `${scoreName}\\s*\\+=\\s*${dadoName}`
+            );
+            if (!reAddScore.test(norm)) {
+              errors.push({
+                es: "Debe sumar el valor del dado al puntaje en cada iteración del bucle (puntaje += dado).",
+                en: "You must add the dice value to the score in each loop iteration (score += dice).",
+                pt: "Você deve adicionar o valor do dado ao placar em cada iteração do loop (pontuação += dado)."
+              });
+            }
+
+            // === 7) Incrementar contador: contador += 1 ===
+            const reIncCount = new RegExp(
+              `${contadorName}\\s*\\+=\\s*1`
+            );
+            if (!reIncCount.test(norm)) {
+              errors.push({
+                es: "Debe incrementar el contador en 1 en cada iteración del bucle (contador += 1).",
+                en: "You must increment the counter by 1 in each loop iteration (counter += 1).",
+                pt: "Você deve incrementar o contador em 1 em cada iteração do loop (contador += 1)."
+              });
+            }
+
+            // === 8) Print del puntaje total ===
+            const rePrintTotalES = new RegExp(
+              `print\\s*\\(\\s*["']El puntaje total es:\\s*["']\\s*\\+\\s*str\\s*\\(\\s*${scoreName}\\s*\\)\\s*\\)`
+            );
+            const rePrintTotalEN = new RegExp(
+              `print\\s*\\(\\s*["']The total score is:\\s*["']\\s*\\+\\s*str\\s*\\(\\s*${scoreName}\\s*\\)\\s*\\)`
+            );
+            if (!rePrintTotalES.test(norm) && !rePrintTotalEN.test(norm)) {
+              errors.push({
+                es: 'Debe mostrar el puntaje total al finalizar el bucle con el texto "El puntaje total es: " y concatenar str(puntaje).',
+                en: 'You must display the total score at the end of the loop with the text "The total score is: " and concatenate str(score).',
+                pt: 'Você deve exibir a pontuação total ao final do loop com o texto "O placar total é: " e concatenar str(score).'
+              });
+            }
+
+            // === 9) if puntaje >= 38 ===
+            const reIfWin = new RegExp(
+              `if\\s*${scoreName}\\s*>=\\s*38\\s*:`
+            );
+            if (!reIfWin.test(norm)) {
+              errors.push({
                 es: "Debe incluir una estructura condicional para verificar si el puntaje es mayor o igual a 38.",
-                en: "It must include a conditional structure to check if the score is greater than or equal to 38.",
-                pt: "Deve incluir uma estrutura condicional para verificar se o placar é maior ou igual a 38."
-              }]
-            } else if (!code.includes('print("Ganaste")') && !code.includes('print("Youwon")')) {
-              return [{
-                es: "Debe mostrar el mensaje '¡Ganaste!' si el puntaje es mayor o igual a 38.",
-                en: "It must display the message 'You won!' if the score is greater than or equal to 38.",
-                pt: "Deve exibir a mensagem 'Você ganhou!' se o placar for maior ou igual a 38."
-              }]
-            } else if (!code.includes("else:")) {
-              return [{
-                es: "Debe incluir una estructura condicional para verificar si el puntaje es mayor o igual a 38.",
-                en: "It must include a conditional structure to check if the score is greater than or equal to 38.",
-                pt: "Deve incluir uma estrutura condicional para verificar se o placar é maior ou igual a 38."
-              }]
-            } else if (!code.includes('print("Perdiste")') && !code.includes('print("Youlost")')) {
-              return [{
+                en: "You must include a conditional structure to check if the score is greater than or equal to 38.",
+                pt: "Você deve incluir uma estrutura condicional para verificar se a pontuação é maior ou igual a 38."
+              });
+            }
+
+            // === 10) Mensaje de ganar ===
+            const hasWinES = /print\s*\(\s*["']Ganaste["']\s*\)/.test(norm);
+            const hasWinEN = /print\s*\(\s*["']You\s*won["']\s*\)/.test(norm);
+
+            if (!hasWinES && !hasWinEN) {
+              errors.push({
+                es: "Debe mostrar el mensaje 'Ganaste' si el puntaje es mayor o igual a 38.",
+                en: "You must display the message 'You won' if the score is greater than or equal to 38.",
+                pt: "Você deve exibir a mensagem 'Você ganhou' se a pontuação for maior ou igual a 38."
+              });
+            }
+
+            // === 11) else + mensaje de perder ===
+            if (!/\belse\s*:/.test(norm)) {
+              errors.push({
+                es: "Debe incluir un 'else:' para el caso en que el puntaje sea menor a 38.",
+                en: "You must include an 'else:' for the case when the score is less than 38.",
+                pt: "Você deve incluir um 'else:' para o caso em que a pontuação seja menor que 38."
+              });
+            }
+
+            const hasLoseES = /print\s*\(\s*["']Perdiste["']\s*\)/.test(norm);
+            const hasLoseEN = /print\s*\(\s*["']You\s*lost["']\s*\)/.test(norm);
+
+            if (!hasLoseES && !hasLoseEN) {
+              errors.push({
                 es: "Debe mostrar el mensaje 'Perdiste' si el puntaje es menor a 38.",
-                en: "It must display the message 'You lost' if the score is less than 38.",
-                pt: "Deve exibir a mensagem 'Você perdeu' se o placar for menor que 38."
-              }]
+                en: "You must display the message 'You lost' if the score is less than 38.",
+                pt: "Você deve exibir a mensagem 'Você perdeu' se a pontuação for menor que 38."
+              });
             }
+            console.log(errors[0]);
+
+            // === Resultado ===
+            if (errors.length > 0) {
+              return [errors[0]];
+            }
+            return [];
+
+
+
+
+            //VALIDACION VIEJA
+            // if (!code.includes("from random import randint")) {
+            //   return [{
+            //     es: "Debe importar la función 'randint' del módulo 'random'.",
+            //     en: "It must import the 'randint' function from the 'random' module.",
+            //     pt: "Deve importar a função 'randint' do módulo 'random'."
+            //   }]
+            // } else if (!code.replace(/\s/g, '').trim().includes("dado=0") && !code.replace(/\s/g, '').trim().includes("dice=0")) {
+            //   return [{
+            //     es: "Debe crear la variable 'dado' inicializada en 0.",
+            //     en: "It must create the 'dice' variable initialized to 0.",
+            //     pt: "Deve criar a variável 'dado' inicializada em 0."
+            //   }]
+            // } else if (!code.replace(/\s/g, '').trim().includes("contador=0") && !code.replace(/\s/g, '').trim().includes("counter=0")) {
+            //   return [{
+            //     es: "Debe crear la variable 'contador' inicializada en 0.",
+            //     en: "It must create the 'counter' variable initialized to 0.",
+            //     pt: "Deve criar a variável 'contador' inicializada em 0."
+            //   }]
+            // } else if (!code.replace(/\s/g, '').trim().includes("puntaje=0") && !code.replace(/\s/g, '').trim().includes("score=0")) {
+            //   return [{
+            //     es: "Debe crear la variable 'puntaje' inicializada en 0.",
+            //     en: "It must create the 'score' variable initialized to 0.",
+            //     pt: "Deve criar a variável 'puntaje' inicializada em 0."
+            //   }]
+            // } else if (!code.replace(/\s/g, '').trim().includes("whilecontador<10andpuntaje<38:") && !code.replace(/\s/g, '').trim().includes("whilecounter<10andscore<38:")) {
+            //   return [{
+            //     es: "Debe incluir un bucle while que evalúe las condiciones 'contador < 10' y 'puntaje < 38'.",
+            //     en: "It must include a while loop that evaluates the 'counter < 10' and 'score < 38' conditions.",
+            //     pt: "Deve incluir um loop while que avalie as condições 'contador < 10' e 'puntaje < 38'."
+            //   }]
+            // } else if (!code.replace(/\s/g, '').trim().includes("dado=randint(1,6)") && !code.replace(/\s/g, '').trim().includes("dice=randint(1,6)")) {
+            //   return [{
+            //     es: "Debe crear la variable 'dado' con un número aleatorio entre 1 y 6.",
+            //     en: "It must create the 'dice' variable with a random number between 1 and 6.",
+            //     pt: "Deve criar a variável 'dado' com um número aleatório entre 1 e 6."
+            //   }]
+            // } else if (!code.includes("print(dado)") && !code.includes("print(dice)")) {
+            //   return [{
+            //     es: "Debe mostrar el valor del dado en cada iteración del bucle.",
+            //     en: "It must display the die value in each loop iteration.",
+            //     pt: "Deve exibir o valor do dado em cada iteração do loop."
+            //   }]
+            // } else if (!code.replace(/\s/g, '').trim().includes("puntaje+=dado") && !code.replace(/\s/g, '').trim().includes("score+=dice")) {
+            //   return [{
+            //     es: "Debe sumar el valor del dado al puntaje en cada iteración del bucle.",
+            //     en: "It must add the die value to the score in each loop iteration.",
+            //     pt: "Deve adicionar o valor do dado ao placar em cada iteração do loop."
+            //   }]
+            // } else if (!code.replace(/\s/g, '').trim().includes("contador+=1") && !code.replace(/\s/g, '').trim().includes("counter+=1")) {
+            //   return [{
+            //     es: "Debe incrementar el contador en 1 en cada iteración del bucle.",
+            //     en: "It must increment the counter by 1 in each loop iteration.",
+            //     pt: "Deve incrementar o contador em 1 em cada iteração do loop."
+            //   }]
+            // } else if (!code.replace(/\s/g, '').trim().includes('print("Elpuntajetotales:"+str(puntaje))') && !code.replace(/\s/g, '').trim().includes('print("Thetotalscoreis:"+str(score))')) {
+            //   return [{
+            //     es: "Debe mostrar el puntaje total al finalizar el bucle.",
+            //     en: "It must display the total score at the end of the loop.",
+            //     pt: "Deve exibir o placar total ao final do loop."
+            //   }]
+            // }
+            // else if (!code.replace(/\s/g, '').trim().includes("ifpuntaje>=38") && !code.replace(/\s/g, '').trim().includes("ifscore>=38")) {
+            //   return [{
+            //     es: "Debe incluir una estructura condicional para verificar si el puntaje es mayor o igual a 38.",
+            //     en: "It must include a conditional structure to check if the score is greater than or equal to 38.",
+            //     pt: "Deve incluir uma estrutura condicional para verificar se o placar é maior ou igual a 38."
+            //   }]
+            // } else if (!code.includes('print("Ganaste")') && !code.includes('print("Youwon")')) {
+            //   return [{
+            //     es: "Debe mostrar el mensaje '¡Ganaste!' si el puntaje es mayor o igual a 38.",
+            //     en: "It must display the message 'You won!' if the score is greater than or equal to 38.",
+            //     pt: "Deve exibir a mensagem 'Você ganhou!' se o placar for maior ou igual a 38."
+            //   }]
+            // } else if (!code.includes("else:")) {
+            //   return [{
+            //     es: "Debe incluir una estructura condicional para verificar si el puntaje es mayor o igual a 38.",
+            //     en: "It must include a conditional structure to check if the score is greater than or equal to 38.",
+            //     pt: "Deve incluir uma estrutura condicional para verificar se o placar é maior ou igual a 38."
+            //   }]
+            // } else if (!code.includes('print("Perdiste")') && !code.includes('print("Youlost")')) {
+            //   return [{
+            //     es: "Debe mostrar el mensaje 'Perdiste' si el puntaje es menor a 38.",
+            //     en: "It must display the message 'You lost' if the score is less than 38.",
+            //     pt: "Deve exibir a mensagem 'Você perdeu' se o placar for menor que 38."
+            //   }]
+            // }
 
           })
       }
-      // {
-      //   "description": "El código debe importar la función 'randint' del módulo 'random'.",
-      //   "test": (assert) => assert
-      //     .$import("random.randint").catch({
-      //       es: "Debe importar la función 'randint' del módulo 'random'.",
-      //       en: "It must import the 'randint' function from the 'random' module.",
-      //       pt: "Deve importar a função 'randint' do módulo 'random'."
-      //     })
-      // },
-      // {
-      //   "description": "El código debe crear las variables 'dado', 'contador' y 'puntaje' inicializadas en 0.",
-      //   "test": (assert) => assert
-      //     .$variable("dado").catch({
-      //       es: "No se encontró la variable 'dado' en el código.",
-      //       en: "The variable 'dado' was not found in the code.",
-      //       pt: "A variável 'dado' não foi encontrada no código."
-      //     })
-      //     .withAssignation("0").catch({
-      //       es: "Debe crear las variables 'dado', 'contador' y 'puntaje', todas inicializadas en 0.",
-      //       en: "It must create the 'dado', 'contador', and 'puntaje' variables, all initialized to 0.",
-      //       pt: "Deve criar as variáveis 'dado', 'contador' e 'puntaje', todas inicializadas em 0."
-      //     })
-      // },
-      // {
-      //   "description": "El código debe crear las variables 'dado', 'contador' y 'puntaje' inicializadas en 0.",
-      //   "test": (assert) => assert
-      //     .$variable("contador").catch({
-      //       es: "No se encontró la variable 'contador' en el código.",
-      //       en: "The variable 'contador' was not found in the code.",
-      //       pt: "A variável 'contador' não foi encontrada no código."
-      //     })
-      //     .withAssignation("0").catch({
-      //       es: "Debe crear las variables 'dado', 'contador' y 'puntaje', todas inicializadas en 0.",
-      //       en: "It must create the 'dado', 'contador', and 'puntaje' variables, all initialized to 0.",
-      //       pt: "Deve criar as variáveis 'dado', 'contador' e 'puntaje', todas inicializadas em 0."
-      //     })
-      // },
-      // {
-      //   "description": "El código debe crear las variables 'dado', 'contador' y 'puntaje' inicializadas en 0.",
-      //   "test": (assert) => assert
-      //     .$variable("puntaje").catch({
-      //       es: "No se encontró la variable 'puntaje' en el código.",
-      //       en: "The variable 'puntaje' was not found in the code.",
-      //       pt: "A variável 'puntaje' não foi encontrada no código."
-      //     })
-      //     .withAssignation("0").catch({
-      //       es: "Debe crear las variables 'dado', 'contador' y 'puntaje', todas inicializadas en 0.",
-      //       en: "It must create the 'dado', 'contador', and 'puntaje' variables, all initialized to 0.",
-      //       pt: "Deve criar as variáveis 'dado', 'contador' e 'puntaje', todas inicializadas em 0."
-      //     })
-      // },
-      // {
-      //   "description": "El código debe incluir un bucle while que evalúe 'contador < 10' y 'puntaje < 38'.",
-      //   "test": (assert) => assert
-      //     .$while("contador < 10 and puntaje < 38").catch({
-      //       es: "Debe incluir un bucle while que evalúe las condiciones 'contador < 10' y 'puntaje < 38'.",
-      //       en: "It must include a while loop that evaluates the conditions 'contador < 10' and 'puntaje < 38'.",
-      //       pt: "Deve incluir um loop while que avalie as condições 'contador < 10' e 'puntaje < 38'."
-      //     })
-      //     .withBody((assert) => assert
-      //       .$variable("dado").catch({
-      //         es: "No se encontró la variable 'dado' en el código.",
-      //         en: "The variable 'dado' was not found in the code.",
-      //         pt: "A variável 'dado' não foi encontrada no código."
-      //       })
-      //       .withAssignation("randint(1,6)").catch({
-      //         es: "Debe crear la variable 'dado' con un número aleatorio entre 1 y 6.",
-      //         en: "It must create the 'dado' variable with a random number between 1 and 6.",
-      //         pt: "Deve criar a variável 'dado' com um número aleatório entre 1 e 6."
-      //       })
-      //       // .$functionCall("print")
-      //       // .$variableAssign("puntaje", "puntaje + dado")
-      //       // .$variableAssign("contador", "contador + 1")
-      //     ).catch({
-      //       es: "Debe incluir un bucle while que evalúe las condiciones 'contador < 10' y 'puntaje < 38'.",
-      //       en: "It must include a while loop that evaluates the conditions 'contador < 10' and 'puntaje < 38'.",
-      //       pt: "Deve incluir um loop while que avalie as condições 'contador < 10' e 'puntaje < 38'."
-      //     })
-      // },
-      // {
-      //   "description": "El código debe mostrar el texto 'El puntaje total es: _____' al final del bucle.",
-      //   "test": (assert) => assert
-      //     .$functionCall("print")
-      //     .withArguments(["\"El puntaje total es: \" + str(puntaje)"]).catch({
-      //       es: "Debe mostrar el texto 'El puntaje total es: _____' después del bucle.",
-      //       en: "It must display the text 'El puntaje total es: _____' after the loop.",
-      //       pt: "Deve mostrar o texto 'El puntaje total es: _____' após o loop."
-      //     })
-      // },
-      // {
-      //   "description": "El código debe incluir una estructura condicional para mostrar 'Ganaste' o 'Perdiste' según el puntaje.",
-      //   "test": (assert) => assert
-      //     .$if("puntaje >= 38")
-      //     .withBody((assert) => assert
-      //       .$functionCall("print")
-      //       .withArguments(["\"Ganaste\""])
-      //     )
-      //     .withElse((assert) => assert
-      //       .$functionCall("print")
-      //       .withArguments(["\"Perdiste\""])
-      //     ).catch({
-      //       es: "Debe incluir una estructura condicional que muestre 'Ganaste' o 'Perdiste' según el puntaje.",
-      //       en: "It must include a conditional structure to display 'Ganaste' or 'Perdiste' based on the score.",
-      //       pt: "Deve incluir uma estrutura condicional que mostre 'Ganaste' ou 'Perdiste' com base na pontuação."
-      //     })
-      // }
     ]
   },
   {
@@ -2392,203 +2553,235 @@ export const exercises = [
           .$custom(code => {
             // console.log(code.replace(/\s/g, '').trim().includes('clave="DigitalHouse"password=input('));
 
+            const norm = code.replace(/\r/g, "");
+            const compact = norm.replace(/\s/g, "");
 
-            if (!code.replace(/\s/g, '').trim().includes('clave="DigitalHouse"') && !code.replace(/\s/g, '').trim().includes('key="DigitalHouse"')) {
-              seguirValidando = false
+            // === 1) clave / key = "DigitalHouse" ===
+            const matchClave = norm.match(/\b(clave|key)\s*=\s*["']DigitalHouse["']/);
+            if (!matchClave) {
               return [{
-                es: "Debe crear una variable llamada 'clave' con el valor 'DigitalHouse'.",
-                en: "It must create a variable named 'key' with the value 'DigitalHouse'.",
-                pt: "Deve criar uma variável chamada 'chave' com o valor 'DigitalHouse'."
-              }]
-            } else if (!code.replace(/\s/g, '').trim().includes('password=')) {
-              seguirValidando = false
-              return [{
-                es: "Debe crear una variable llamada 'password' para almacenar el valor ingresado por consola.",
-                en: "It must create a variable named 'password' to store the value entered by the user.",
-                pt: "Deve criar uma variável chamada 'senha' para armazenar o valor inserido pelo usuário."
-              }]
-            } else if (code.replace(/\s/g, '').trim().includes('clave="DigitalHouse"password=input(')) {
-              const lineasInput = code.match(/input\(["'].*?["']\)/g);
-              const pregunta = lineasInput[0].match(/["'](.*?)["']/)?.[1]; // Extraer el texto de la pregunta
-              if (pregunta) {
-                const contieneContraseña = /contraseña|password/i.test(pregunta);
-                if (!contieneContraseña) {
-                  seguirValidando = false
-                  // console.log("La pregunta del input no es válida porque no menciona 'contraseña' o 'password'.");
-                  seguirValidando = false
-                  return [{
-                    es: 'La pregunta del primer input "' + pregunta + '" no es válida porque no menciona "contraseña" o "password".',
-                    en: 'The first input question ' + pregunta + ' is not valid because it does not mention "contraseña" or "password".',
-                    pt: 'A pergunta do primeiro input ' + pregunta + ' não é válida porque não menciona "senha" ou "password".'
-                  }]
-                }
-
-              }
-            } else if (code.replace(/\s/g, '').trim().includes('key="DigitalHouse"password=input(')) {
-              const lineasInput = code.match(/input\(["'].*?["']\)/g);
-              const pregunta = lineasInput[0].match(/["'](.*?)["']/)?.[1]; // Extraer el texto de la pregunta
-              if (pregunta.length < 1) {
-                seguirValidando = false
-                return [{
-                  es: "Debe incluir una pregunta en el input.",
-                  en: "It must include a question in the input.",
-                  pt: "Deve incluir uma pergunta no input."
-                }]
-              }
-              if (pregunta) {
-                const contieneContraseña = /password/i.test(pregunta);
-                if (!contieneContraseña) {
-                  seguirValidando = false
-                  // console.log("La pregunta del input no es válida porque no menciona 'contraseña' o 'password'.");
-                  seguirValidando = false
-                  return [{
-                    es: 'La pregunta del primer input "' + pregunta + '" no es válida porque no menciona "contraseña" o "password".',
-                    en: 'The first input question ' + pregunta + ' is not valid because it does not mention "password".',
-                    pt: 'A pergunta do primeiro input ' + pregunta + ' não é válida porque não menciona "senha".'
-                  }]
-                }
-
-              }
+                es: "Debe crear una variable llamada 'clave' (o 'key') con el valor 'DigitalHouse'.",
+                en: "You must create a variable called 'clave' (or 'key') with the value 'DigitalHouse'.",
+                pt: "Você deve criar uma variável chamada 'clave' (ou 'key') com o valor 'DigitalHouse'."
+              }];
             }
-            else {
-              seguirValidando = false
+            const keyName = matchClave[1]; // 'clave' o 'key'
+
+            // === 2) password = input(...) ===
+            const matchPassword = norm.match(/\bpassword\s*=\s*input\s*\(\s*["'](.*?)["']\s*\)/);
+            if (!matchPassword) {
               return [{
                 es: "Debe crear una variable llamada 'password' inicializada con un input() para solicitar la contraseña.",
-                en: "It must create the 'password' variable initialized with an input() to request the password.",
-                pt: "Deve criar a variável 'password' inicializada com um input() para solicitar a senha."
-              }]
+                en: "You must create a variable named 'password' initialized with an input() to request the password.",
+                pt: "Você deve criar uma variável chamada 'password' inicializada com um input() para solicitar a senha."
+              }];
             }
 
-            if (!code.replace(/\s/g, '').trim().includes("whilepassword!=clave:") && !code.replace(/\s/g, '').trim().includes("whileclave!=password:") && !code.replace(/\s/g, '').trim().includes("whilepassword!=key:") && !code.replace(/\s/g, '').trim().includes("whilekey!=password:")) {
-              seguirValidando = false
+            const pregunta1 = matchPassword[1] || "";
+            if (!/contraseña|password/i.test(pregunta1)) {
               return [{
-                es: "Debe incluir un bucle while que evalúe 'clave != password'.",
-                en: "It must include a while loop that evaluates 'key != password'.",
-                pt: "Deve incluir um loop while que avalie 'chave != senha'."
-              }]
-            } else if (code.replace(/\s/g, '').trim().includes("whilepassword!=clave:password=input(") || code.replace(/\s/g, '').trim().includes("whileclave!=password:password=input(")) {
-              const lineasInputWhile = code.match(/input\(["'].*?["']\)/g);
-              // console.log(lineasInputWhile);
-              const preguntaWhile = lineasInputWhile[1].match(/["'](.*?)["']/)?.[1]; // Extraer el texto de la preguntaWhile
-              if (preguntaWhile.length < 1) {
-                seguirValidando = false
-                return [{
-                  es: "Debe incluir una pregunta en el input dentro del while.",
-                  en: "It must include a question in the input inside the while.",
-                  pt: "Deve incluir uma pergunta no input dentro do while."
-                }]
-              }
-              if (preguntaWhile) {
-                const contieneContraWhile = /contraseña|password/i.test(preguntaWhile);
-                if (!contieneContraWhile) {
-                  seguirValidando = false
-                  // console.log("La pregunta del input no es válida porque no menciona 'contraseña' o 'password'.");
-                  seguirValidando = false
-                  return [{
-                    es: 'La pregunta del input dentro de while: "' + preguntaWhile + '" no es válida porque no menciona "contraseña" o "password".',
-                    en: 'The input question inside while: ' + preguntaWhile + ' is not valid because it does not mention "password".',
-                    pt: 'A pergunta do input dentro do while: ' + preguntaWhile + ' não é válida porque não menciona "senha" ou "password".'
-                  }]
-                }
-
-              }
-            } else if (code.replace(/\s/g, '').trim().includes("whilekey!=password:password=input(")) {
-              const lineasInputWhile = code.match(/input\(["'].*?["']\)/g);
-              // console.log(lineasInputWhile);
-              const preguntaWhile = lineasInputWhile[1].match(/["'](.*?)["']/)?.[1]; // Extraer el texto de la preguntaWhile
-              if (preguntaWhile.length < 1) {
-                seguirValidando = false
-                return [{
-                  es: "Debe incluir una pregunta en el input dentro del while.",
-                  en: "It must include a question in the input inside the while.",
-                  pt: "Deve incluir uma pergunta no input dentro do while."
-                }]
-              }
-              if (preguntaWhile) {
-                const contieneContraWhile = /password/i.test(preguntaWhile);
-                if (!contieneContraWhile) {
-                  seguirValidando = false
-                  // console.log("La pregunta del input no es válida porque no menciona 'contraseña' o 'password'.");
-                  seguirValidando = false
-                  return [{
-                    es: 'La pregunta del input dentro de while: "' + preguntaWhile + '" no es válida porque no menciona "password".',
-                    en: 'The input question inside while: ' + preguntaWhile + ' is not valid because it does not mention "password".',
-                    pt: 'A pergunta do input dentro do while: ' + preguntaWhile + ' não é válida porque não menciona "senha".'
-                  }]
-                }
-              }
+                es: `La pregunta del primer input "${pregunta1}" no es válida porque no menciona "contraseña" o "password".`,
+                en: `The first input question "${pregunta1}" is not valid because it does not mention "password".`,
+                pt: `A pergunta do primeiro input "${pregunta1}" não é válida porque não menciona "senha" ou "password".`
+              }];
             }
-            else {
-              seguirValidando = false
+
+            // === 3) while password != clave (o key) ===
+            const reWhile = new RegExp(
+              `while\\s*(?:password\\s*!=\\s*${keyName}|${keyName}\\s*!=\\s*password)\\s*:`
+            );
+            if (!reWhile.test(norm)) {
               return [{
-                es: "Debe incluir un bucle while que evalúe 'clave != password'.",
-                en: "It must include a while loop that evaluates 'key != password'.",
-                pt: "Deve incluir um loop while que avalie 'chave != senha'."
-              }]
+                es: "Debe incluir un bucle while que evalúe 'clave != password' (o 'key != password').",
+                en: "You must include a while loop that evaluates 'key != password'.",
+                pt: "Você deve incluir um loop while que avalie 'chave != senha'."
+              }];
             }
 
-            if (!code.replace(/\s/g, '').trim().includes('print("Lacontraseñaingresadaescorrecta")') && !code.replace(/\s/g, '').trim().includes('print("Thepasswordenterediscorrect")') && !code.replace(/\s/g, '').trim().includes("print('Lacontraseñaingresadaescorrecta')") && !code.replace(/\s/g, '').trim().includes("print('Thepasswordenterediscorrect')")) {
-              seguirValidando = false
+            // === 4) Dentro del while: otro input pidiendo la contraseña ===
+            const inputs = [...norm.matchAll(/input\s*\(\s*["'](.*?)["']\s*\)/g)];
+            if (inputs.length < 2) {
+              return [{
+                es: "Dentro del while debe volver a solicitar la contraseña con otro input().",
+                en: "Inside the while loop you must request the password again with another input().",
+                pt: "Dentro do while você deve solicitar a senha novamente com outro input()."
+              }];
+            }
+
+            const preguntaWhile = inputs[1][1] || "";
+            if (!/contraseña|password/i.test(preguntaWhile)) {
+              return [{
+                es: `La pregunta del input dentro del while "${preguntaWhile}" no es válida porque no menciona "contraseña" o "password".`,
+                en: `The input question inside the while "${preguntaWhile}" is not valid because it does not mention "password".`,
+                pt: `A pergunta do input dentro do while "${preguntaWhile}" não é válida porque não menciona "senha" ou "password".`
+              }];
+            }
+
+            // === 5) Mensaje final de contraseña correcta ===
+            const okFinalES = compact.includes('print("Lacontraseñaingresadaescorrecta")') ||
+              compact.includes("print('Lacontraseñaingresadaescorrecta')");
+            const okFinalEN = compact.includes('print("Thepasswordenterediscorrect")') ||
+              compact.includes("print('Thepasswordenterediscorrect')");
+
+            if (!okFinalES && !okFinalEN) {
               return [{
                 es: "Debe mostrar el mensaje 'La contraseña ingresada es correcta' al salir del bucle.",
-                en: "It must display the message 'The password entered is correct' after exiting the loop.",
-                pt: "Deve exibir a mensagem 'A senha inserida está correta' após sair do loop."
-              }]
+                en: "You must display the message 'The password entered is correct' after exiting the loop.",
+                pt: "Você deve exibir a mensagem 'A senha inserida está correta' após sair do loop."
+              }];
             }
+
+            // ✅ Si llegó hasta acá, está todo bien (no retornamos nada)
+
+
+
+            //VALIDACION VIEJA
+            // if (!code.replace(/\s/g, '').trim().includes('clave="DigitalHouse"') && !code.replace(/\s/g, '').trim().includes('key="DigitalHouse"')) {
+            //   seguirValidando = false
+            //   return [{
+            //     es: "Debe crear una variable llamada 'clave' con el valor 'DigitalHouse'.",
+            //     en: "It must create a variable named 'key' with the value 'DigitalHouse'.",
+            //     pt: "Deve criar uma variável chamada 'chave' com o valor 'DigitalHouse'."
+            //   }]
+            // } else if (!code.replace(/\s/g, '').trim().includes('password=')) {
+            //   seguirValidando = false
+            //   return [{
+            //     es: "Debe crear una variable llamada 'password' para almacenar el valor ingresado por consola.",
+            //     en: "It must create a variable named 'password' to store the value entered by the user.",
+            //     pt: "Deve criar uma variável chamada 'senha' para armazenar o valor inserido pelo usuário."
+            //   }]
+            // } else if (code.replace(/\s/g, '').trim().includes('clave="DigitalHouse"password=input(')) {
+            //   const lineasInput = code.match(/input\(["'].*?["']\)/g);
+            //   const pregunta = lineasInput[0].match(/["'](.*?)["']/)?.[1]; // Extraer el texto de la pregunta
+            //   if (pregunta) {
+            //     const contieneContraseña = /contraseña|password/i.test(pregunta);
+            //     if (!contieneContraseña) {
+            //       seguirValidando = false
+            //       // console.log("La pregunta del input no es válida porque no menciona 'contraseña' o 'password'.");
+            //       seguirValidando = false
+            //       return [{
+            //         es: 'La pregunta del primer input "' + pregunta + '" no es válida porque no menciona "contraseña" o "password".',
+            //         en: 'The first input question ' + pregunta + ' is not valid because it does not mention "contraseña" or "password".',
+            //         pt: 'A pergunta do primeiro input ' + pregunta + ' não é válida porque não menciona "senha" ou "password".'
+            //       }]
+            //     }
+
+            //   }
+            // } else if (code.replace(/\s/g, '').trim().includes('key="DigitalHouse"password=input(')) {
+            //   const lineasInput = code.match(/input\(["'].*?["']\)/g);
+            //   const pregunta = lineasInput[0].match(/["'](.*?)["']/)?.[1]; // Extraer el texto de la pregunta
+            //   if (pregunta.length < 1) {
+            //     seguirValidando = false
+            //     return [{
+            //       es: "Debe incluir una pregunta en el input.",
+            //       en: "It must include a question in the input.",
+            //       pt: "Deve incluir uma pergunta no input."
+            //     }]
+            //   }
+            //   if (pregunta) {
+            //     const contieneContraseña = /password/i.test(pregunta);
+            //     if (!contieneContraseña) {
+            //       seguirValidando = false
+            //       // console.log("La pregunta del input no es válida porque no menciona 'contraseña' o 'password'.");
+            //       seguirValidando = false
+            //       return [{
+            //         es: 'La pregunta del primer input "' + pregunta + '" no es válida porque no menciona "contraseña" o "password".',
+            //         en: 'The first input question ' + pregunta + ' is not valid because it does not mention "password".',
+            //         pt: 'A pergunta do primeiro input ' + pregunta + ' não é válida porque não menciona "senha".'
+            //       }]
+            //     }
+
+            //   }
+            // }
+            // else {
+            //   seguirValidando = false
+            //   return [{
+            //     es: "Debe crear una variable llamada 'password' inicializada con un input() para solicitar la contraseña.",
+            //     en: "It must create the 'password' variable initialized with an input() to request the password.",
+            //     pt: "Deve criar a variável 'password' inicializada com um input() para solicitar a senha."
+            //   }]
+            // }
+
+            // if (!code.replace(/\s/g, '').trim().includes("whilepassword!=clave:") && !code.replace(/\s/g, '').trim().includes("whileclave!=password:") && !code.replace(/\s/g, '').trim().includes("whilepassword!=key:") && !code.replace(/\s/g, '').trim().includes("whilekey!=password:")) {
+            //   seguirValidando = false
+            //   return [{
+            //     es: "Debe incluir un bucle while que evalúe 'clave != password'.",
+            //     en: "It must include a while loop that evaluates 'key != password'.",
+            //     pt: "Deve incluir um loop while que avalie 'chave != senha'."
+            //   }]
+            // } else if (code.replace(/\s/g, '').trim().includes("whilepassword!=clave:password=input(") || code.replace(/\s/g, '').trim().includes("whileclave!=password:password=input(")) {
+            //   const lineasInputWhile = code.match(/input\(["'].*?["']\)/g);
+            //   // console.log(lineasInputWhile);
+            //   const preguntaWhile = lineasInputWhile[1].match(/["'](.*?)["']/)?.[1]; // Extraer el texto de la preguntaWhile
+            //   if (preguntaWhile.length < 1) {
+            //     seguirValidando = false
+            //     return [{
+            //       es: "Debe incluir una pregunta en el input dentro del while.",
+            //       en: "It must include a question in the input inside the while.",
+            //       pt: "Deve incluir uma pergunta no input dentro do while."
+            //     }]
+            //   }
+            //   if (preguntaWhile) {
+            //     const contieneContraWhile = /contraseña|password/i.test(preguntaWhile);
+            //     if (!contieneContraWhile) {
+            //       seguirValidando = false
+            //       // console.log("La pregunta del input no es válida porque no menciona 'contraseña' o 'password'.");
+            //       seguirValidando = false
+            //       return [{
+            //         es: 'La pregunta del input dentro de while: "' + preguntaWhile + '" no es válida porque no menciona "contraseña" o "password".',
+            //         en: 'The input question inside while: ' + preguntaWhile + ' is not valid because it does not mention "password".',
+            //         pt: 'A pergunta do input dentro do while: ' + preguntaWhile + ' não é válida porque não menciona "senha" ou "password".'
+            //       }]
+            //     }
+
+            //   }
+            // } else if (code.replace(/\s/g, '').trim().includes("whilekey!=password:password=input(")) {
+            //   const lineasInputWhile = code.match(/input\(["'].*?["']\)/g);
+            //   // console.log(lineasInputWhile);
+            //   const preguntaWhile = lineasInputWhile[1].match(/["'](.*?)["']/)?.[1]; // Extraer el texto de la preguntaWhile
+            //   if (preguntaWhile.length < 1) {
+            //     seguirValidando = false
+            //     return [{
+            //       es: "Debe incluir una pregunta en el input dentro del while.",
+            //       en: "It must include a question in the input inside the while.",
+            //       pt: "Deve incluir uma pergunta no input dentro do while."
+            //     }]
+            //   }
+            //   if (preguntaWhile) {
+            //     const contieneContraWhile = /password/i.test(preguntaWhile);
+            //     if (!contieneContraWhile) {
+            //       seguirValidando = false
+            //       // console.log("La pregunta del input no es válida porque no menciona 'contraseña' o 'password'.");
+            //       seguirValidando = false
+            //       return [{
+            //         es: 'La pregunta del input dentro de while: "' + preguntaWhile + '" no es válida porque no menciona "password".',
+            //         en: 'The input question inside while: ' + preguntaWhile + ' is not valid because it does not mention "password".',
+            //         pt: 'A pergunta do input dentro do while: ' + preguntaWhile + ' não é válida porque não menciona "senha".'
+            //       }]
+            //     }
+            //   }
+            // }
+            // else {
+            //   seguirValidando = false
+            //   return [{
+            //     es: "Debe incluir un bucle while que evalúe 'clave != password'.",
+            //     en: "It must include a while loop that evaluates 'key != password'.",
+            //     pt: "Deve incluir um loop while que avalie 'chave != senha'."
+            //   }]
+            // }
+
+            // if (!code.replace(/\s/g, '').trim().includes('print("Lacontraseñaingresadaescorrecta")') && !code.replace(/\s/g, '').trim().includes('print("Thepasswordenterediscorrect")') && !code.replace(/\s/g, '').trim().includes("print('Lacontraseñaingresadaescorrecta')") && !code.replace(/\s/g, '').trim().includes("print('Thepasswordenterediscorrect')")) {
+            //   seguirValidando = false
+            //   return [{
+            //     es: "Debe mostrar el mensaje 'La contraseña ingresada es correcta' al salir del bucle.",
+            //     en: "It must display the message 'The password entered is correct' after exiting the loop.",
+            //     pt: "Deve exibir a mensagem 'A senha inserida está correta' após sair do loop."
+            //   }]
+            // }
 
           })
 
       }
-      // {
-      //   "description": "El código debe crear una variable llamada 'clave' con el valor 'messiteamo'.",
-      //   "test": (assert) => assert
-      //     .$variable("clave").catch({
-      //       es: "No se encontró la variable 'clave' en el código.",
-      //       en: "The 'clave' variable was not found in the code.",
-      //       pt: "A variável 'clave' não foi encontrada no código."
-      //     })
-      //     .withAssignation("\"messiteamo\"").catch({
-      //       es: "Debe crear una variable llamada 'clave' con el valor 'messiteamo'.",
-      //       en: "It must create a variable named 'clave' with the value 'messiteamo'.",
-      //       pt: "Deve criar uma variável chamada 'clave' com o valor 'messiteamo'."
-      //     })
-      // },
-      // {
-      //   "description": "El código debe crear una variable llamada 'password' inicializada con un input() para solicitar la contraseña.",
-      //   "test": (assert) => assert
-      //     .$variable("password").catch({
-      //       es: "No se encontró la variable 'password' en el código.",
-      //       en: "The 'password' variable was not found in the code.",
-      //       pt: "A variável 'password' não foi encontrada no código."
-      //     })
-      //     .withAssignation("input(\"Introduce tu contraseña: => \")").catch({
-      //       es: "Debe crear la variable 'password' con un input() para solicitar la contraseña.",
-      //       en: "It must create the 'password' variable with an input() to request the password.",
-      //       pt: "Deve criar a variável 'password' com um input() para solicitar a senha."
-      //     })
-      // },
-      // {
-      //   "description": "El código debe incluir un bucle while que evalúe 'clave != password'.",
-      //   "test": (assert) => assert
-      //     .$while("clave != password")
-      //     .withBody((assert) => assert
-      //       .$variableAssign("password", "input(\"Contraseña incorrecta. Vuelve a intentarlo: => \")")
-      //     ).catch({
-      //       es: "Debe incluir un bucle while que evalúe 'clave != password'.",
-      //       en: "It must include a while loop that evaluates 'clave != password'.",
-      //       pt: "Deve incluir um loop while que avalie 'clave != password'."
-      //     })
-      // },
-      // {
-      //   "description": "El código debe mostrar el mensaje 'La contraseña ingresada es correcta' al salir del bucle.",
-      //   "test": (assert) => assert
-      //     .$functionCall("print")
-      //     .withArguments(["\"La contraseña ingresada es correcta\""]).catch({
-      //       es: "Debe mostrar el mensaje 'La contraseña ingresada es correcta' al finalizar el bucle.",
-      //       en: "It must display the message 'La contraseña ingresada es correcta' after exiting the loop.",
-      //       pt: "Deve mostrar a mensagem 'La contraseña ingresada es correcta' após sair do loop."
-      //     })
-      // }
     ]
   },
   {
@@ -2608,144 +2801,250 @@ export const exercises = [
         "test": (assert) => assert
           .$custom(code => {
             // console.log(code.replace(/\s+/g, '').trim())
+            const norm = code.replace(/\r/g, "");
 
-            if (!code.replace(/\s+/g, '').trim().includes("notas=[10,4,6,5,10,8,9,4]") && !code.replace(/\s+/g, '').trim().includes("grades=[10,4,6,5,10,8,9,4]")) {
+            // Helper: obtener cuerpos de los print()
+            const printBodies = [...norm.matchAll(/print\s*\(([\s\S]*?)\)\s*$/gm)].map(m => m[1]);
+
+            const hasPrintWithPhraseAndVar = (phraseRe, varName) => {
+              const varRe = new RegExp(`(?<![A-Za-z0-9_])${varName}(?![A-Za-z0-9_])`);
+
+              return printBodies.some(body => {
+                if (!phraseRe.test(body)) return false;
+                if (!varRe.test(body)) return false;
+
+                const usesPlus = /\+/.test(body);
+                const hasStr = /str\s*\(/.test(body);
+                const isFString = /f["']/.test(body);
+                const hasComma = /,/.test(body);
+                const hasFormat = /\.format\s*\(/.test(body);
+
+                // Si usa + con texto y la variable, exigir str()
+                if (usesPlus && /["']/.test(body) && varRe.test(body) && !hasStr) {
+                  return false;
+                }
+
+                // Aceptamos:
+                // - f-string
+                // - .format()
+                // - print("texto", var)
+                // - print("texto " + str(var))
+                return isFString || hasFormat || hasComma || (usesPlus && hasStr);
+              });
+            };
+
+            // === 1) Lista de notas / grades ===
+            const reNotas = /\bnotas\s*=\s*\[\s*10\s*,\s*4\s*,\s*6\s*,\s*5\s*,\s*10\s*,\s*8\s*,\s*9\s*,\s*4\s*]/;
+            const reGrades = /\bgrades\s*=\s*\[\s*10\s*,\s*4\s*,\s*6\s*,\s*5\s*,\s*10\s*,\s*8\s*,\s*9\s*,\s*4\s*]/;
+
+            let listName = null;
+            if (reNotas.test(norm)) {
+              listName = "notas";
+            } else if (reGrades.test(norm)) {
+              listName = "grades";
+            } else {
               return [{
-                es: "En tu código debes tener la lista de notas brindado por el ejercicio. Puedes reiniciar el código para recuperarlo.",
+                es: "En tu código debes tener la lista de notas brindada por el ejercicio. Puedes reiniciar el código para recuperarla.",
                 en: "In your code you must have the list of grades provided by the exercise. You can reset the code to recover it.",
-                pt: "No seu código, você deve ter a lista de notas fornecida pelo exercício. Você pode redefinir o código para recuperá-lo."
-
-              }]
-            }
-            if (!code.replace(/\s+/g, '').trim().includes("sumaNotas=") && !code.replace(/\s+/g, '').trim().includes("sumGrades=")) {
-              return [{
-                es: "En tu código debes declarar la variable sumaNotas.",
-                en: "In your code you must declare the sumGrades variable.",
-                pt: "No seu código, você deve declarar a variável sumGrades."
-              }]
+                pt: "No seu código, você deve ter a lista de notas fornecida pelo exercício. Você pode redefinir o código para recuperá-la."
+              }];
             }
 
-            if (!code.replace(/\s+/g, '').trim().includes("sumaNotas=sum(notas)") && !code.replace(/\s+/g, '').trim().includes("sumGrades=sum(grades)")) {
+            // === 2) Variable de suma: sumaNotas / sumGrades ===
+            let sumName = null;
+            if (/\bsumaNotas\b/.test(norm)) {
+              sumName = "sumaNotas";
+            } else if (/\bsumGrades\b/.test(norm)) {
+              sumName = "sumGrades";
+            } else {
               return [{
-                es: "En tu código debes almacenar la suma de los valores de la lista notas dentro de la variable sumaNotas. Recuerda utilizar el método correspondiente.",
-                en: "In your code you must store the sum of the values of the grades list within the sumGrades variable. Remember to use the corresponding method.",
-                pt: "No seu código, você deve armazenar a soma dos valores da lista de notas dentro da variável sumGrades. Lembre-se de usar o método correspondente."
-              }]
+                es: "En tu código debes declarar la variable 'sumaNotas' (o 'sumGrades').",
+                en: "In your code you must declare the 'sumGrades' (or 'sumaNotas') variable.",
+                pt: "No seu código, você deve declarar a variável 'sumGrades' (ou 'sumaNotas')."
+              }];
             }
-            if (!code.replace(/\s+/g, '').trim().includes('print("Lasumadelasnotases:"+str(sumaNotas)') && !code.replace(/\s+/g, '').trim().includes('print("Thesumofthegradesis:"+str(sumGrades)')) {
+
+            const reSum = new RegExp(`\\b${sumName}\\s*=\\s*sum\\s*\\(\\s*${listName}\\s*\\)`);
+            if (!reSum.test(norm)) {
+              return [{
+                es: "Debes almacenar la suma de los valores de la lista en la variable de suma usando sum(...).",
+                en: "You must store the sum of the list values in the sum variable using sum(...).",
+                pt: "Você deve armazenar a soma dos valores da lista na variável de soma usando sum(...)."
+              }];
+            }
+
+            // === 3) Print de la suma ===
+            const phraseSumEs = /La\s*suma\s*de\s*las\s*notas\s*es\s*:/i;
+            const phraseSumEn = /The\s*sum\s*of\s*the\s*grades\s*is\s*:/i;
+
+            if (!hasPrintWithPhraseAndVar(phraseSumEs, sumName) &&
+              !hasPrintWithPhraseAndVar(phraseSumEn, sumName)) {
               return [{
                 es: "Debe mostrar la suma con el mensaje 'La suma de las notas es: _____'.",
                 en: "It must display the sum with the message 'The sum of the grades is: _____'.",
                 pt: "Deve exibir a soma com a mensagem 'A soma das notas é: _____'."
-              }]
+              }];
             }
-            if (!code.replace(/\s+/g, '').trim().includes("cantidadNotas=") && !code.replace(/\s+/g, '').trim().includes("amountGrades=")) {
+
+            // === 4) Variable de cantidad: cantidadNotas / amountGrades ===
+            let countName = null;
+            if (/\bcantidadNotas\b/.test(norm)) {
+              countName = "cantidadNotas";
+            } else if (/\bamountGrades\b/.test(norm)) {
+              countName = "amountGrades";
+            } else {
               return [{
-                es: "En tu código debes declarar la variable cantidadNotas.",
-                en: "In your code you must declare the amountGrades variable.",
-                pt: "No seu código, você deve declarar a variável amountGrades."
-              }]
+                es: "En tu código debes declarar la variable 'cantidadNotas' (o 'amountGrades').",
+                en: "In your code you must declare the 'amountGrades' (or 'cantidadNotas') variable.",
+                pt: "No seu código, você deve declarar a variável 'amountGrades' (ou 'cantidadNotas')."
+              }];
             }
-            if (!code.replace(/\s+/g, '').trim().includes("cantidadNotas=len(notas)") && !code.replace(/\s+/g, '').trim().includes("amountGrades=len(grades)")) {
+
+            const reLen = new RegExp(`\\b${countName}\\s*=\\s*len\\s*\\(\\s*${listName}\\s*\\)`);
+            if (!reLen.test(norm)) {
               return [{
-                es: "Debe calcular la cantidad de notas y almacenarla en la variable 'cantidadNotas'.",
-                en: "It must calculate the number of grades and store it in the 'amountGrades' variable.",
-                pt: "Deve calcular a quantidade de notas e armazená-la na variável 'amountGrades'."
-              }]
+                es: "Debes calcular la cantidad de notas usando len(...) y guardarla en la variable correspondiente.",
+                en: "You must calculate the number of grades using len(...) and store it in the corresponding variable.",
+                pt: "Você deve calcular a quantidade de notas usando len(...) e armazená-la na variável correspondente."
+              }];
             }
-            if (!code.replace(/\s+/g, '').trim().includes('print("Lacantidaddenotases:"+str(cantidadNotas)') && !code.replace(/\s+/g, '').trim().includes('print("Theamountofgradesis:"+str(amountGrades)')) {
+
+            // === 5) Print de la cantidad ===
+            const phraseCountEs = /La\s*cantidad\s*de\s*notas\s*es\s*:/i;
+            const phraseCountEn = /The\s*amount\s*of\s*grades\s*is\s*:/i;
+
+            if (!hasPrintWithPhraseAndVar(phraseCountEs, countName) &&
+              !hasPrintWithPhraseAndVar(phraseCountEn, countName)) {
               return [{
                 es: "Debe mostrar la cantidad con el mensaje 'La cantidad de notas es: _____'.",
                 en: "It must display the amount with the message 'The amount of grades is: _____'.",
                 pt: "Deve exibir a quantidade com a mensagem 'A quantidade de notas é: _____'."
-              }]
+              }];
             }
 
-            if (!code.replace(/\s+/g, '').trim().includes("promedio=") && !code.replace(/\s+/g, '').trim().includes("average=")) {
+            // === 6) Variable de promedio: promedio / average ===
+            let avgName = null;
+            if (/\bpromedio\b/.test(norm)) {
+              avgName = "promedio";
+            } else if (/\baverage\b/.test(norm)) {
+              avgName = "average";
+            } else {
               return [{
-                es: "Debe calcular el promedio y almacenarlo en la variable 'promedio'.",
-                en: "It must calculate the average and store it in the 'average' variable.",
-                pt: "Deve calcular a média e armazená-la na variável 'average'."
-              }]
+                es: "Debe calcular el promedio y almacenarlo en la variable 'promedio' (o 'average').",
+                en: "You must calculate the average and store it in the 'average' (or 'promedio') variable.",
+                pt: "Você deve calcular a média e armazená-la na variável 'average' (ou 'promedio')."
+              }];
             }
-            if (!code.replace(/\s+/g, '').trim().includes("promedio=sumaNotas/cantidadNotas") && !code.replace(/\s+/g, '').trim().includes("average=sumGrades/amountGrades")) {
+
+            // Verificamos que promedio sea suma / cantidad (en cualquier orden)
+            const reAvgAssign = new RegExp(`\\b${avgName}\\s*=([^\\n]+)`);
+            const mAvg = norm.match(reAvgAssign);
+            if (!mAvg) {
+              return [{
+                es: "Debe asignar a la variable de promedio una división entre la suma y la cantidad de notas.",
+                en: "You must assign to the average variable a division between the sum and the number of grades.",
+                pt: "Você deve atribuir à variável de média uma divisão entre a soma e a quantidade de notas."
+              }];
+            } else {
+              const rhs = mAvg[1];
+              const hasSlash = /\//.test(rhs);
+              const usesSum = new RegExp(`\\b${sumName}\\b`).test(rhs);
+              const usesCount = new RegExp(`\\b${countName}\\b`).test(rhs);
+              if (!hasSlash || !usesSum || !usesCount) {
+                return [{
+                  es: "El promedio debe calcularse dividiendo la suma de las notas por la cantidad de notas.",
+                  en: "The average must be calculated by dividing the sum of the grades by the number of grades.",
+                  pt: "A média deve ser calculada dividindo a soma das notas pela quantidade de notas."
+                }];
+              }
+            }
+
+            // === 7) Print del promedio ===
+            const phraseAvgEs = /El\s*promedio\s*de\s*las\s*notas\s*es\s*:/i;
+            const phraseAvgEn = /The\s*average\s*of\s*the\s*grades\s*is\s*:/i;
+
+            if (!hasPrintWithPhraseAndVar(phraseAvgEs, avgName) &&
+              !hasPrintWithPhraseAndVar(phraseAvgEn, avgName)) {
               return [{
                 es: "Debe mostrar el promedio con el mensaje 'El promedio de las notas es: _____'.",
                 en: "It must display the average with the message 'The average of the grades is: _____'.",
                 pt: "Deve exibir a média com a mensagem 'A média das notas é: _____'."
-              }]
+              }];
             }
+
+            // ✅ Si llegó hasta acá, todo OK (no retornamos nada)
+
+
+            //VALIDACION VIEJA
+            // if (!code.replace(/\s+/g, '').trim().includes("notas=[10,4,6,5,10,8,9,4]") && !code.replace(/\s+/g, '').trim().includes("grades=[10,4,6,5,10,8,9,4]")) {
+            //   return [{
+            //     es: "En tu código debes tener la lista de notas brindado por el ejercicio. Puedes reiniciar el código para recuperarlo.",
+            //     en: "In your code you must have the list of grades provided by the exercise. You can reset the code to recover it.",
+            //     pt: "No seu código, você deve ter a lista de notas fornecida pelo exercício. Você pode redefinir o código para recuperá-lo."
+
+            //   }]
+            // }
+            // if (!code.replace(/\s+/g, '').trim().includes("sumaNotas=") && !code.replace(/\s+/g, '').trim().includes("sumGrades=")) {
+            //   return [{
+            //     es: "En tu código debes declarar la variable sumaNotas.",
+            //     en: "In your code you must declare the sumGrades variable.",
+            //     pt: "No seu código, você deve declarar a variável sumGrades."
+            //   }]
+            // }
+
+            // if (!code.replace(/\s+/g, '').trim().includes("sumaNotas=sum(notas)") && !code.replace(/\s+/g, '').trim().includes("sumGrades=sum(grades)")) {
+            //   return [{
+            //     es: "En tu código debes almacenar la suma de los valores de la lista notas dentro de la variable sumaNotas. Recuerda utilizar el método correspondiente.",
+            //     en: "In your code you must store the sum of the values of the grades list within the sumGrades variable. Remember to use the corresponding method.",
+            //     pt: "No seu código, você deve armazenar a soma dos valores da lista de notas dentro da variável sumGrades. Lembre-se de usar o método correspondente."
+            //   }]
+            // }
+            // if (!code.replace(/\s+/g, '').trim().includes('print("Lasumadelasnotases:"+str(sumaNotas)') && !code.replace(/\s+/g, '').trim().includes('print("Thesumofthegradesis:"+str(sumGrades)')) {
+            //   return [{
+            //     es: "Debe mostrar la suma con el mensaje 'La suma de las notas es: _____'.",
+            //     en: "It must display the sum with the message 'The sum of the grades is: _____'.",
+            //     pt: "Deve exibir a soma com a mensagem 'A soma das notas é: _____'."
+            //   }]
+            // }
+            // if (!code.replace(/\s+/g, '').trim().includes("cantidadNotas=") && !code.replace(/\s+/g, '').trim().includes("amountGrades=")) {
+            //   return [{
+            //     es: "En tu código debes declarar la variable cantidadNotas.",
+            //     en: "In your code you must declare the amountGrades variable.",
+            //     pt: "No seu código, você deve declarar a variável amountGrades."
+            //   }]
+            // }
+            // if (!code.replace(/\s+/g, '').trim().includes("cantidadNotas=len(notas)") && !code.replace(/\s+/g, '').trim().includes("amountGrades=len(grades)")) {
+            //   return [{
+            //     es: "Debe calcular la cantidad de notas y almacenarla en la variable 'cantidadNotas'.",
+            //     en: "It must calculate the number of grades and store it in the 'amountGrades' variable.",
+            //     pt: "Deve calcular a quantidade de notas e armazená-la na variável 'amountGrades'."
+            //   }]
+            // }
+            // if (!code.replace(/\s+/g, '').trim().includes('print("Lacantidaddenotases:"+str(cantidadNotas)') && !code.replace(/\s+/g, '').trim().includes('print("Theamountofgradesis:"+str(amountGrades)')) {
+            //   return [{
+            //     es: "Debe mostrar la cantidad con el mensaje 'La cantidad de notas es: _____'.",
+            //     en: "It must display the amount with the message 'The amount of grades is: _____'.",
+            //     pt: "Deve exibir a quantidade com a mensagem 'A quantidade de notas é: _____'."
+            //   }]
+            // }
+
+            // if (!code.replace(/\s+/g, '').trim().includes("promedio=") && !code.replace(/\s+/g, '').trim().includes("average=")) {
+            //   return [{
+            //     es: "Debe calcular el promedio y almacenarlo en la variable 'promedio'.",
+            //     en: "It must calculate the average and store it in the 'average' variable.",
+            //     pt: "Deve calcular a média e armazená-la na variável 'average'."
+            //   }]
+            // }
+            // if (!code.replace(/\s+/g, '').trim().includes("promedio=sumaNotas/cantidadNotas") && !code.replace(/\s+/g, '').trim().includes("average=sumGrades/amountGrades")) {
+            //   return [{
+            //     es: "Debe mostrar el promedio con el mensaje 'El promedio de las notas es: _____'.",
+            //     en: "It must display the average with the message 'The average of the grades is: _____'.",
+            //     pt: "Deve exibir a média com a mensagem 'A média das notas é: _____'."
+            //   }]
+            // }
 
           })
       }
-      // {
-      //   "description": "El código debe obtener la suma de las notas, almacenarla en una variable y mostrarla.",
-      //   "test": (assert) => assert
-      //     .$variable("sumaNotas").catch({
-      //       es: "No se encontró la variable 'sumaNotas' en el código.",
-      //       en: "The variable 'sumaNotas' was not found in the code.",
-      //       pt: "A variável 'sumaNotas' não foi encontrada no código."
-      //     })
-      //     .withAssignation("sum(notas)").catch({
-      //       es: "Debe calcular la suma de las notas y almacenarla en la variable 'sumaNotas'.",
-      //       en: "It must calculate the sum of the grades and store it in the 'sumaNotas' variable.",
-      //       pt: "Deve calcular a soma das notas e armazená-la na variável 'sumaNotas'."
-      //     })
-      // },
-      // {
-      //   "description": "El código debe obtener la suma de las notas, almacenarla en una variable y mostrarla.",
-      //   "test": (assert) => assert
-      //     .$functionCall("print")
-      //     .withArguments(["sumaNotas"]).catch({
-      //       es: "Debe calcular la suma de las notas y mostrarla por consola.",
-      //       en: "It must calculate the sum of the grades and display it.",
-      //       pt: "Deve calcular a soma das notas e exibi-la."
-      //     })
-      // },
-      // {
-      //   "description": "El código debe obtener la cantidad de notas, almacenarla en una variable y mostrarla.",
-      //   "test": (assert) => assert
-      //     .$variable("cantidadNotas").catch({
-      //       es: "No se encontró la variable 'cantidadNotas' en el código.",
-      //       en: "The variable 'cantidadNotas' was not found in the code.",
-      //       pt: "A variável 'cantidadNotas' não foi encontrada no código."
-      //     })
-      //     .withAssignation("len(notas)").catch({
-      //       es: "Debe calcular la cantidad de notas y almacenarla en la variable 'cantidadNotas'.",
-      //       en: "It must calculate the number of grades and store it in the 'cantidadNotas' variable.",
-      //       pt: "Deve calcular a quantidade de notas e armazená-la na variável 'cantidadNotas'."
-      //     })
-      //     .$functionCall("print")
-      //     .withArguments(["cantidadNotas"]).catch({
-      //       es: "Debe calcular la cantidad de notas y mostrarla por consola.",
-      //       en: "It must calculate the number of grades and display it.",
-      //       pt: "Deve calcular a quantidade de notas e exibi-la."
-      //     })
-      // },
-      // {
-      //   "description": "El código debe calcular el promedio y mostrarlo con el texto 'El promedio de las notas es: _____'.",
-      //   "test": (assert) => assert
-      //     .$variable("promedio").catch({
-      //       es: "No se encontró la variable 'promedio' en el código.",
-      //       en: "The variable 'promedio' was not found in the code.",
-      //       pt: "A variável 'promedio' não foi encontrada no código."
-      //     })
-      //     .withAssignation("sumaNotas / cantidadNotas").catch({
-      //       es: "Debe calcular el promedio y almacenarlo en la variable 'promedio'.",
-      //       en: "It must calculate the average and store it in the 'promedio' variable.",
-      //       pt: "Deve calcular a média e armazená-la na variável 'promedio'."
-      //     })
-      // },
-      // {
-      //   "description": "El código debe calcular el promedio y mostrarlo con el texto 'El promedio de las notas es: _____'.",
-      //   "test": (assert) => assert
-      //     .$functionCall("print")
-      //     .withArguments(["\"El promedio de las notas es: \" + str(promedio)"]).catch({
-      //       es: "Debe calcular el promedio y mostrarlo con el mensaje correcto.",
-      //       en: "It must calculate the average and display it with the correct message.",
-      //       pt: "Deve calcular a média e exibi-la com a mensagem correta."
-      //     })
-      // }
     ]
   },
   {
@@ -2764,112 +3063,184 @@ export const exercises = [
         "description": "El código debe extraer los animales domésticos, ordenarlos y almacenarlos en una variable.",
         "test": (assert) => assert
           .$custom(code => {
+            const norm = code.replace(/\r/g, "");
 
-            if (!code.replace(/\s+/g, '').trim().includes('animales=[\"Avestruz\",\"León\",\"Elefante\",\"Gorila\",\"Ballenas\",\"Caballo\",\"Gallina\",\"Hámster\",\"Perro\",\"Gato\"]') && !code.replace(/\s+/g, '').trim().includes('animals=[\"Ostrich\",\"Lion\",\"Elephant\",\"Gorilla\",\"Whales\",\"Horse\",\"Hen\",\"Hamster\",\"Dog\",\"Cat\"]')) {
+            // === 1) Lista original de animales / animals ===
+            const reEs = /\banimales\s*=\s*\[\s*"Avestruz"\s*,\s*"León"\s*,\s*"Elefante"\s*,\s*"Gorila"\s*,\s*"Ballenas"\s*,\s*"Caballo"\s*,\s*"Gallina"\s*,\s*"Hámster"\s*,\s*"Perro"\s*,\s*"Gato"\s*]/;
+            const reEn = /\banimals\s*=\s*\[\s*"Ostrich"\s*,\s*"Lion"\s*,\s*"Elephant"\s*,\s*"Gorilla"\s*,\s*"Whales"\s*,\s*"Horse"\s*,\s*"Hen"\s*,\s*"Hamster"\s*,\s*"Dog"\s*,\s*"Cat"\s*]/;
+
+            let baseName = null;
+            if (reEs.test(norm)) {
+              baseName = "animales";
+            } else if (reEn.test(norm)) {
+              baseName = "animals";
+            } else {
               return [{
-                es: "En tu código debes tener la lista de animales brindado por el ejercicio. Puedes reiniciar el código para recuperarlo",
+                es: "En tu código debes tener la lista de animales brindada por el ejercicio. Puedes reiniciar el código para recuperarla.",
                 en: "In your code you must have the list of animals provided by the exercise. You can reset the code to recover it.",
-                pt: "No seu código, você deve ter a lista de animais fornecida pelo exercício. Você pode redefinir o código para recuperá-lo."
-              }]
-            } else if (!code.replace(/\s+/g, '').trim().includes("animalesDomesticos=") && !code.replace(/\s+/g, '').trim().includes("domesticAnimals=")) {
-              return [{
-                es: "En tu código debes declarar la variable animalesDomesticos.",
-                en: "In your code you must declare the domesticAnimals variable.",
-                pt: "No seu código, você deve declarar a variável animalesDomesticos."
-              }]
+                pt: "No seu código, você deve ter a lista de animais fornecida pelo exercício. Você pode redefinir o código para recuperá-la."
+              }];
             }
-            else if (!code.replace(/\s+/g, '').trim().includes("animalesDomesticos=animales[5:]") && !code.replace(/\s+/g, '').trim().includes("domesticAnimals=animals[5:]")) {
-              return [{
-                es: "En tu código debes extraer los animales domésticos presentes en la variable animalesDomesticos. Recuerda utilizar la técnica correspondiente.",
-                en: "In your code you must extract the domestic animals present in the domesticAnimals variable. Remember to use the corresponding technique.",
-                pt: "No seu código, você deve extrair os animais domésticos presentes na variável animalesDomesticos. Lembre-se de usar a técnica correspondente."
 
-              }]
-            } else if (!code.replace(/\s+/g, '').trim().includes("animalesDomesticos.sort()") && !code.replace(/\s+/g, '').trim().includes("domesticAnimals.sort()")) {
+            // === 2) Variable de domésticos ===
+            let domName = null;
+            if (/\banimalesDomesticos\b/.test(norm)) {
+              domName = "animalesDomesticos";
+            } else if (/\bdomesticAnimals\b/.test(norm)) {
+              domName = "domesticAnimals";
+            } else {
               return [{
-                es: "Debe ordenar los animales domésticos correctamente.",
-                en: "It must sort the domestic animals correctly.",
-                pt: "Deve ordenar os animais domésticos corretamente."
-              }]
-            } else if (!code.replace(/\s+/g, '').trim().includes("animalesSalvajes=") && !code.replace(/\s+/g, '').trim().includes("wildAnimals=")) {
-              return [{
-                es: "En tu código debes declarar la variable animalesSalvajes.",
-                en: "In your code you must declare the wildAnimals variable.",
-                pt: "No seu código, você deve declarar a variável animalesSalvajes."
-              }]
+                es: "En tu código debes declarar la variable 'animalesDomesticos' (o 'domesticAnimals').",
+                en: "In your code you must declare the 'domesticAnimals' (or 'animalesDomesticos') variable.",
+                pt: "No seu código, você deve declarar a variável 'domesticAnimals' (ou 'animalesDomesticos')."
+              }];
             }
-            else if (!code.replace(/\s+/g, '').trim().includes("animalesSalvajes=animales[:5]") && !code.replace(/\s+/g, '').trim().includes("wildAnimals=animals[:5]") && !code.replace(/\s+/g, '').trim().includes("animalesSalvajes=animales[0:5]") && !code.replace(/\s+/g, '').trim().includes("wildAnimals=animals[0:5]")) {
+
+            // Debe ser un slice desde índice 5 hacia adelante, ej: base[5:] o base[5:10]
+            const reDomSlice = new RegExp(
+              `\\b${domName}\\s*=\\s*${baseName}\\s*\\[\\s*5\\s*:\\s*[^\\]]*\\]`
+            );
+            if (!reDomSlice.test(norm)) {
               return [{
-                es: "En tu código debes extraer los animales salvajes presentes en la variable animalesSalvajes. Recuerda utilizar la técnica correspondiente.",
-                en: "In your code you must extract the wild animals present in the animals variable. Remember to use the corresponding technique.",
-                pt: "No seu código, você deve extrair os animais selvagens presentes na variável animalesSalvajes. Lembre-se de usar a técnica correspondente."
-              }]
-            } else if (!code.includes("animalesSalvajes.sort()") && !code.includes("wildAnimals.sort()")) {
-              return [{
-                es: "Debes aplicar el método correspondiente sobre la variable animalesSalvajes para ordenar su contenido alfabéticamente.",
-                en: "You must apply the corresponding method on the wildAnimals variable to sort its content alphabetically.",
-                pt: "Você deve aplicar o método correspondente na variável wildAnimals para classificar seu conteúdo em ordem alfabética."
-              }]
-            } else if (!code.includes("print(animalesDomesticos)") && !code.includes("print(domesticAnimals)")) {
-              return [{
-                es: "En tu código debes utilizar el método print() para mostrar el valor almacenado en la variable animalesDomesticos.",
-                en: "In your code you must use the print() method to display the value stored in the domesticAnimals variable.",
-                pt: "No seu código, você deve usar o método print() para exibir o valor armazenado na variável animalesDomesticos."
-              }]
-            } else if (!code.includes("print(animalesSalvajes)") && !code.includes("print(wildAnimals)")) {
-              return [{
-                es: "En tu código debes utilizar el método print() para mostrar el valor almacenado en la variable animalesSalvajes.",
-                en: "In your code you must use the print() method to display the value stored in the wildAnimals variable.",
-                pt: "No seu código, você deve usar o método print() para exibir o valor armazenado na variável animalesSalvajes."
-              }]
+                es: "Debes extraer los animales domésticos desde el índice 5 en adelante usando slicing sobre la lista original.",
+                en: "You must extract the domestic animals from index 5 onwards using slicing on the original list.",
+                pt: "Você deve extrair os animais domésticos a partir do índice 5 usando slicing na lista original."
+              }];
             }
+
+            // Debe ordenarse: domName.sort()
+            const reDomSort = new RegExp(`\\b${domName}\\s*\\.\\s*sort\\s*\\(`);
+            if (!reDomSort.test(norm)) {
+              return [{
+                es: "Debes ordenar los animales domésticos usando el método sort().",
+                en: "You must sort the domestic animals using the sort() method.",
+                pt: "Você deve ordenar os animais domésticos usando o método sort()."
+              }];
+            }
+
+            // === 3) Variable de salvajes ===
+            let wildName = null;
+            if (/\banimalesSalvajes\b/.test(norm)) {
+              wildName = "animalesSalvajes";
+            } else if (/\bwildAnimals\b/.test(norm)) {
+              wildName = "wildAnimals";
+            } else {
+              return [{
+                es: "En tu código debes declarar la variable 'animalesSalvajes' (o 'wildAnimals').",
+                en: "In your code you must declare the 'wildAnimals' (or 'animalesSalvajes') variable.",
+                pt: "No seu código, você deve declarar a variável 'wildAnimals' (ou 'animalesSalvajes')."
+              }];
+            }
+
+            // Slice de los primeros 5: [:5] o [0:5]
+            const reWildSlice = new RegExp(
+              `\\b${wildName}\\s*=\\s*${baseName}\\s*\\[(?:\\s*0\\s*:\\s*5\\s*|\\s*:\\s*5\\s*)\\]`
+            );
+            if (!reWildSlice.test(norm)) {
+              return [{
+                es: "Debes extraer los animales salvajes tomando los primeros 5 elementos de la lista original ([:5] o [0:5]).",
+                en: "You must extract the wild animals using the first 5 elements of the original list ([:5] or [0:5]).",
+                pt: "Você deve extrair os animais selvagens usando os primeiros 5 elementos da lista original ([:5] ou [0:5])."
+              }];
+            }
+
+            // Debe ordenarse: wildName.sort()
+            const reWildSort = new RegExp(`\\b${wildName}\\s*\\.\\s*sort\\s*\\(`);
+            if (!reWildSort.test(norm)) {
+              return [{
+                es: "Debes ordenar los animales salvajes usando el método sort().",
+                en: "You must sort the wild animals using the sort() method.",
+                pt: "Você deve ordenar os animais selvagens usando o método sort()."
+              }];
+            }
+
+            // === 4) Prints: mostrar ambas listas ===
+            const hasPrintDom = new RegExp(`print\\s*\\(\\s*${domName}\\s*\\)`).test(norm);
+            if (!hasPrintDom) {
+              return [{
+                es: "Debes usar print() para mostrar el contenido de la lista de animales domésticos.",
+                en: "You must use print() to show the contents of the domestic animals list.",
+                pt: "Você deve usar print() para mostrar o conteúdo da lista de animais domésticos."
+              }];
+            }
+
+            const hasPrintWild = new RegExp(`print\\s*\\(\\s*${wildName}\\s*\\)`).test(norm);
+            if (!hasPrintWild) {
+              return [{
+                es: "Debes usar print() para mostrar el contenido de la lista de animales salvajes.",
+                en: "You must use print() to show the contents of the wild animals list.",
+                pt: "Você deve usar print() para mostrar o conteúdo da lista de animais selvagens."
+              }];
+            }
+
+            // ✅ Si llegó hasta acá, todo OK
+
+
+
+
+
+            //VALIDACION VIEJA
+            // if (!code.replace(/\s+/g, '').trim().includes('animales=[\"Avestruz\",\"León\",\"Elefante\",\"Gorila\",\"Ballenas\",\"Caballo\",\"Gallina\",\"Hámster\",\"Perro\",\"Gato\"]') && !code.replace(/\s+/g, '').trim().includes('animals=[\"Ostrich\",\"Lion\",\"Elephant\",\"Gorilla\",\"Whales\",\"Horse\",\"Hen\",\"Hamster\",\"Dog\",\"Cat\"]')) {
+            //   return [{
+            //     es: "En tu código debes tener la lista de animales brindado por el ejercicio. Puedes reiniciar el código para recuperarlo",
+            //     en: "In your code you must have the list of animals provided by the exercise. You can reset the code to recover it.",
+            //     pt: "No seu código, você deve ter a lista de animais fornecida pelo exercício. Você pode redefinir o código para recuperá-lo."
+            //   }]
+            // } else if (!code.replace(/\s+/g, '').trim().includes("animalesDomesticos=") && !code.replace(/\s+/g, '').trim().includes("domesticAnimals=")) {
+            //   return [{
+            //     es: "En tu código debes declarar la variable animalesDomesticos.",
+            //     en: "In your code you must declare the domesticAnimals variable.",
+            //     pt: "No seu código, você deve declarar a variável animalesDomesticos."
+            //   }]
+            // }
+            // else if (!code.replace(/\s+/g, '').trim().includes("animalesDomesticos=animales[5:]") && !code.replace(/\s+/g, '').trim().includes("domesticAnimals=animals[5:]")) {
+            //   return [{
+            //     es: "En tu código debes extraer los animales domésticos presentes en la variable animalesDomesticos. Recuerda utilizar la técnica correspondiente.",
+            //     en: "In your code you must extract the domestic animals present in the domesticAnimals variable. Remember to use the corresponding technique.",
+            //     pt: "No seu código, você deve extrair os animais domésticos presentes na variável animalesDomesticos. Lembre-se de usar a técnica correspondente."
+
+            //   }]
+            // } else if (!code.replace(/\s+/g, '').trim().includes("animalesDomesticos.sort()") && !code.replace(/\s+/g, '').trim().includes("domesticAnimals.sort()")) {
+            //   return [{
+            //     es: "Debe ordenar los animales domésticos correctamente.",
+            //     en: "It must sort the domestic animals correctly.",
+            //     pt: "Deve ordenar os animais domésticos corretamente."
+            //   }]
+            // } else if (!code.replace(/\s+/g, '').trim().includes("animalesSalvajes=") && !code.replace(/\s+/g, '').trim().includes("wildAnimals=")) {
+            //   return [{
+            //     es: "En tu código debes declarar la variable animalesSalvajes.",
+            //     en: "In your code you must declare the wildAnimals variable.",
+            //     pt: "No seu código, você deve declarar a variável animalesSalvajes."
+            //   }]
+            // }
+            // else if (!code.replace(/\s+/g, '').trim().includes("animalesSalvajes=animales[:5]") && !code.replace(/\s+/g, '').trim().includes("wildAnimals=animals[:5]") && !code.replace(/\s+/g, '').trim().includes("animalesSalvajes=animales[0:5]") && !code.replace(/\s+/g, '').trim().includes("wildAnimals=animals[0:5]")) {
+            //   return [{
+            //     es: "En tu código debes extraer los animales salvajes presentes en la variable animalesSalvajes. Recuerda utilizar la técnica correspondiente.",
+            //     en: "In your code you must extract the wild animals present in the animals variable. Remember to use the corresponding technique.",
+            //     pt: "No seu código, você deve extrair os animais selvagens presentes na variável animalesSalvajes. Lembre-se de usar a técnica correspondente."
+            //   }]
+            // } else if (!code.includes("animalesSalvajes.sort()") && !code.includes("wildAnimals.sort()")) {
+            //   return [{
+            //     es: "Debes aplicar el método correspondiente sobre la variable animalesSalvajes para ordenar su contenido alfabéticamente.",
+            //     en: "You must apply the corresponding method on the wildAnimals variable to sort its content alphabetically.",
+            //     pt: "Você deve aplicar o método correspondente na variável wildAnimals para classificar seu conteúdo em ordem alfabética."
+            //   }]
+            // } else if (!code.includes("print(animalesDomesticos)") && !code.includes("print(domesticAnimals)")) {
+            //   return [{
+            //     es: "En tu código debes utilizar el método print() para mostrar el valor almacenado en la variable animalesDomesticos.",
+            //     en: "In your code you must use the print() method to display the value stored in the domesticAnimals variable.",
+            //     pt: "No seu código, você deve usar o método print() para exibir o valor armazenado na variável animalesDomesticos."
+            //   }]
+            // } else if (!code.includes("print(animalesSalvajes)") && !code.includes("print(wildAnimals)")) {
+            //   return [{
+            //     es: "En tu código debes utilizar el método print() para mostrar el valor almacenado en la variable animalesSalvajes.",
+            //     en: "In your code you must use the print() method to display the value stored in the wildAnimals variable.",
+            //     pt: "No seu código, você deve usar o método print() para exibir o valor armazenado na variável animalesSalvajes."
+            //   }]
+            // }
 
           })
       }
-      // {
-      //   "description": "El código debe extraer los animales domésticos, ordenarlos y almacenarlos en una variable.",
-      //   "test": (assert) => assert
-      //     .$variable("animalesDomesticos").catch({
-      //       es: "No se encontró la variable 'animalesDomesticos' en el código.",
-      //       en: "The variable 'animalesDomesticos' was not found in the code.",
-      //       pt: "A variável 'animalesDomesticos' não foi encontrada no código."
-      //     })
-      //     .withAssignation("sorted([a for a in animales if a in [\"Perro\", \"Gato\", \"Gallina\", \"Hámster\", \"Caballo\"]])").catch({
-      //       es: "Debe extraer y ordenar los animales domésticos correctamente.",
-      //       en: "It must extract and sort the domestic animals correctly.",
-      //       pt: "Deve extrair e ordenar os animais domésticos corretamente."
-      //     })
-      // },
-      // {
-      //   "description": "El código debe extraer los animales salvajes, ordenarlos y almacenarlos en una variable.",
-      //   "test": (assert) => assert
-      //     .$variable("animalesSalvajes").catch({
-      //       es: "No se encontró la variable 'animalesSalvajes' en el código.",
-      //       en: "The variable 'animalesSalvajes' was not found in the code.",
-      //       pt: "A variável 'animalesSalvajes' não foi encontrada no código."
-      //     })
-      //     .withAssignation("sorted([a for a in animales if a not in [\"Perro\", \"Gato\", \"Gallina\", \"Hámster\", \"Caballo\"]])").catch({
-      //       es: "Debe extraer y ordenar los animales salvajes correctamente.",
-      //       en: "It must extract and sort the wild animals correctly.",
-      //       pt: "Deve extrair e ordenar os animais selvagens corretamente."
-      //     })
-      // },
-      // {
-      //   "description": "El código debe mostrar ambas listas por consola.",
-      //   "test": (assert) => assert
-      //     .$functionCall("print")
-      //     .withArguments(["animalesDomesticos"])
-      // },
-      // {
-      //   "description": "El código debe mostrar ambas listas por consola.",
-      //   "test": (assert) => assert
-      //     .$functionCall("print")
-      //     .withArguments(["animalesSalvajes"]).catch({
-      //       es: "Debe mostrar las listas de animales domésticos y salvajes por consola.",
-      //       en: "It must display the domestic and wild animal lists.",
-      //       pt: "Deve exibir as listas de animais domésticos e selvagens."
-      //     })
-      // }
     ]
   },
   {
