@@ -7334,32 +7334,201 @@ export const exercises = [
         "test": (assert) => assert
           .$custom(code => {
 
-            if (!code.replace(/\s/g, '').trim().includes("artistas=[") && !code.replace(/\s/g, '').trim().includes("artists=[")) {
-              return [{
-                es: "Debes tener una lista llamada 'artistas'.",
-                en: "You must have a list named 'artists'.",
-                pt: "Você deve ter uma lista chamada 'artists'."
-              }];
-            } else if (!code.replace(/\s/g, '').trim().includes('artistas=[{"nombreArtistico":"Lali","carrera":["actriz","cantante","compositora"],"nombre":"MarianaEspósito","edad":31,"pais":"Argentina","generoMusical":["Pop","Hiphop","Dancepop"]},{"nombreArtistico":"TaylorSwift","carrera":["cantante","compositora","productora"],"nombre":"TaylorAlisonSwift","edad":33,"pais":"EstadosUnidos","generoMusical":["Pop","Countrypop","Folk"]},{"nombreArtistico":"KarolG","carrera":["cantante","compositora","productora"],"nombre":"CarolinaGiraldoNavarro","edad":33,"pais":"Colombia","generoMusical":["Reguetón","Popurbano","Traplatino"]}]') && !code.replace(/\s/g, '').trim().includes('artists=[{"stageName":"Lali","career":["actress","singer","composer"],"name":"MarianaEspósito","age":31,"country":"Argentina","musicGenre":["Pop","Hip hop","Dance pop"]},{"stageName":"TaylorSwift","career":["singer","composer","producer"],"name":"TaylorAlisonSwift","age":33,"country":"UnitedStates","musicGenre":["Pop","Country pop","Folk"]},{"stageName":"KarolG","career":["singer","songwriter","producer"],"name":"CarolinaGiraldoNavarro","age":33,"country":"Colombia","musicGenre":["Reggaeton","Pop urbano","Trap latino"]}]')) {
-              return [{
-                es: "No debes modificar ni eliminar los datos de la lista brindada en el ejercicio.",
-                en: "You must not modify or delete the data in the list provided in the exercise.",
-                pt: "Não deve modificar ou eliminar os dados da lista fornecida no exercício."
-              }];
+            const raw = (code || "").toString();
+            const compact = raw.replace(/\s+/g, "").trim();
+            const errors = [];
+
+            const stop = (msg) => {
+              if (typeof seguirValidando !== "undefined") {
+                seguirValidando = false;
+              }
+              errors.push(msg);
+            };
+
+            // 1) Lista artistas / artists
+            const hasArtistas = /artistas\s*=\s*\[/.test(raw);
+            const hasArtists = /artists\s*=\s*\[/.test(raw);
+
+            if (!hasArtistas && !hasArtists) {
+              stop({
+                es: "Debes tener una lista llamada 'artistas' (o 'artists').",
+                en: "You must have a list named 'artists' (or 'artistas').",
+                pt: "Você deve ter uma lista chamada 'artists' (ou 'artistas')."
+              });
             }
-            else if (!code.replace(/\s/g, '').trim().includes("forartistainartistas:") && !code.replace(/\s/g, '').trim().includes("forartistainartists:")) {
-              return [{
-                es: "Debes usar un bucle for con la variable iterador 'artista' para recorrer la lista 'artistas'.",
+
+            if (errors.length) return [errors[0]];
+
+            // Pequeña protección: que no borren del todo la estructura
+            if (!/nombreArtistico/.test(raw) && !/stageName/.test(raw)) {
+              stop({
+                es: "No debes borrar la estructura básica de la lista de artistas proporcionada.",
+                en: "You must not delete the basic structure of the provided artists list.",
+                pt: "Você não deve apagar a estrutura básica da lista de artistas fornecida."
+              });
+            }
+
+            if (errors.length) return [errors[0]];
+
+            // 2) Bucle for para recorrer la lista
+            const hasForLoop =
+              /for\s+artista\s+in\s+artistas/.test(raw) ||
+              /for\s+artist\s+in\s+artists/.test(raw);
+
+            if (!hasForLoop) {
+              stop({
+                es: "Debes usar un bucle for con la variable iteradora 'artista' para recorrer la lista 'artistas'.",
                 en: "You must use a for loop with the iterator variable 'artist' to iterate the list 'artists'.",
                 pt: "Você deve usar um loop for com a variável iteradora 'artist' para iterar a lista 'artists'."
-              }];
-            } else if (!code.replace(/\s/g, '').trim().includes('print(artista["nombre"]+",(mejorconocidacomo"+artista["nombreArtistico"]+"),esuna"+artista["carrera"][0]+","+artista["carrera"][1]+"y"+artista["carrera"][2]+"de"+str(artista["edad"])+"añosquenacióen"+artista["pais"]+".Susgénerosmusicalessonel"+artista["generoMusical"][0]+",el"+artista["generoMusical"][1]+"yel"+artista["generoMusical"][2]+".")') && !code.replace(/\s/g, '').trim().includes('print(artist["name"]+",(betterknownas"+artist["stageName"]+"),is"+artist["career"][0]+","+artist["career"][1]+"and"+artist["career"][2]+"of"+str(artist["age"])+"yearsoldwhowasbornin"+artist["country"]+".Hismusicgenresare"+artist["musicGenre"][0]+","+artist["musicGenre"][1]+"and"+artist["musicGenre"][2]+".")') && !code.replace(/\s/g, '').trim().includes('print(artista["nombre"]+",(mejorconocidacomo"+artista["nombreArtistico"]+"),esuna"+artista["carrera"][0]+","+artista["carrera"][1]+"y"+artista["carrera"][2]+"de"+str(artista["edad"])+"añosquenacióen"+artista["pais"]+".Susgénerosmusicalessonel"+artista["generoMusical"][0]+",el"+artista["generoMusical"][1]+"yel"+artista["generoMusical"][2]+".")')) {
-              return [{
-                es: "Debe mostrar los datos de los artistas respetando el formato de texto de la consigna.",
-                en: "You must display the data of the artists respecting the text format of the instruction.",
-                pt: "Deve exibir os dados dos artistas respeitando o formato de texto da atividade."
-              }];
+              });
             }
+
+            if (errors.length) return [errors[0]];
+
+            // 3) Al menos un print que use los datos del artista
+            const hasPrintWithArtist =
+              /print\s*\([^)]*artista\["/.test(raw) ||
+              /print\s*\([^)]*artist\["/.test(raw);
+
+            if (!hasPrintWithArtist) {
+              stop({
+                es: "Debes mostrar los datos de cada artista usando print() y accediendo a las claves del diccionario.",
+                en: "You must display each artist's data using print() and accessing the dictionary keys.",
+                pt: "Você deve exibir os dados de cada artista usando print() e acessando as chaves do dicionário."
+              });
+            }
+
+            if (errors.length) return [errors[0]];
+
+            // 4) Usar las claves principales (nombre / nombreArtistico / carrera / generoMusical / edad / pais)
+            const usesNombre =
+              raw.includes('artista["nombre"]') ||
+              raw.includes("artista['nombre']") ||
+              raw.includes('artist["name"]') ||
+              raw.includes("artist['name']");
+
+            if (!usesNombre) {
+              stop({
+                es: "Debes usar el nombre real del artista (clave 'nombre' o 'name').",
+                en: "You must use the artist's real name (key 'nombre' or 'name').",
+                pt: "Você deve usar o nome real do artista (chave 'nombre' ou 'name')."
+              });
+            }
+
+            if (errors.length) return [errors[0]];
+
+            const usesStageName =
+              raw.includes('artista["nombreArtistico"]') ||
+              raw.includes("artista['nombreArtistico']") ||
+              raw.includes('artist["stageName"]') ||
+              raw.includes("artist['stageName']");
+
+            if (!usesStageName) {
+              stop({
+                es: "Debes usar el nombre artístico del artista (clave 'nombreArtistico' o 'stageName').",
+                en: "You must use the artist's stage name (key 'nombreArtistico' or 'stageName').",
+                pt: "Você deve usar o nome artístico do artista (chave 'nombreArtistico' ou 'stageName')."
+              });
+            }
+
+            if (errors.length) return [errors[0]];
+
+            const usesCareer =
+              raw.includes('artista["carrera"]') ||
+              raw.includes("artista['carrera']") ||
+              raw.includes('artist["career"]') ||
+              raw.includes("artist['career']");
+
+            if (!usesCareer) {
+              stop({
+                es: "Debes usar la lista de 'carrera' (o 'career') del artista en el texto.",
+                en: "You must use the artist's 'carrera' (or 'career') list in the text.",
+                pt: "Você deve usar a lista de 'carrera' (ou 'career') do artista no texto."
+              });
+            }
+
+            if (errors.length) return [errors[0]];
+
+            const usesGenre =
+              raw.includes('artista["generoMusical"]') ||
+              raw.includes("artista['generoMusical']") ||
+              raw.includes('artist["musicGenre"]') ||
+              raw.includes("artist['musicGenre']");
+
+            if (!usesGenre) {
+              stop({
+                es: "Debes usar la lista de 'generoMusical' (o 'musicGenre') del artista en el texto.",
+                en: "You must use the artist's 'generoMusical' (or 'musicGenre') list in the text.",
+                pt: "Você deve usar a lista de 'generoMusical' (ou 'musicGenre') do artista no texto."
+              });
+            }
+
+            if (errors.length) return [errors[0]];
+
+            const usesAge =
+              raw.includes('artista["edad"]') ||
+              raw.includes("artista['edad']") ||
+              raw.includes('artist["age"]') ||
+              raw.includes("artist['age']");
+
+            if (!usesAge) {
+              stop({
+                es: "Debes usar la edad del artista (clave 'edad' o 'age') en el texto.",
+                en: "You must use the artist's age (key 'edad' or 'age') in the text.",
+                pt: "Você deve usar a idade do artista (chave 'edad' ou 'age') no texto."
+              });
+            }
+
+            if (errors.length) return [errors[0]];
+
+            const usesCountry =
+              raw.includes('artista["pais"]') ||
+              raw.includes("artista['pais']") ||
+              raw.includes('artist["country"]') ||
+              raw.includes("artist['country']");
+
+            if (!usesCountry) {
+              stop({
+                es: "Debes usar el país del artista (clave 'pais' o 'country') en el texto.",
+                en: "You must use the artist's country (key 'pais' or 'country') in the text.",
+                pt: "Você deve usar o país do artista (chave 'pais' ou 'country') no texto."
+              });
+            }
+
+            if (errors.length) return [errors[0]];
+
+            // Si llegó hasta acá, todo OK
+            return [];
+
+
+
+            //VALIDACION VIEJA
+            // if (!code.replace(/\s/g, '').trim().includes("artistas=[") && !code.replace(/\s/g, '').trim().includes("artists=[")) {
+            //   return [{
+            //     es: "Debes tener una lista llamada 'artistas'.",
+            //     en: "You must have a list named 'artists'.",
+            //     pt: "Você deve ter uma lista chamada 'artists'."
+            //   }];
+            // } else if (!code.replace(/\s/g, '').trim().includes('artistas=[{"nombreArtistico":"Lali","carrera":["actriz","cantante","compositora"],"nombre":"MarianaEspósito","edad":31,"pais":"Argentina","generoMusical":["Pop","Hiphop","Dancepop"]},{"nombreArtistico":"TaylorSwift","carrera":["cantante","compositora","productora"],"nombre":"TaylorAlisonSwift","edad":33,"pais":"EstadosUnidos","generoMusical":["Pop","Countrypop","Folk"]},{"nombreArtistico":"KarolG","carrera":["cantante","compositora","productora"],"nombre":"CarolinaGiraldoNavarro","edad":33,"pais":"Colombia","generoMusical":["Reguetón","Popurbano","Traplatino"]}]') && !code.replace(/\s/g, '').trim().includes('artists=[{"stageName":"Lali","career":["actress","singer","composer"],"name":"MarianaEspósito","age":31,"country":"Argentina","musicGenre":["Pop","Hip hop","Dance pop"]},{"stageName":"TaylorSwift","career":["singer","composer","producer"],"name":"TaylorAlisonSwift","age":33,"country":"UnitedStates","musicGenre":["Pop","Country pop","Folk"]},{"stageName":"KarolG","career":["singer","songwriter","producer"],"name":"CarolinaGiraldoNavarro","age":33,"country":"Colombia","musicGenre":["Reggaeton","Pop urbano","Trap latino"]}]')) {
+            //   return [{
+            //     es: "No debes modificar ni eliminar los datos de la lista brindada en el ejercicio.",
+            //     en: "You must not modify or delete the data in the list provided in the exercise.",
+            //     pt: "Não deve modificar ou eliminar os dados da lista fornecida no exercício."
+            //   }];
+            // }
+            // else if (!code.replace(/\s/g, '').trim().includes("forartistainartistas:") && !code.replace(/\s/g, '').trim().includes("forartistainartists:")) {
+            //   return [{
+            //     es: "Debes usar un bucle for con la variable iterador 'artista' para recorrer la lista 'artistas'.",
+            //     en: "You must use a for loop with the iterator variable 'artist' to iterate the list 'artists'.",
+            //     pt: "Você deve usar um loop for com a variável iteradora 'artist' para iterar a lista 'artists'."
+            //   }];
+            // } else if (!code.replace(/\s/g, '').trim().includes('print(artista["nombre"]+",(mejorconocidacomo"+artista["nombreArtistico"]+"),esuna"+artista["carrera"][0]+","+artista["carrera"][1]+"y"+artista["carrera"][2]+"de"+str(artista["edad"])+"añosquenacióen"+artista["pais"]+".Susgénerosmusicalessonel"+artista["generoMusical"][0]+",el"+artista["generoMusical"][1]+"yel"+artista["generoMusical"][2]+".")') && !code.replace(/\s/g, '').trim().includes('print(artist["name"]+",(betterknownas"+artist["stageName"]+"),is"+artist["career"][0]+","+artist["career"][1]+"and"+artist["career"][2]+"of"+str(artist["age"])+"yearsoldwhowasbornin"+artist["country"]+".Hismusicgenresare"+artist["musicGenre"][0]+","+artist["musicGenre"][1]+"and"+artist["musicGenre"][2]+".")') && !code.replace(/\s/g, '').trim().includes('print(artista["nombre"]+",(mejorconocidacomo"+artista["nombreArtistico"]+"),esuna"+artista["carrera"][0]+","+artista["carrera"][1]+"y"+artista["carrera"][2]+"de"+str(artista["edad"])+"añosquenacióen"+artista["pais"]+".Susgénerosmusicalessonel"+artista["generoMusical"][0]+",el"+artista["generoMusical"][1]+"yel"+artista["generoMusical"][2]+".")')) {
+            //   return [{
+            //     es: "Debe mostrar los datos de los artistas respetando el formato de texto de la consigna.",
+            //     en: "You must display the data of the artists respecting the text format of the instruction.",
+            //     pt: "Deve exibir os dados dos artistas respeitando o formato de texto da atividade."
+            //   }];
+            // }
 
           })
       }
