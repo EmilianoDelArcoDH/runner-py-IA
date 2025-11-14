@@ -3260,210 +3260,236 @@ export const exercises = [
         "test": (assert) => assert
           .$custom(code => {
 
-            if (!code.replace(/\s+/g, '').trim().includes('frutas=[\"pistacho\",\"Mandarina\",\"Patata\",\"Naranja\",\"Pomelo\",\"Coco\",\"Tomate\",\"Kiwi\",\"Mango\",\"Cebolla\"]') && !code.replace(/\s+/g, '').trim().includes('fruits=[\"pistachio\",\"mandarin\",\"potato\",\"orange\",\"grapefruit\",\"coconut\",\"tomato\",\"kiwi\",\"mango\",\"onion"]')) {
+            const norm = code.replace(/\r/g, "");
+            const compact = norm.replace(/\s+/g, "").trim();
+
+            // === 1) Lista base de frutas / fruits ===
+            const baseEs = /frutas\s*=\s*\[\s*"pistacho"\s*,\s*"Mandarina"\s*,\s*"Patata"\s*,\s*"Naranja"\s*,\s*"Pomelo"\s*,\s*"Coco"\s*,\s*"Tomate"\s*,\s*"Kiwi"\s*,\s*"Mango"\s*,\s*"Cebolla"\s*]/;
+            const baseEn = /fruits\s*=\s*\[\s*"pistachio"\s*,\s*"mandarin"\s*,\s*"potato"\s*,\s*"orange"\s*,\s*"grapefruit"\s*,\s*"coconut"\s*,\s*"tomato"\s*,\s*"kiwi"\s*,\s*"mango"\s*,\s*"onion"\s*]/;
+
+            let listName = null;
+            if (baseEs.test(norm)) {
+              listName = "frutas";
+            } else if (baseEn.test(norm)) {
+              listName = "fruits";
+            } else {
               return [{
-                es: "En tu código debes tener la lista de frutas brindado por el ejercicio. Puedes reiniciar el código para recuperarlo.",
+                es: "En tu código debes tener la lista de frutas brindada por el ejercicio. Puedes reiniciar el código para recuperarla.",
                 en: "In your code you must have the list of fruits provided by the exercise. You can reset the code to recover it.",
-                pt: "No seu código, você deve ter a lista de frutas fornecida pelo exercício. Você pode redefinir o código para recuperá-lo."
-              }]
-            } else if (!code.replace(/\s+/g, '').trim().includes("frutas[2]=\"Fresa\"") && !code.replace(/\s+/g, '').trim().includes("fruits[2]=\"Strawberry\"")) {
-              return [{
-                es: ' En tu código debes modificar la lista de frutas, remplazando "Patata" por "Fresa".',
-                en: ' In your code you must modify the list of fruits, replacing "Potato" with "Strawberry".',
-                pt: ' No seu código, você deve modificar a lista de frutas, substituindo "Batata" por "Morango".'
-              }]
-            } else if (!code.replace(/\s+/g, '').trim().includes("frutas[6]=\"Manzana\"") && !code.replace(/\s+/g, '').trim().includes("fruits[6]=\"Apple\"")) {
-              return [{
-                es: 'En tu código debes modificar la lista de frutas, remplazando "Tomate" por "Manzana".',
-                en: 'In your code you must modify the list of fruits, replacing "Tomato" with "Apple".',
-                pt: 'No seu código, você deve modificar a lista de frutas, substituindo "Tomate" por "Maçã".'
-              }]
-            } else if (!code.replace(/\s+/g, '').trim().includes("frutas[9]=\"Durazno\"") && !code.replace(/\s+/g, '').trim().includes("fruits[9]=\"Peach\"")) {
-              return [{
-                es: 'En tu código debes modificar la lista de frutas, remplazando "Cebolla" por "Durazno".',
-                en: 'In your code you must modify the list of fruits, replacing "Onion" with "Peach".',
-                pt: 'No seu código, você deve modificar a lista de frutas, substituindo "Cebola" por "Pêssego".'
-              }]
-            } else if (!code.includes("frutas.sort()") && !code.includes("fruits.sort()")) {
-              return [{
-                es: "Debes aplicar el método correspondiente sobre la variable frutas para ordenar su contenido alfabéticamente.",
-                en: "You must apply the corresponding method on the fruits variable to sort its content alphabetically.",
-                pt: "Você deve aplicar o método correspondente na variável fruits para classificar seu conteúdo em ordem alfabética."
-              }]
-            } else if (!code.includes("print(frutas)") && !code.includes("print(fruits)")) {
-              return [{
-                es: "En tu código debes utilizar el método print() para mostrar el valor almacenado en la variable frutas luego de haber ordenado su contenido.",
-                en: "In your code you must use the print() method to display the value stored in the fruits variable after sorting its content.",
-                pt: "No seu código, você deve usar o método print() para exibir o valor armazenado na variável frutas após ordenar seu conteúdo."
-              }]
-            } else if (!code.replace(/\s+/g, '').trim().includes('if"maracuyá"infrutas') && !code.replace(/\s+/g, '').trim().includes('if"maracuyá"infruits')) {
-              return [{
-                es: 'Debes declarar un condicional que evalúe si "maracuyá" se encuentra en frutas. Revisa colocar correctamente su sintaxís',
-                en: 'You must declare a conditional that evaluates if "maracuyá" is in fruits. Check to correctly place its syntax',
-                pt: 'Você deve declarar um condicional que avalie se "maracuyá" está em frutas. Verifique se coloca corretamente sua sintaxe'
-              }]
-            } else if (!code.replace(/\s+/g, '').trim().includes('print("Sí,haymaracuyá")') && !code.replace(/\s+/g, '').trim().includes('print("Yes,thereismaracuyá")')) {
-              return [{
-                es: 'Dentro del condicional, si el resultado es verdadero debe imprimirse en consola el texto: Sí, hay maracuyá.',
-                en: 'Within the conditional, if the result is true, the text must be printed on the console: Yes, there is maracuyá.',
-                pt: 'Dentro do condicional, se o resultado for verdadeiro, o texto deve ser impresso no console: Sim, há maracuyá.'
-              }]
-            } else if (!code.replace(/\s+/g, '').trim().includes('if"maracuyá"infrutas:print("Sí,haymaracuyá")') && !code.replace(/\s+/g, '').trim().includes('if"maracuyá"infruits:print("Yes,thereismaracuyá")')) {
-              return [{
-                es: 'Dentro del condicional, si el resultado es verdadero debe imprimirse en consola el texto: Sí, hay uvas.',
-                en: 'Within the conditional, if the result is true, the text must be printed on the console: Yes, there are grapes.',
-                pt: 'Dentro do condicional, se o resultado for verdadeiro, o texto deve ser impresso no console: Sim, há uvas.'
-              }]
+                pt: "No seu código, você deve ter a lista de frutas fornecida pelo exercício. Você pode redefinir o código para recuperá-la."
+              }];
             }
-            else if (!code.includes("else:")) {
+
+            const isES = (listName === "frutas");
+
+            // === 2) Reemplazos por índice ===
+            // índice 2: Patata -> Fresa / Potato -> Strawberry
+            const expectedIdx2 = isES
+              ? `${listName}[2]="Fresa"`
+              : `${listName}[2]="Strawberry"`;
+            if (!compact.includes(expectedIdx2)) {
               return [{
-                es: "Debes utilizar un else para mostrar el mensaje 'No hay maracuyá' si no está en la lista.",
-                en: "You must use an else to display the message 'There is no maracuyá' if it is not in the list.",
-                pt: "Você deve usar um else para exibir a mensagem 'Não há maracuyá' se não estiver na lista."
-              }]
+                es: 'Debes modificar la lista de frutas, reemplazando "Patata" por "Fresa" en el índice 2.',
+                en: 'You must modify the fruits list, replacing "Potato" with "Strawberry" at index 2.',
+                pt: 'Você deve modificar a lista de frutas, substituindo "Batata" por "Morango" no índice 2.'
+              }];
             }
-            else if (!code.replace(/\s+/g, '').trim().includes('print("Nohaymaracuyá")') && !code.replace(/\s+/g, '').trim().includes('print("Thereisnomaracuyá")')) {
+
+            // índice 6: Tomate -> Manzana / Tomato -> Apple
+            const expectedIdx6 = isES
+              ? `${listName}[6]="Manzana"`
+              : `${listName}[6]="Apple"`;
+            if (!compact.includes(expectedIdx6)) {
               return [{
-                es: 'Dentro del condicional, si el resultado es falso debe imprimirse en consola el texto: No hay maracuyá.',
-                en: 'Within the conditional, if the result is false, the text must be printed on the console: There is no maracuyá.',
-                pt: 'Dentro do condicional, se o resultado for falso, o texto deve ser impresso no console: Não há maracuyá.'
-              }]
-            } else if (!code.replace(/\s+/g, '').trim().includes("frutas.reverse()") && !code.includes("fruits.reverse()")) {
-              return [{
-                es: "Debes aplicar el método correspondiente sobre la variable frutas para invertir el orden de su contenido.",
-                en: "You must apply the corresponding method on the fruits variable to reverse the order of its content.",
-                pt: "Você deve aplicar o método correspondente na variável frutas para inverter a ordem de seu conteúdo."
-              }]
-            } else if (!code.replace(/\s+/g, '').trim().includes("print(frutas)") && !code.replace(/\s+/g, '').trim().includes("print(fruits)")) {
-              return [{
-                es: "En tu código debes utilizar el método print() para mostrar el valor almacenado en la variable frutas.",
-                en: "In your code you must use the print() method to display the value stored in the fruits variable.",
-                pt: "No seu código, você deve usar o método print() para exibir o valor armazenado na variável frutas."
-              }]
+                es: 'Debes modificar la lista de frutas, reemplazando "Tomate" por "Manzana" en el índice 6.',
+                en: 'You must modify the fruits list, replacing "Tomato" with "Apple" at index 6.',
+                pt: 'Você deve modificar a lista de frutas, substituindo "Tomate" por "Maçã" no índice 6.'
+              }];
             }
-            // } else if (!code.replace(/\s+/g, '').trim().includes('frutas.reverse()print(frutas)') && !code.replace(/\s+/g, '').trim().includes('fruits.reverse()print(fruits)')) {
+
+            // índice 9: Cebolla -> Durazno / Onion -> Peach
+            const expectedIdx9 = isES
+              ? `${listName}[9]="Durazno"`
+              : `${listName}[9]="Peach"`;
+            if (!compact.includes(expectedIdx9)) {
+              return [{
+                es: 'Debes modificar la lista de frutas, reemplazando "Cebolla" por "Durazno" en el índice 9.',
+                en: 'You must modify the fruits list, replacing "Onion" with "Peach" at index 9.',
+                pt: 'Você deve modificar a lista de frutas, substituindo "Cebola" por "Pêssego" no índice 9.'
+              }];
+            }
+
+            // === 3) Ordenar alfabéticamente con sort() ===
+            const sortRe = new RegExp(`\\b${listName}\\s*\\.\\s*sort\\s*\\(`);
+            if (!sortRe.test(norm)) {
+              return [{
+                es: "Debes aplicar el método sort() sobre la lista de frutas para ordenarla alfabéticamente.",
+                en: "You must apply the sort() method on the fruits list to sort it alphabetically.",
+                pt: "Você deve aplicar o método sort() na lista de frutas para ordená-la alfabeticamente."
+              }];
+            }
+
+            // === 4) Mostrar lista tras ordenar ===
+            const printSorted = new RegExp(`print\\s*\\(\\s*${listName}\\s*\\)`);
+            if (!printSorted.test(norm)) {
+              return [{
+                es: "Debes usar print() para mostrar la lista de frutas después de ordenarla.",
+                en: "You must use print() to show the fruits list after sorting it.",
+                pt: "Você deve usar print() para mostrar a lista de frutas após ordená-la."
+              }];
+            }
+
+            // === 5) Condicional: "maracuyá" in lista ===
+            const condRe = new RegExp(`if\\s*["']maracuyá["']\\s*in\\s*${listName}`);
+            if (!condRe.test(compact)) {
+              return [{
+                es: 'Debes declarar un condicional que evalúe si "maracuyá" se encuentra en la lista de frutas usando la sintaxis: if "maracuyá" in frutas:',
+                en: 'You must declare a conditional that checks if "maracuyá" is in the fruits list using the syntax: if "maracuyá" in fruits:',
+                pt: 'Você deve declarar um condicional que verifica se "maracuyá" está na lista de frutas usando a sintaxe: if "maracuyá" in fruits:'
+              }];
+            }
+
+            // Mensaje si hay maracuyá
+            const msgYesEs = 'print("Sí,haymaracuyá")';
+            const msgYesEn = 'print("Yes,thereismaracuyá")';
+            if (!compact.includes(msgYesEs) && !compact.includes(msgYesEn)) {
+              return [{
+                es: 'Si el resultado es verdadero, debes imprimir: "Sí, hay maracuyá".',
+                en: 'If the result is true, you must print: "Yes, there is maracuyá".',
+                pt: 'Se o resultado for verdadeiro, você deve imprimir: "Sim, há maracuyá".'
+              }];
+            }
+
+            // Debe haber else
+            if (!/\belse\s*:/.test(norm)) {
+              return [{
+                es: "Debes utilizar un bloque else para manejar el caso en que no haya maracuyá.",
+                en: "You must use an else block to handle the case when there is no maracuyá.",
+                pt: "Você deve usar um bloco else para tratar o caso em que não há maracuyá."
+              }];
+            }
+
+            // Mensaje si NO hay maracuyá
+            const msgNoEs = 'print("Nohaymaracuyá")';
+            const msgNoEn = 'print("Thereisnomaracuyá")';
+            if (!compact.includes(msgNoEs) && !compact.includes(msgNoEn)) {
+              return [{
+                es: 'Si el resultado es falso, debes imprimir: "No hay maracuyá".',
+                en: 'If the result is false, you must print: "There is no maracuyá".',
+                pt: 'Se o resultado for falso, você deve imprimir: "Não há maracuyá".'
+              }];
+            }
+
+            // === 6) Invertir la lista y mostrarla ===
+            const reverseRe = new RegExp(`\\b${listName}\\s*\\.\\s*reverse\\s*\\(`);
+            if (!reverseRe.test(norm)) {
+              return [{
+                es: "Debes aplicar el método reverse() sobre la lista de frutas para invertir su orden.",
+                en: "You must apply the reverse() method on the fruits list to invert its order.",
+                pt: "Você deve aplicar o método reverse() na lista de frutas para inverter sua ordem."
+              }];
+            }
+
+            // Algún print(lista) (idealmente luego de reverse, pero al menos que exista)
+            const printAny = new RegExp(`print\\s*\\(\\s*${listName}\\s*\\)`);
+            if (!printAny.test(norm)) {
+              return [{
+                es: "Debes utilizar print() para mostrar la lista de frutas después de invertir su orden.",
+                en: "You must use print() to show the fruits list after reversing its order.",
+                pt: "Você deve usar print() para mostrar a lista de frutas depois de inverter sua ordem."
+              }];
+            }
+
+            // ✅ Si llegó hasta acá, todo OK
+
+
+            //VALIDACION VIEJA
+            // if (!code.replace(/\s+/g, '').trim().includes('frutas=[\"pistacho\",\"Mandarina\",\"Patata\",\"Naranja\",\"Pomelo\",\"Coco\",\"Tomate\",\"Kiwi\",\"Mango\",\"Cebolla\"]') && !code.replace(/\s+/g, '').trim().includes('fruits=[\"pistachio\",\"mandarin\",\"potato\",\"orange\",\"grapefruit\",\"coconut\",\"tomato\",\"kiwi\",\"mango\",\"onion"]')) {
             //   return [{
-            //     es: 'En tu código debes utilizar el método print() para mostrar el valor almacenado en la variable frutas luego de haber invertido el orden de su contenido.',
-            //     en: 'In your code you must use the print() method to display the value stored in the fruits variable after reversing its content.',
-            //     pt: 'No seu código, você deve usar o método print() para exibir o valor armazenado na variável frutas após inverter seu conteúdo.'
+            //     es: "En tu código debes tener la lista de frutas brindado por el ejercicio. Puedes reiniciar el código para recuperarlo.",
+            //     en: "In your code you must have the list of fruits provided by the exercise. You can reset the code to recover it.",
+            //     pt: "No seu código, você deve ter a lista de frutas fornecida pelo exercício. Você pode redefinir o código para recuperá-lo."
+            //   }]
+            // } else if (!code.replace(/\s+/g, '').trim().includes("frutas[2]=\"Fresa\"") && !code.replace(/\s+/g, '').trim().includes("fruits[2]=\"Strawberry\"")) {
+            //   return [{
+            //     es: ' En tu código debes modificar la lista de frutas, remplazando "Patata" por "Fresa".',
+            //     en: ' In your code you must modify the list of fruits, replacing "Potato" with "Strawberry".',
+            //     pt: ' No seu código, você deve modificar a lista de frutas, substituindo "Batata" por "Morango".'
+            //   }]
+            // } else if (!code.replace(/\s+/g, '').trim().includes("frutas[6]=\"Manzana\"") && !code.replace(/\s+/g, '').trim().includes("fruits[6]=\"Apple\"")) {
+            //   return [{
+            //     es: 'En tu código debes modificar la lista de frutas, remplazando "Tomate" por "Manzana".',
+            //     en: 'In your code you must modify the list of fruits, replacing "Tomato" with "Apple".',
+            //     pt: 'No seu código, você deve modificar a lista de frutas, substituindo "Tomate" por "Maçã".'
+            //   }]
+            // } else if (!code.replace(/\s+/g, '').trim().includes("frutas[9]=\"Durazno\"") && !code.replace(/\s+/g, '').trim().includes("fruits[9]=\"Peach\"")) {
+            //   return [{
+            //     es: 'En tu código debes modificar la lista de frutas, remplazando "Cebolla" por "Durazno".',
+            //     en: 'In your code you must modify the list of fruits, replacing "Onion" with "Peach".',
+            //     pt: 'No seu código, você deve modificar a lista de frutas, substituindo "Cebola" por "Pêssego".'
+            //   }]
+            // } else if (!code.includes("frutas.sort()") && !code.includes("fruits.sort()")) {
+            //   return [{
+            //     es: "Debes aplicar el método correspondiente sobre la variable frutas para ordenar su contenido alfabéticamente.",
+            //     en: "You must apply the corresponding method on the fruits variable to sort its content alphabetically.",
+            //     pt: "Você deve aplicar o método correspondente na variável fruits para classificar seu conteúdo em ordem alfabética."
+            //   }]
+            // } else if (!code.includes("print(frutas)") && !code.includes("print(fruits)")) {
+            //   return [{
+            //     es: "En tu código debes utilizar el método print() para mostrar el valor almacenado en la variable frutas luego de haber ordenado su contenido.",
+            //     en: "In your code you must use the print() method to display the value stored in the fruits variable after sorting its content.",
+            //     pt: "No seu código, você deve usar o método print() para exibir o valor armazenado na variável frutas após ordenar seu conteúdo."
+            //   }]
+            // } else if (!code.replace(/\s+/g, '').trim().includes('if"maracuyá"infrutas') && !code.replace(/\s+/g, '').trim().includes('if"maracuyá"infruits')) {
+            //   return [{
+            //     es: 'Debes declarar un condicional que evalúe si "maracuyá" se encuentra en frutas. Revisa colocar correctamente su sintaxís',
+            //     en: 'You must declare a conditional that evaluates if "maracuyá" is in fruits. Check to correctly place its syntax',
+            //     pt: 'Você deve declarar um condicional que avalie se "maracuyá" está em frutas. Verifique se coloca corretamente sua sintaxe'
+            //   }]
+            // } else if (!code.replace(/\s+/g, '').trim().includes('print("Sí,haymaracuyá")') && !code.replace(/\s+/g, '').trim().includes('print("Yes,thereismaracuyá")')) {
+            //   return [{
+            //     es: 'Dentro del condicional, si el resultado es verdadero debe imprimirse en consola el texto: Sí, hay maracuyá.',
+            //     en: 'Within the conditional, if the result is true, the text must be printed on the console: Yes, there is maracuyá.',
+            //     pt: 'Dentro do condicional, se o resultado for verdadeiro, o texto deve ser impresso no console: Sim, há maracuyá.'
+            //   }]
+            // } else if (!code.replace(/\s+/g, '').trim().includes('if"maracuyá"infrutas:print("Sí,haymaracuyá")') && !code.replace(/\s+/g, '').trim().includes('if"maracuyá"infruits:print("Yes,thereismaracuyá")')) {
+            //   return [{
+            //     es: 'Dentro del condicional, si el resultado es verdadero debe imprimirse en consola el texto: Sí, hay uvas.',
+            //     en: 'Within the conditional, if the result is true, the text must be printed on the console: Yes, there are grapes.',
+            //     pt: 'Dentro do condicional, se o resultado for verdadeiro, o texto deve ser impresso no console: Sim, há uvas.'
+            //   }]
+            // }
+            // else if (!code.includes("else:")) {
+            //   return [{
+            //     es: "Debes utilizar un else para mostrar el mensaje 'No hay maracuyá' si no está en la lista.",
+            //     en: "You must use an else to display the message 'There is no maracuyá' if it is not in the list.",
+            //     pt: "Você deve usar um else para exibir a mensagem 'Não há maracuyá' se não estiver na lista."
+            //   }]
+            // }
+            // else if (!code.replace(/\s+/g, '').trim().includes('print("Nohaymaracuyá")') && !code.replace(/\s+/g, '').trim().includes('print("Thereisnomaracuyá")')) {
+            //   return [{
+            //     es: 'Dentro del condicional, si el resultado es falso debe imprimirse en consola el texto: No hay maracuyá.',
+            //     en: 'Within the conditional, if the result is false, the text must be printed on the console: There is no maracuyá.',
+            //     pt: 'Dentro do condicional, se o resultado for falso, o texto deve ser impresso no console: Não há maracuyá.'
+            //   }]
+            // } else if (!code.replace(/\s+/g, '').trim().includes("frutas.reverse()") && !code.includes("fruits.reverse()")) {
+            //   return [{
+            //     es: "Debes aplicar el método correspondiente sobre la variable frutas para invertir el orden de su contenido.",
+            //     en: "You must apply the corresponding method on the fruits variable to reverse the order of its content.",
+            //     pt: "Você deve aplicar o método correspondente na variável frutas para inverter a ordem de seu conteúdo."
+            //   }]
+            // } else if (!code.replace(/\s+/g, '').trim().includes("print(frutas)") && !code.replace(/\s+/g, '').trim().includes("print(fruits)")) {
+            //   return [{
+            //     es: "En tu código debes utilizar el método print() para mostrar el valor almacenado en la variable frutas.",
+            //     en: "In your code you must use the print() method to display the value stored in the fruits variable.",
+            //     pt: "No seu código, você deve usar o método print() para exibir o valor armazenado na variável frutas."
             //   }]
             // }
 
+
           })
       }
-      // {
-      //   "description": "El código debe cambiar 'Patata' por 'Fresa', 'Tomate' por 'Manzana' y 'Cebolla' por 'Durazno'.",
-      //   "test": (assert) => assert
-      //     .$variable("frutas[2]").catch({
-      //       es: "No se encontró el elemento 'Patata' en la lista.",
-      //       en: "The element 'Patata' was not found in the list.",
-      //       pt: "O elemento 'Patata' não foi encontrado na lista."
-      //     })
-      //     .withAssignation("\"Fresa\"").catch({
-      //       es: "Debe reemplazar 'Patata' por 'Fresa'.",
-      //       en: "It must replace 'Patata' with 'Fresa'.",
-      //       pt: "Deve substituir 'Patata' por 'Fresa'."
-      //     }),
 
-      // },
-      // {
-      //   "description": "El código debe cambiar 'Patata' por 'Fresa ', 'Tomate' por 'Manzana' y 'Cebolla' por 'Durazno'.",
-      //   "test": (assert) => assert
-      //     .$variable("frutas[6]").catch({
-      //       es: "No se encontró el elemento 'Tomate' en la lista.",
-      //       en: "The element 'Tomate' was not found in the list.",
-      //       pt: "O elemento 'Tomate' não foi encontrado na lista."
-      //     })
-      //     .withAssignation("\"Manzana\"").catch({
-      //       es: "Debe reemplazar 'Tomate' por 'Manzana'.",
-      //       en: "It must replace 'Tomate' with 'Manzana'.",
-      //       pt: "Deve substituir 'Tomate' por 'Manzana'."
-      //     })
-      // },
-      // {
-      //   "description": "El código debe cambiar 'Patata' por 'Fresa ', 'Tomate' por 'Manzana' y 'Cebolla' por 'Durazno'.",
-      //   "test": (assert) => assert
-      //     .$variable("frutas[9]").catch({
-      //       es: "No se encontró el elemento 'Cebolla' en la lista.",
-      //       en: "The element 'Cebolla' was not found in the list.",
-      //       pt: "O elemento 'Cebolla' não foi encontrado na lista."
-      //     })
-      //     .withAssignation("\"Durazno\"").catch({
-      //       es: "Debe reemplazar 'Cebolla' por 'Durazno'.",
-      //       en: "It must replace 'Cebolla' with 'Durazno'.",
-      //       pt: "Deve substituir 'Cebolla' por 'Durazno'."
-      //     })
-      // },
-      // {
-      //   "description": "El código debe ordenar la lista por orden alfabético.",
-      //   "test": (assert) => assert
-      //     .$variable("frutas").catch({
-      //       es: "Debe ordenar la lista de frutas por orden alfabético.",
-      //       en: "It must sort the fruit list alphabetically.",
-      //       pt: "Deve ordenar a lista de frutas em ordem alfabética."
-      //     })
-      //     .withAssignation("sorted(frutas)").catch({
-      //       es: "Debe ordenar la lista de frutas por orden alfabético.",
-      //       en: "It must sort the fruit list alphabetically.",
-      //       pt: "Deve ordenar a lista de frutas em ordem alfabética."
-      //     })
-      // },
-      // {
-      //   "description": "El código debe mostrar la lista modificada por consola.",
-      //   "test": (assert) => assert
-      //     .$functionCall("print")
-      //     .withArguments(["frutas"]).catch({
-      //       es: "Debe mostrar la lista modificada.",
-      //       en: "It must display the modified list.",
-      //       pt: "Deve exibir a lista modificada."
-      //     })
-      // },
-      // {
-      //   "description": "El código debe verificar si 'maracuyá' está en la lista y mostrar el mensaje correspondiente.",
-      //   "test": (assert) => assert
-      //     .$if("\"maracuyá\" in frutas").catch({
-      //       es: "Debe verificar si 'maracuyá' está en la lista de frutas.",
-      //       en: "It must check if 'maracuyá' is in the fruit list.",
-      //       pt: "Deve verificar se 'maracujá' está na lista de frutas."
-      //     })
-      //     .withBody((assert) => assert
-      //       .$functionCall("print")
-      //       .withArguments(["\"Sí, hay maracuyá\""])
-      //     )
-      //     .withElse((assert) => assert
-      //       .$functionCall("print")
-      //       .withArguments(["\"No hay maracuyá\""])
-      //     ).catch({
-      //       es: "Debe verificar la existencia de 'maracuyá' y mostrar el mensaje adecuado.",
-      //       en: "It must check for 'maracuyá' and display the appropriate message.",
-      //       pt: "Deve verificar a existência de 'maracuyá' e exibir a mensagem apropriada."
-      //     })
-      // },
-      // {
-      //   "description": "El código debe invertir el orden de la lista y mostrarla.",
-      //   "test": (assert) => assert
-      //     .$variable("frutas").catch({
-      //       es: "No se encontró la variable 'frutas' en el código.",
-      //       en: "The 'frutas' variable was not found in the code.",
-      //       pt: "A variável 'frutas' não foi encontrada no código."
-      //     })
-      //     .withAssignation("frutas[::-1]").catch({
-      //       es: "Debe invertir el orden de la lista de frutas.",
-      //       en: "It must reverse the fruit list order.",
-      //       pt: "Deve inverter a ordem da lista de frutas."
-      //     })
-
-      // },
-      // {
-      //   "description": "El código debe mostrar la lista invertida por consola.",
-      //   "test": (assert) => assert
-      //     .$functionCall("print")
-      //     .withArguments(["frutas"]).catch({
-      //       es: "Debe invertir el orden de la lista y mostrarla por consola.",
-      //       en: "It must reverse the list order and display it.",
-      //       pt: "Deve inverter a ordem da lista e exibi-la."
-      //     })
-      // }
     ]
   },
   {
@@ -3483,368 +3509,521 @@ export const exercises = [
         "test": (assert) => assert
           .$custom(code => {
 
-            if (!code.replace(/\s/g, '').trim().includes("puntajes=[]") && !code.replace(/\s/g, '').trim().includes("scores=[]")) {
-              return [{
-                es: "Debe crear una lista llamada 'puntajes' vacia.",
-                en: "It must create an empty list called 'scores'.",
-                pt: "Deve criar uma lista vazia chamada 'scores'."
-              }]
-            } else if (!code.includes("puntajes.append(1000)") && !code.includes("scores.append(1000)")) {
-              return [{
-                es: "Debe agregar el puntaje 1000 a la lista.",
-                en: "It must add the score 1000 to the list.",
-                pt: "Deve adicionar a pontuação 1000 à lista."
-              }]
-            } else if (!code.includes("puntajes.append(920)") && !code.includes("scores.append(920)")) {
-              return [{
-                es: "Debe agregar el puntaje 920 a la lista.",
-                en: "It must add the score 920 to the list.",
-                pt: "Deve adicionar a pontuação 920 à lista."
-              }]
-            } else if (!code.includes("puntajes.append(830)") && !code.includes("scores.append(830)")) {
-              return [{
-                es: "Debe agregar el puntaje 830 a la lista.",
-                en: "It must add the score 830 to the list.",
-                pt: "Deve adicionar a pontuação 830 à lista."
-              }]
-            } else if (!code.includes("puntajes.append(750)") && !code.includes("scores.append(750)")) {
-              return [{
-                es: "Debe agregar el puntaje 750 a la lista.",
-                en: "It must add the score 750 to the list.",
-                pt: "Deve adicionar a pontuação 750 à lista."
-              }]
-            }
-            else if (!code.includes("puntajes.remove(920)") && !code.includes("scores.remove(920)")) {
-              return [{
-                es: "Debe eliminar los puntajes 920, 830 y 750.",
-                en: "It must remove the scores 920, 830 and 750.",
-                pt: "Deve remover as pontuações 920, 830 e 750."
-              }]
-            } else if (!code.includes("puntajes.remove(830)") && !code.includes("scores.remove(830)")) {
-              return [{
-                es: "Debe eliminar los puntajes 920, 830 y 750.",
-                en: "It must remove the scores 920, 830 and 750.",
-                pt: "Deve remover as pontuações 920, 830 e 750."
-              }]
-            } else if (!code.includes("puntajes.remove(750)") && !code.includes("scores.remove(750)")) {
-              return [{
-                es: "Debe eliminar los puntajes 920, 830 y 750.",
-                en: "It must remove the scores 920, 830 and 750.",
-                pt: "Deve remover as pontuações 920, 830 e 750."
-              }]
-            } else if (!code.replace(/\s/g, '').trim().includes("contador=0") && !code.replace(/\s/g, '').trim().includes("counter=0")) {
-              return [{
-                es: "Debe crear una variable contador con valor 0.",
-                en: "It must create a counter variable with value 0.",
-                pt: "Deve criar uma variável contador com valor 0."
-              }]
-            } else if (!code.replace(/\s+/g, '').trim().includes("cantidadPuntajes=") && !code.replace(/\s+/g, '').trim().includes("scoreAmount=")) {
-              return [{
-                es: "Debes crear la variable cantidadPuntajes para almacenar los puntajes ingresado por el usuario.",
-                en: "You must create the scoreAmount variable to store the scores entered by the user.",
-                pt: "Você deve criar a variável scoreAmount para armazenar as pontuações inseridas pelo usuário."
-              }]
-            }
-            if (code.replace(/\s+/g, '').trim().includes("cantidadPuntajes=input(")) {
-              const lineasInput = code.match(/input\(["'].*?["']\)/g);
-              // console.log(lineasInput[0]);
+            const norm = code.replace(/\r/g, "");
+            const compact = norm.replace(/\s+/g, "").trim();
 
-              const preguntaLista = lineasInput[0].match(/["'](.*?)["']/)?.[1]; // Extraer el texto de la preguntaLista
-              if (preguntaLista.length < 1) {
-                return [{
-                  es: "El mensaje del input no puede estar vacío.",
-                  en: "The input message cannot be empty.",
-                  pt: "A mensagem de entrada não pode estar vazia."
-                }]
-              }
-              if (preguntaLista) {
-                const contieneEdadOAnios = /puntajes|puntaje/i.test(preguntaLista);
-                if (!contieneEdadOAnios) {
-                  seguirValidando = false
-                  // console.log("La pregunta del input no es válida porque no menciona 'puntajes' o 'puntaje'.");
-                  return [{
-                    es: 'La pregunta del input "' + preguntaLista + '" no es válida porque no menciona "puntajes" o "puntaje".',
-                    en: 'The input question ' + preguntaLista + ' is not valid because it does not mention "puntajes" or "puntaje".',
-                    pt: 'A pergunta do input ' + preguntaLista + ' não é válida porque não menciona "puntajes" ou "puntaje".'
-                  }]
-                }
+            const errors = [];
 
-              }
-            } else if (code.replace(/\s+/g, '').trim().includes("scoreAmount=input(")) {
-              const lineasInput = code.match(/input\(["'].*?["']\)/g);
-              // console.log(lineasInput[0]);
-
-              const preguntaLista = lineasInput[0].match(/["'](.*?)["']/)?.[1]; // Extraer el texto de la preguntaLista
-              if (preguntaLista.length < 1) {
-                return [{
-                  es: "El mensaje del input no puede estar vacío.",
-                  en: "The input message cannot be empty.",
-                  pt: "A mensagem de entrada não pode estar vazia."
-                }]
-              }
-              if (preguntaLista) {
-                const contieneEdadOAnios = /score|scores/i.test(preguntaLista);
-                if (!contieneEdadOAnios) {
-                  seguirValidando = false
-                  // console.log("La pregunta del input no es válida porque no menciona 'puntajes' o 'puntaje'.");
-                  return [{
-                    es: 'La pregunta del input "' + preguntaLista + '" no es válida porque no menciona "puntajes" o "puntaje".',
-                    en: 'The input question ' + preguntaLista + ' is not valid because it does not mention "scores" or "score".',
-                    pt: 'A pergunta do input ' + preguntaLista + ' não é válida porque não menciona "puntajes" ou "puntaje".'
-                  }]
-                }
-
-              }
-            }
-            else {
-              return [{
-                es: "Debes solicitar la cantidad de puntajes al usuario.",
-                en: "You must request the amount of scores from the user.",
-                pt: "Você deve solicitar a quantidade de pontuações ao usuário."
-              }]
+            // === 1) Detectar nombres de variables (ES / EN) ===
+            let listName = null;
+            if (compact.includes("puntajes=[]")) {
+              listName = "puntajes";
+            } else if (compact.includes("scores=[]")) {
+              listName = "scores";
+            } else {
+              errors.push({
+                es: "Debe crear una lista vacía llamada 'puntajes'.",
+                en: "You must create an empty list called 'scores'.",
+                pt: "Você deve criar uma lista vazia chamada 'scores'."
+              });
             }
 
-
-
-            if (!code.replace(/\s+/g, '').trim().includes("whilenotcantidadPuntajes.isdigit():") && !code.replace(/\s+/g, '').trim().includes("whilenotscoreAmount.isdigit():")) {
-              return [{
-                es: "Debe incluir un bucle while para validar que cantidadPuntajes sea un número.",
-                en: "You must include a while loop to validate that scoreAmount is a number.",
-                pt: "Você deve incluir um loop while para validar que scoreAmount é um número."
-              }]
-            } else if (code.replace(/\s+/g, '').trim().includes("whilenotcantidadPuntajes.isdigit():cantidadPuntajes=input(")) {
-              const lineasInput = code.match(/input\(["'].*?["']\)/g);
-              // console.log(lineasInput[1]);
-              const preguntaLista = lineasInput[1].match(/["'](.*?)["']/)?.[1]; // Extraer el texto de la preguntaLista
-              if (preguntaLista) {
-                const contieneEdadOAnios = /puntajes|puntaje/i.test(preguntaLista);
-                if (!contieneEdadOAnios) {
-                  seguirValidando = false
-                  // console.log("La pregunta del input no es válida porque no menciona 'puntajes' o 'puntaje'.");
-                  return [{
-                    es: 'La pregunta del input "' + preguntaLista + '" no es válida porque no menciona "puntajes" o "puntaje".',
-                    en: 'The input question ' + preguntaLista + ' is not valid because it does not mention "puntajes" or "puntaje".',
-                    pt: 'A pergunta do input ' + preguntaLista + ' não é válida porque não menciona "puntajes" ou "puntaje".'
-                  }]
-                }
-              }
-            } else if (code.replace(/\s+/g, '').trim().includes("whilenotscoreAmount.isdigit():scoreAmount=input(")) {
-              const lineasInput = code.match(/input\(["'].*?["']\)/g);
-              // console.log(lineasInput[1]);
-              const preguntaLista = lineasInput[1].match(/["'](.*?)["']/)?.[1]; // Extraer el texto de la preguntaLista
-              if (preguntaLista.length < 1) {
-                return [{
-                  es: "El mensaje del input dentro del while no puede estar vacío.",
-                  en: "The input message inside the while cannot be empty.",
-                  pt: "A mensagem de entrada dentro do while não pode estar vazia."
-                }]
-              }
-              if (preguntaLista) {
-                const contieneEdadOAnios = /score|scores/i.test(preguntaLista);
-                if (!contieneEdadOAnios) {
-                  seguirValidando = false
-                  // console.log("La pregunta del input no es válida porque no menciona 'puntajes' o 'puntaje'.");
-                  return [{
-                    es: 'La pregunta del input "' + preguntaLista + '" no es válida porque no menciona "puntajes" o "puntaje".',
-                    en: 'The input question ' + preguntaLista + ' is not valid because it does not mention "scores" or "score".',
-                    pt: 'A pergunta do input ' + preguntaLista + ' não é válida porque não menciona "puntajes" ou "puntaje".'
-                  }]
-                }
-              }
-            }
-            else {
-              return [{
-                es: "En caso de que el usuario no ingrese un número, debes solicitar nuevamente la cantidad de puntajes nuevamente.",
-                en: "If the user does not enter a number, you must request the number of scores again.",
-                pt: "Se o usuário não inserir um número, você deve solicitar a quantidade de pontuações novamente."
-              }]
+            let counterName = null;
+            if (compact.includes("contador=0")) {
+              counterName = "contador";
+            } else if (compact.includes("counter=0")) {
+              counterName = "counter";
+            } else {
+              errors.push({
+                es: "Debe crear una variable 'contador' con valor 0.",
+                en: "You must create a 'counter' variable with value 0.",
+                pt: "Você deve criar uma variável 'counter' com valor 0."
+              });
             }
 
-
-            if (!code.replace(/\s+/g, '').trim().includes("whilecontador<int(cantidadPuntajes):") && !code.replace(/\s+/g, '').trim().includes("whilecounter<int(scoreAmount):")) {
-              return [{
-                es: "Debes crear un bucle while que se ejecute mientras contador sea menor a cantidadPuntajes. Recuerda convertir cantidadPuntajes a entero.",
-                en: "You must create a while loop that runs while counter is less than scoreAmount. Remember to convert scoreAmount to an integer.",
-                pt: "Você deve criar um loop while que é executado enquanto o contador for menor que scoreAmount. Lembre-se de converter scoreAmount para um inteiro."
-              }]
-            } else if (!code.replace(/\s+/g, '').trim().includes("whilecontador<int(cantidadPuntajes):contador+=1") && !code.replace(/\s+/g, '').trim().includes("whilecounter<int(scoreAmount):counter+=1")) {
-              return [{
-                es: "Dentro de while debes incrementar el contador en cada iteración.",
-                en: "Within while you must increment the counter in each iteration.",
-                pt: "Dentro do while você deve incrementar o contador em cada iteração."
-              }]
-            } else if (!code.replace(/\s+/g, '').trim().includes("whilecontador<int(cantidadPuntajes):contador+=1puntaje=") && !code.replace(/\s+/g, '').trim().includes("whilecounter<int(scoreAmount):counter+=1score=")) {
-              return [{
-                es: "dentro de while, debes crear la variable puntaje para almacenar el puntaje ingresado por el usuario.",
-                en: "within while, you must create the score variable to store the score entered by the user.",
-                pt: "dentro do while, você deve criar a variável score para armazenar a pontuação inserida pelo usuário."
-              }]
-            } else if (code.replace(/\s+/g, '').trim().includes("contador+=1puntaje=input(") || code.replace(/\s+/g, '').trim().includes("contador+=1puntaje=int(input(")) {
-              const lineasInput = code.match(/input\(["'].*?["']\)/g);
-              // console.log(lineasInput[2]);
-              const preguntaLista = lineasInput[lineasInput.length - 1].match(/["'](.*?)["']/)?.[1]; // Extraer el texto de la preguntaLista
-              if (preguntaLista.length < 1) {
-                return [{
-                  es: "El mensaje del input dentro de while no debe estar vacío.",
-                  en: "The input message within the while cannot be empty.",
-                  pt: "A mensagem de entrada dentro do while não pode estar vazia."
-                }]
-              }
-
-              if (preguntaLista) {
-                const contieneEdadOAnios = /puntaje|ingrese el puntaje/i.test(preguntaLista);
-                if (!contieneEdadOAnios) {
-                  seguirValidando = false
-                  // console.log("La pregunta del input no es válida porque no menciona 'puntaje' o 'ingrese el puntaje'.");
-                  return [{
-                    es: 'La pregunta del input "' + preguntaLista + '" no es válida porque no menciona "puntaje" o "ingrese el puntaje".',
-                    en: 'The input question ' + preguntaLista + ' is not valid because it does not mention "puntaje" or "ingrese el puntaje".',
-                    pt: 'A pergunta do input ' + preguntaLista + ' não é válida porque não menciona "puntaje" ou "ingrese el puntaje".'
-                  }]
-                }
-
-              }
-            } else if (code.replace(/\s+/g, '').trim().includes("counter+=1score=input(") || code.replace(/\s+/g, '').trim().includes("counter+=1score=int(input(")) {
-              const lineasInput = code.match(/input\(["'].*?["']\)/g);
-              // console.log(lineasInput[2]);
-              const preguntaLista = lineasInput[lineasInput.length - 1].match(/["'](.*?)["']/)?.[1]; // Extraer el texto de la preguntaLista
-              if (preguntaLista.length < 1) {
-                return [{
-                  es: "El mensaje del input dentro de while no debe estar vacío.",
-                  en: "The input message within the while cannot be empty.",
-                  pt: "A mensagem de entrada dentro do while não pode estar vazia."
-                }]
-              }
-              if (preguntaLista) {
-                const contieneEdadOAnios = /score|enter the score/i.test(preguntaLista);
-                if (!contieneEdadOAnios) {
-                  seguirValidando = false
-                  // console.log("La pregunta del input no es válida porque no menciona 'puntaje' o 'ingrese el puntaje'.");
-                  return [{
-                    es: 'La pregunta del input "' + preguntaLista + '" no es válida porque no menciona "puntaje" o "ingrese el puntaje".',
-                    en: 'The input question ' + preguntaLista + ' is not valid because it does not mention "score" or "enter the score".',
-                    pt: 'A pergunta do input ' + preguntaLista + ' não é válida porque não menciona "score" ou "insira a pontuação".'
-                  }]
-                }
-
-              }
+            let countVar = null;
+            if (/cantidadPuntajes\s*=/.test(norm)) {
+              countVar = "cantidadPuntajes";
+            } else if (/scoreAmount\s*=/.test(norm)) {
+              countVar = "scoreAmount";
+            } else {
+              errors.push({
+                es: "Debes crear la variable 'cantidadPuntajes' para almacenar cuántos puntajes ingresará el usuario.",
+                en: "You must create the 'scoreAmount' variable to store how many scores the user will enter.",
+                pt: "Você deve criar a variável 'scoreAmount' para armazenar quantas pontuações o usuário irá inserir."
+              });
             }
-            else {
+
+            // Si ya hay algún error de nombres, devolvemos el primero
+            if (errors.length > 0) return [errors[0]];
+
+            // === 2) Lista inicial y removes ===
+            const app = (n) =>
+              new RegExp(`${listName}\\.append\\s*\\(\\s*${n}\\s*\\)`).test(norm);
+
+            if (!app(1000)) {
               return [{
-                es: "Debes solicitar los puntajes al usuario.",
-                en: "You must request the scores from the user.",
-                pt: "Você deve solicitar as pontuações ao usuário."
-              }]
+                es: "Debe agregar el puntaje 1000 a la lista con append().",
+                en: "You must add the score 1000 to the list with append().",
+                pt: "Você deve adicionar a pontuação 1000 à lista com append()."
+              }];
             }
-            if (!code.includes("puntajes.append(int(puntaje)") && !code.includes("scores.append(int(score)")) {
+            if (!app(920)) {
               return [{
-                es: "Debes agregar el puntaje ingresado por el usuario a la lista. Recuerda convertirlo a entero.",
-                en: "You must add the score entered by the user to the list. Remember to convert it to an integer.",
-                pt: "Você deve adicionar a pontuação inserida pelo usuário à lista. Lembre-se de convertê-la para um inteiro."
-              }]
-            } else if (!code.replace(/\s+/g, '').trim().includes('print("Losmejorespuntajesson:")') && !code.replace(/\s+/g, '').trim().includes("print('Losmejorespuntajesson:')") && !code.replace(/\s+/g, '').trim().includes('print("Thebestscoresare:")') && !code.replace(/\s+/g, '').trim().includes("print('Thebestscoresare:')")) {
-              return [{
-                es: "Debe mostrar el texto 'Los mejores puntajes son: '.",
-                en: "It must display the text 'The best scores are:'.",
-                pt: "Deve exibir o texto 'Os melhores pontos são:'."
-              }]
-            } else if (!code.includes("print(puntajes)") && !code.includes("print(scores)")) {
-              return [{
-                es: "Debe mostrar los puntajes por consola.",
-                en: "It must display the scores on the console.",
-                pt: "Deve exibir as pontuações no console."
-              }]
+                es: "Debe agregar el puntaje 920 a la lista con append().",
+                en: "You must add the score 920 to the list with append().",
+                pt: "Você deve adicionar a pontuação 920 à lista com append()."
+              }];
             }
+            if (!app(830)) {
+              return [{
+                es: "Debe agregar el puntaje 830 a la lista con append().",
+                en: "You must add the score 830 to the list with append().",
+                pt: "Você deve adicionar a pontuação 830 à lista com append()."
+              }];
+            }
+            if (!app(750)) {
+              return [{
+                es: "Debe agregar el puntaje 750 a la lista con append().",
+                en: "You must add the score 750 to the list with append().",
+                pt: "Você deve adicionar a pontuação 750 à lista com append()."
+              }];
+            }
+
+            const rem = (n) =>
+              new RegExp(`${listName}\\.remove\\s*\\(\\s*${n}\\s*\\)`).test(norm);
+
+            if (!rem(920) || !rem(830) || !rem(750)) {
+              return [{
+                es: "Debe eliminar de la lista los puntajes 920, 830 y 750 usando remove().",
+                en: "You must remove the scores 920, 830 and 750 from the list using remove().",
+                pt: "Você deve remover as pontuações 920, 830 e 750 da lista usando remove()."
+              }];
+            }
+
+            // === 3) Primer input: cantidad de puntajes ===
+            const inputs = [...norm.matchAll(/input\s*\(\s*["'](.*?)["']\s*\)/g)].map(m => m[1] ?? "");
+            const firstQuestion = inputs[0] ?? "";
+
+            if (!firstQuestion) {
+              return [{
+                es: "El mensaje del primer input (para la cantidad de puntajes) no puede estar vacío.",
+                en: "The message of the first input (for the amount of scores) cannot be empty.",
+                pt: "A mensagem do primeiro input (para a quantidade de pontuações) não pode estar vazia."
+              }];
+            }
+
+            if (countVar === "cantidadPuntajes" && !/puntajes|puntaje/i.test(firstQuestion)) {
+              return [{
+                es: `La pregunta del primer input "${firstQuestion}" no es válida porque no menciona "puntajes" o "puntaje".`,
+                en: `The first input question "${firstQuestion}" is not valid because it does not mention "scores".`,
+                pt: `A pergunta do primeiro input "${firstQuestion}" não é válida porque não menciona "pontuações".`
+              }];
+            }
+
+            if (countVar === "scoreAmount" && !/score|scores/i.test(firstQuestion)) {
+              return [{
+                es: `La pregunta del primer input "${firstQuestion}" no es válida porque no menciona "score" o "scores".`,
+                en: `The first input question "${firstQuestion}" is not valid because it does not mention "score" or "scores".`,
+                pt: `A pergunta do primeiro input "${firstQuestion}" não é válida porque não menciona "score" ou "scores".`
+              }];
+            }
+
+            // === 4) while not cantidadPuntajes.isdigit() ===
+            const whileDigit = `whilenot${countVar}.isdigit():`;
+            if (!compact.includes(whileDigit)) {
+              return [{
+                es: `Debe incluir un bucle while para validar que ${countVar} sea un número usando .isdigit().`,
+                en: `You must include a while loop to validate that ${countVar} is a number using .isdigit().`,
+                pt: `Você deve incluir um loop while para validar que ${countVar} é um número usando .isdigit().`
+              }];
+            }
+
+            // ✅ dentro de ese while, debe volver a pedir la cantidad
+            if (!compact.includes(`${whileDigit}${countVar}=input(`)) {
+              return [{
+                es: "Dentro del while que valida .isdigit(), debes volver a solicitar la cantidad de puntajes al usuario.",
+                en: "Inside the while that checks .isdigit(), you must request the amount of scores again.",
+                pt: "Dentro do while que verifica .isdigit(), você deve solicitar novamente a quantidade de pontuações."
+              }];
+            }
+
+            // 1) Tiene que existir el while
+            if (
+              !compact.includes(`whilecontador<int(cantidadPuntajes):`) &&
+              !compact.includes(`whilecounter<int(scoreAmount):`)
+            ) {
+              return [{
+                es: "Debes crear un bucle while que compare el contador con la cantidad de puntajes.",
+                en: "You must create a while loop comparing counter with the amount of scores.",
+                pt: "Você deve criar um loop while comparando o contador com a quantidade de pontuações."
+              }];
+            }
+
+            // 2) Dentro del while debe aparecer contador+=1 (NO necesariamente en la misma línea)
+            if (
+              !compact.includes(`contador+=1`) &&
+              !compact.includes(`counter+=1`)
+            ) {
+              return [{
+                es: "Dentro del while debes incrementar el contador en 1 en cada iteración.",
+                en: "Inside the while you must increment the counter by 1 on each iteration.",
+                pt: "Dentro do while você deve incrementar o contador em 1 a cada iteração."
+              }];
+            }
+
+            // === 6) Input de cada puntaje y append(int(puntaje)) ===
+            const scoreVar = listName === "puntajes" ? "puntaje" : "score";
+
+            const inputInsideWhile = new RegExp(`${counterName}\\+=1${scoreVar}=input\\(`);
+            if (!inputInsideWhile.test(compact)) {
+              return [{
+                es: `Dentro del while, debes pedir cada ${scoreVar} al usuario con input().`,
+                en: `Inside the while, you must ask the user for each ${scoreVar} with input().`,
+                pt: `Dentro do while, você deve pedir cada ${scoreVar} ao usuário com input().`
+              }];
+            }
+
+            // El mensaje de este input (último input del código)
+            const lastQuestion = inputs[inputs.length - 1] ?? "";
+            if (!lastQuestion) {
+              return [{
+                es: "El mensaje del input dentro del while no debe estar vacío.",
+                en: "The input message inside the while must not be empty.",
+                pt: "A mensagem do input dentro do while não deve estar vazia."
+              }];
+            }
+
+            if (scoreVar === "puntaje" && !/puntaje|ingreseelpuntaje/i.test(lastQuestion)) {
+              return [{
+                es: `La pregunta del input "${lastQuestion}" no es válida porque no menciona "puntaje" o "ingrese el puntaje".`,
+                en: `The input question "${lastQuestion}" is not valid because it does not mention "puntaje" or "ingrese el puntaje".`,
+                pt: `A pergunta do input "${lastQuestion}" não é válida porque não menciona "pontuação" ou "insira a pontuação".`
+              }];
+            }
+
+            if (scoreVar === "score" && !/score|enterthescore/i.test(lastQuestion)) {
+              return [{
+                es: `La pregunta del input "${lastQuestion}" no es válida porque no menciona "score" o "enter the score".`,
+                en: `The input question "${lastQuestion}" is not valid because it does not mention "score" or "enter the score".`,
+                pt: `A pergunta do input "${lastQuestion}" não é válida porque não menciona "score" ou "enter the score".`
+              }];
+            }
+
+            // Append del puntaje como int
+            const appendRe = new RegExp(`${listName}\\.append\\s*\\(\\s*int\\s*\\(\\s*${scoreVar}\\s*\\)\\s*\\)`);
+            if (!appendRe.test(norm)) {
+              return [{
+                es: "Debes agregar el puntaje ingresado por el usuario a la lista convirtiéndolo a entero con int().",
+                en: "You must add the score entered by the user to the list, converting it to integer with int().",
+                pt: "Você deve adicionar a pontuação inserida pelo usuário à lista, convertendo-a para inteiro com int()."
+              }];
+            }
+
+            // === 7) Mensaje final y print de la lista ===
+            const msgReEs = /print\s*\(\s*["']Los mejores puntajes son:\s*["']\s*\)/;
+            const msgReEn = /print\s*\(\s*["']The best scores are:\s*["']\s*\)/;
+
+            if (!msgReEs.test(norm) && !msgReEn.test(norm)) {
+              return [{
+                es: "Debe mostrar el texto 'Los mejores puntajes son:' antes de imprimir la lista.",
+                en: "You must display the text 'The best scores are:' before printing the list.",
+                pt: "Você deve exibir o texto 'Os melhores pontuações são:' antes de imprimir a lista."
+              }];
+            }
+
+            const printListRe = new RegExp(`print\\s*\\(\\s*${listName}\\s*\\)`);
+            if (!printListRe.test(norm)) {
+              return [{
+                es: "Debe mostrar los puntajes por consola usando print(puntajes).",
+                en: "You must display the scores in the console using print(scores).",
+                pt: "Você deve exibir as pontuações no console usando print(scores)."
+              }];
+            }
+
+            // ✅ Si llegó hasta acá, todo OK
+            return [];
+
+
+
+
+            //VALIDACION VIEJA
+            // if (!code.replace(/\s/g, '').trim().includes("puntajes=[]") && !code.replace(/\s/g, '').trim().includes("scores=[]")) {
+            //   return [{
+            //     es: "Debe crear una lista llamada 'puntajes' vacia.",
+            //     en: "It must create an empty list called 'scores'.",
+            //     pt: "Deve criar uma lista vazia chamada 'scores'."
+            //   }]
+            // } else if (!code.includes("puntajes.append(1000)") && !code.includes("scores.append(1000)")) {
+            //   return [{
+            //     es: "Debe agregar el puntaje 1000 a la lista.",
+            //     en: "It must add the score 1000 to the list.",
+            //     pt: "Deve adicionar a pontuação 1000 à lista."
+            //   }]
+            // } else if (!code.includes("puntajes.append(920)") && !code.includes("scores.append(920)")) {
+            //   return [{
+            //     es: "Debe agregar el puntaje 920 a la lista.",
+            //     en: "It must add the score 920 to the list.",
+            //     pt: "Deve adicionar a pontuação 920 à lista."
+            //   }]
+            // } else if (!code.includes("puntajes.append(830)") && !code.includes("scores.append(830)")) {
+            //   return [{
+            //     es: "Debe agregar el puntaje 830 a la lista.",
+            //     en: "It must add the score 830 to the list.",
+            //     pt: "Deve adicionar a pontuação 830 à lista."
+            //   }]
+            // } else if (!code.includes("puntajes.append(750)") && !code.includes("scores.append(750)")) {
+            //   return [{
+            //     es: "Debe agregar el puntaje 750 a la lista.",
+            //     en: "It must add the score 750 to the list.",
+            //     pt: "Deve adicionar a pontuação 750 à lista."
+            //   }]
+            // }
+            // else if (!code.includes("puntajes.remove(920)") && !code.includes("scores.remove(920)")) {
+            //   return [{
+            //     es: "Debe eliminar los puntajes 920, 830 y 750.",
+            //     en: "It must remove the scores 920, 830 and 750.",
+            //     pt: "Deve remover as pontuações 920, 830 e 750."
+            //   }]
+            // } else if (!code.includes("puntajes.remove(830)") && !code.includes("scores.remove(830)")) {
+            //   return [{
+            //     es: "Debe eliminar los puntajes 920, 830 y 750.",
+            //     en: "It must remove the scores 920, 830 and 750.",
+            //     pt: "Deve remover as pontuações 920, 830 e 750."
+            //   }]
+            // } else if (!code.includes("puntajes.remove(750)") && !code.includes("scores.remove(750)")) {
+            //   return [{
+            //     es: "Debe eliminar los puntajes 920, 830 y 750.",
+            //     en: "It must remove the scores 920, 830 and 750.",
+            //     pt: "Deve remover as pontuações 920, 830 e 750."
+            //   }]
+            // } else if (!code.replace(/\s/g, '').trim().includes("contador=0") && !code.replace(/\s/g, '').trim().includes("counter=0")) {
+            //   return [{
+            //     es: "Debe crear una variable contador con valor 0.",
+            //     en: "It must create a counter variable with value 0.",
+            //     pt: "Deve criar uma variável contador com valor 0."
+            //   }]
+            // } else if (!code.replace(/\s+/g, '').trim().includes("cantidadPuntajes=") && !code.replace(/\s+/g, '').trim().includes("scoreAmount=")) {
+            //   return [{
+            //     es: "Debes crear la variable cantidadPuntajes para almacenar los puntajes ingresado por el usuario.",
+            //     en: "You must create the scoreAmount variable to store the scores entered by the user.",
+            //     pt: "Você deve criar a variável scoreAmount para armazenar as pontuações inseridas pelo usuário."
+            //   }]
+            // }
+            // if (code.replace(/\s+/g, '').trim().includes("cantidadPuntajes=input(")) {
+            //   const lineasInput = code.match(/input\(["'].*?["']\)/g);
+            //   // console.log(lineasInput[0]);
+
+            //   const preguntaLista = lineasInput[0].match(/["'](.*?)["']/)?.[1]; // Extraer el texto de la preguntaLista
+            //   if (preguntaLista.length < 1) {
+            //     return [{
+            //       es: "El mensaje del input no puede estar vacío.",
+            //       en: "The input message cannot be empty.",
+            //       pt: "A mensagem de entrada não pode estar vazia."
+            //     }]
+            //   }
+            //   if (preguntaLista) {
+            //     const contieneEdadOAnios = /puntajes|puntaje/i.test(preguntaLista);
+            //     if (!contieneEdadOAnios) {
+            //       seguirValidando = false
+            //       // console.log("La pregunta del input no es válida porque no menciona 'puntajes' o 'puntaje'.");
+            //       return [{
+            //         es: 'La pregunta del input "' + preguntaLista + '" no es válida porque no menciona "puntajes" o "puntaje".',
+            //         en: 'The input question ' + preguntaLista + ' is not valid because it does not mention "puntajes" or "puntaje".',
+            //         pt: 'A pergunta do input ' + preguntaLista + ' não é válida porque não menciona "puntajes" ou "puntaje".'
+            //       }]
+            //     }
+
+            //   }
+            // } else if (code.replace(/\s+/g, '').trim().includes("scoreAmount=input(")) {
+            //   const lineasInput = code.match(/input\(["'].*?["']\)/g);
+            //   // console.log(lineasInput[0]);
+
+            //   const preguntaLista = lineasInput[0].match(/["'](.*?)["']/)?.[1]; // Extraer el texto de la preguntaLista
+            //   if (preguntaLista.length < 1) {
+            //     return [{
+            //       es: "El mensaje del input no puede estar vacío.",
+            //       en: "The input message cannot be empty.",
+            //       pt: "A mensagem de entrada não pode estar vazia."
+            //     }]
+            //   }
+            //   if (preguntaLista) {
+            //     const contieneEdadOAnios = /score|scores/i.test(preguntaLista);
+            //     if (!contieneEdadOAnios) {
+            //       seguirValidando = false
+            //       // console.log("La pregunta del input no es válida porque no menciona 'puntajes' o 'puntaje'.");
+            //       return [{
+            //         es: 'La pregunta del input "' + preguntaLista + '" no es válida porque no menciona "puntajes" o "puntaje".',
+            //         en: 'The input question ' + preguntaLista + ' is not valid because it does not mention "scores" or "score".',
+            //         pt: 'A pergunta do input ' + preguntaLista + ' não é válida porque não menciona "puntajes" ou "puntaje".'
+            //       }]
+            //     }
+
+            //   }
+            // }
+            // else {
+            //   return [{
+            //     es: "Debes solicitar la cantidad de puntajes al usuario.",
+            //     en: "You must request the amount of scores from the user.",
+            //     pt: "Você deve solicitar a quantidade de pontuações ao usuário."
+            //   }]
+            // }
+
+
+
+            // if (!code.replace(/\s+/g, '').trim().includes("whilenotcantidadPuntajes.isdigit():") && !code.replace(/\s+/g, '').trim().includes("whilenotscoreAmount.isdigit():")) {
+            //   return [{
+            //     es: "Debe incluir un bucle while para validar que cantidadPuntajes sea un número.",
+            //     en: "You must include a while loop to validate that scoreAmount is a number.",
+            //     pt: "Você deve incluir um loop while para validar que scoreAmount é um número."
+            //   }]
+            // } else if (code.replace(/\s+/g, '').trim().includes("whilenotcantidadPuntajes.isdigit():cantidadPuntajes=input(")) {
+            //   const lineasInput = code.match(/input\(["'].*?["']\)/g);
+            //   // console.log(lineasInput[1]);
+            //   const preguntaLista = lineasInput[1].match(/["'](.*?)["']/)?.[1]; // Extraer el texto de la preguntaLista
+            //   if (preguntaLista) {
+            //     const contieneEdadOAnios = /puntajes|puntaje/i.test(preguntaLista);
+            //     if (!contieneEdadOAnios) {
+            //       seguirValidando = false
+            //       // console.log("La pregunta del input no es válida porque no menciona 'puntajes' o 'puntaje'.");
+            //       return [{
+            //         es: 'La pregunta del input "' + preguntaLista + '" no es válida porque no menciona "puntajes" o "puntaje".',
+            //         en: 'The input question ' + preguntaLista + ' is not valid because it does not mention "puntajes" or "puntaje".',
+            //         pt: 'A pergunta do input ' + preguntaLista + ' não é válida porque não menciona "puntajes" ou "puntaje".'
+            //       }]
+            //     }
+            //   }
+            // } else if (code.replace(/\s+/g, '').trim().includes("whilenotscoreAmount.isdigit():scoreAmount=input(")) {
+            //   const lineasInput = code.match(/input\(["'].*?["']\)/g);
+            //   // console.log(lineasInput[1]);
+            //   const preguntaLista = lineasInput[1].match(/["'](.*?)["']/)?.[1]; // Extraer el texto de la preguntaLista
+            //   if (preguntaLista.length < 1) {
+            //     return [{
+            //       es: "El mensaje del input dentro del while no puede estar vacío.",
+            //       en: "The input message inside the while cannot be empty.",
+            //       pt: "A mensagem de entrada dentro do while não pode estar vazia."
+            //     }]
+            //   }
+            //   if (preguntaLista) {
+            //     const contieneEdadOAnios = /score|scores/i.test(preguntaLista);
+            //     if (!contieneEdadOAnios) {
+            //       seguirValidando = false
+            //       // console.log("La pregunta del input no es válida porque no menciona 'puntajes' o 'puntaje'.");
+            //       return [{
+            //         es: 'La pregunta del input "' + preguntaLista + '" no es válida porque no menciona "puntajes" o "puntaje".',
+            //         en: 'The input question ' + preguntaLista + ' is not valid because it does not mention "scores" or "score".',
+            //         pt: 'A pergunta do input ' + preguntaLista + ' não é válida porque não menciona "puntajes" ou "puntaje".'
+            //       }]
+            //     }
+            //   }
+            // }
+            // else {
+            //   return [{
+            //     es: "En caso de que el usuario no ingrese un número, debes solicitar nuevamente la cantidad de puntajes nuevamente.",
+            //     en: "If the user does not enter a number, you must request the number of scores again.",
+            //     pt: "Se o usuário não inserir um número, você deve solicitar a quantidade de pontuações novamente."
+            //   }]
+            // }
+
+
+            // if (!code.replace(/\s+/g, '').trim().includes("whilecontador<int(cantidadPuntajes):") && !code.replace(/\s+/g, '').trim().includes("whilecounter<int(scoreAmount):")) {
+            //   return [{
+            //     es: "Debes crear un bucle while que se ejecute mientras contador sea menor a cantidadPuntajes. Recuerda convertir cantidadPuntajes a entero.",
+            //     en: "You must create a while loop that runs while counter is less than scoreAmount. Remember to convert scoreAmount to an integer.",
+            //     pt: "Você deve criar um loop while que é executado enquanto o contador for menor que scoreAmount. Lembre-se de converter scoreAmount para um inteiro."
+            //   }]
+            // } else if (!code.replace(/\s+/g, '').trim().includes("whilecontador<int(cantidadPuntajes):contador+=1") && !code.replace(/\s+/g, '').trim().includes("whilecounter<int(scoreAmount):counter+=1")) {
+            //   return [{
+            //     es: "Dentro de while debes incrementar el contador en cada iteración.",
+            //     en: "Within while you must increment the counter in each iteration.",
+            //     pt: "Dentro do while você deve incrementar o contador em cada iteração."
+            //   }]
+            // } else if (!code.replace(/\s+/g, '').trim().includes("whilecontador<int(cantidadPuntajes):contador+=1puntaje=") && !code.replace(/\s+/g, '').trim().includes("whilecounter<int(scoreAmount):counter+=1score=")) {
+            //   return [{
+            //     es: "dentro de while, debes crear la variable puntaje para almacenar el puntaje ingresado por el usuario.",
+            //     en: "within while, you must create the score variable to store the score entered by the user.",
+            //     pt: "dentro do while, você deve criar a variável score para armazenar a pontuação inserida pelo usuário."
+            //   }]
+            // } else if (code.replace(/\s+/g, '').trim().includes("contador+=1puntaje=input(") || code.replace(/\s+/g, '').trim().includes("contador+=1puntaje=int(input(")) {
+            //   const lineasInput = code.match(/input\(["'].*?["']\)/g);
+            //   // console.log(lineasInput[2]);
+            //   const preguntaLista = lineasInput[lineasInput.length - 1].match(/["'](.*?)["']/)?.[1]; // Extraer el texto de la preguntaLista
+            //   if (preguntaLista.length < 1) {
+            //     return [{
+            //       es: "El mensaje del input dentro de while no debe estar vacío.",
+            //       en: "The input message within the while cannot be empty.",
+            //       pt: "A mensagem de entrada dentro do while não pode estar vazia."
+            //     }]
+            //   }
+
+            //   if (preguntaLista) {
+            //     const contieneEdadOAnios = /puntaje|ingrese el puntaje/i.test(preguntaLista);
+            //     if (!contieneEdadOAnios) {
+            //       seguirValidando = false
+            //       // console.log("La pregunta del input no es válida porque no menciona 'puntaje' o 'ingrese el puntaje'.");
+            //       return [{
+            //         es: 'La pregunta del input "' + preguntaLista + '" no es válida porque no menciona "puntaje" o "ingrese el puntaje".',
+            //         en: 'The input question ' + preguntaLista + ' is not valid because it does not mention "puntaje" or "ingrese el puntaje".',
+            //         pt: 'A pergunta do input ' + preguntaLista + ' não é válida porque não menciona "puntaje" ou "ingrese el puntaje".'
+            //       }]
+            //     }
+
+            //   }
+            // } else if (code.replace(/\s+/g, '').trim().includes("counter+=1score=input(") || code.replace(/\s+/g, '').trim().includes("counter+=1score=int(input(")) {
+            //   const lineasInput = code.match(/input\(["'].*?["']\)/g);
+            //   // console.log(lineasInput[2]);
+            //   const preguntaLista = lineasInput[lineasInput.length - 1].match(/["'](.*?)["']/)?.[1]; // Extraer el texto de la preguntaLista
+            //   if (preguntaLista.length < 1) {
+            //     return [{
+            //       es: "El mensaje del input dentro de while no debe estar vacío.",
+            //       en: "The input message within the while cannot be empty.",
+            //       pt: "A mensagem de entrada dentro do while não pode estar vazia."
+            //     }]
+            //   }
+            //   if (preguntaLista) {
+            //     const contieneEdadOAnios = /score|enter the score/i.test(preguntaLista);
+            //     if (!contieneEdadOAnios) {
+            //       seguirValidando = false
+            //       // console.log("La pregunta del input no es válida porque no menciona 'puntaje' o 'ingrese el puntaje'.");
+            //       return [{
+            //         es: 'La pregunta del input "' + preguntaLista + '" no es válida porque no menciona "puntaje" o "ingrese el puntaje".',
+            //         en: 'The input question ' + preguntaLista + ' is not valid because it does not mention "score" or "enter the score".',
+            //         pt: 'A pergunta do input ' + preguntaLista + ' não é válida porque não menciona "score" ou "insira a pontuação".'
+            //       }]
+            //     }
+
+            //   }
+            // }
+            // else {
+            //   return [{
+            //     es: "Debes solicitar los puntajes al usuario.",
+            //     en: "You must request the scores from the user.",
+            //     pt: "Você deve solicitar as pontuações ao usuário."
+            //   }]
+            // }
+            // if (!code.includes("puntajes.append(int(puntaje)") && !code.includes("scores.append(int(score)")) {
+            //   return [{
+            //     es: "Debes agregar el puntaje ingresado por el usuario a la lista. Recuerda convertirlo a entero.",
+            //     en: "You must add the score entered by the user to the list. Remember to convert it to an integer.",
+            //     pt: "Você deve adicionar a pontuação inserida pelo usuário à lista. Lembre-se de convertê-la para um inteiro."
+            //   }]
+            // } else if (!code.replace(/\s+/g, '').trim().includes('print("Losmejorespuntajesson:")') && !code.replace(/\s+/g, '').trim().includes("print('Losmejorespuntajesson:')") && !code.replace(/\s+/g, '').trim().includes('print("Thebestscoresare:")') && !code.replace(/\s+/g, '').trim().includes("print('Thebestscoresare:')")) {
+            //   return [{
+            //     es: "Debe mostrar el texto 'Los mejores puntajes son: '.",
+            //     en: "It must display the text 'The best scores are:'.",
+            //     pt: "Deve exibir o texto 'Os melhores pontos são:'."
+            //   }]
+            // } else if (!code.includes("print(puntajes)") && !code.includes("print(scores)")) {
+            //   return [{
+            //     es: "Debe mostrar los puntajes por consola.",
+            //     en: "It must display the scores on the console.",
+            //     pt: "Deve exibir as pontuações no console."
+            //   }]
+            // }
 
           })
       }
-      // {
-      //   "description": "El código debe crear una variable con una lista vacía.",
-      //   "test": (assert) => assert
-      //     .$variable("puntajes").catch({
-      //       es: "No se encontró la variable 'puntajes' en el código.",
-      //       en: "The 'puntajes' variable was not found in the code.",
-      //       pt: "A variável 'puntajes' não foi encontrada no código."
-      //     })
-      //     .withAssignation("[]").catch({
-      //       es: "Debe inicializar una lista vacía llamada puntajes.",
-      //       en: "It must initialize an empty list named puntajes.",
-      //       pt: "Deve inicializar uma lista vazia chamada pontuações."
-      //     })
-      // },
-      // {
-      //   "description": "El código debe agregar puntajes de mayor a menor a la lista.",
-      //   "test": (assert) => assert
-      //     .$functionCall("append")
-      //     .forEachCallWithArguments(["puntajes", "list_of_integers"])
-      //     .catch({
-      //       es: "Debe agregar los puntajes de mayor a menor en la lista.",
-      //       en: "It must add scores in descending order to the list.",
-      //       pt: "Deve adicionar as pontuações na lista em ordem decrescente."
-      //     })
-      // },
-      // {
-      //   "description": "El código debe eliminar los puntajes 920, 830 y 750.",
-      //   "test": (assert) => assert
-      //     .$functionCall("remove")
-      //     .forEachCallWithArguments(["920", "830", "750"]).catch({
-      //       es: "Debe eliminar los puntajes indicados.",
-      //       en: "It must remove the specified scores.",
-      //       pt: "Deve remover as pontuações especificadas."
-      //     })
-      // },
-      // {
-      //   "description": "El código debe crear una variable contador con valor 0.",
-      //   "test": (assert) => assert
-      //     .$variable("contador")
-      //     .withAssignation("0").catch({
-      //       es: "Debe inicializar la variable contador con valor 0.",
-      //       en: "It must initialize the variable contador with value 0.",
-      //       pt: "Deve inicializar a variável contador com valor 0."
-      //     })
-      // },
-      // {
-      //   "description": "El código debe solicitar la cantidad de puntajes para agregar.",
-      //   "test": (assert) => assert
-      //     .$variable("cantidadPuntajes")
-      //     .withAssignation("int(input())").catch({
-      //       es: "Debe solicitar un valor entero al usuario para cantidadPuntajes.",
-      //       en: "It must prompt the user for an integer for cantidadPuntajes.",
-      //       pt: "Deve solicitar um valor inteiro do usuário para quantidadePuntajes."
-      //     })
-      // },
-      // {
-      //   "description": "Debe incluir un bucle while para validar que cantidadPuntajes sea un número.",
-      //   "test": (assert) => assert
-      //     .$whileLoop("not cantidadPuntajes")
-      //     .catch({
-      //       es: "Debe usar un bucle while para verificar la validez de cantidadPuntajes.",
-      //       en: "It must use a while loop to validate cantidadPuntajes.",
-      //       pt: "Deve usar um loop while para validar quantidadePuntajes."
-      //     })
-      // },
-      // {
-      //   "description": "Debe incluir otro bucle while para agregar puntajes según la cantidad ingresada.",
-      //   "test": (assert) => assert
-      //     .$whileLoop("contador < cantidadPuntajes")
-      //     .$increment("contador")
-      //     .$functionCall("append")
-      //     .withArguments(["puntajes"]).catch({
-      //       es: "Debe usar un bucle while para agregar puntajes basándose en la cantidad.",
-      //       en: "It must use a while loop to add scores based on the quantity.",
-      //       pt: "Deve usar um loop while para adicionar pontuações com base na quantidade."
-      //     })
-      // },
-      // {
-      //   "description": "El código debe mostrar el texto 'Los mejores puntajes son: ' seguido de los puntajes.",
-      //   "test": (assert) => assert
-      //     .$functionCall("print")
-      //     .withArguments(["\"Los mejores puntajes son: \"", "puntajes"]).catch({
-      //       es: "Debe mostrar la lista de puntajes con el texto indicado.",
-      //       en: "It must display the scores list with the given text.",
-      //       pt: "Deve exibir a lista de pontuações com o texto indicado."
-      //     })
-      // }
+
     ]
   },
   {
@@ -3864,138 +4043,246 @@ export const exercises = [
         "test": (assert) => assert
           .$custom(code => {
 
-            if (!code.replace(/\s+/g, '').trim().includes("puntajes=[850,920,670,750,830,1000]") && !code.replace(/\s+/g, '').trim().includes("scores=[850,920,670,750,830,1000]")) {
-              return [{
+            const norm = code.replace(/\r/g, "");
+            const compact = norm.replace(/\s+/g, "").trim();
+            const errors = [];
+
+            // 1) Lista de puntajes inicial (no modificarla)
+            const hasPuntajes = compact.includes("puntajes=[850,920,670,750,830,1000]");
+            const hasScores = compact.includes("scores=[850,920,670,750,830,1000]");
+
+            if (!hasPuntajes && !hasScores) {
+              errors.push({
                 es: "No debes eliminar ni modificar la lista llamada 'puntajes' con los puntajes proporcionados.",
                 en: "You must not delete or modify the list called 'scores' with the provided scores.",
                 pt: "Você não deve excluir ou modificar a lista chamada 'pontuações' com as pontuações fornecidas."
-              }]
-            } else if (!code.replace(/\s+/g, '').trim().includes("minimo=") && !code.replace(/\s+/g, '').trim().includes("minimum=")) {
-              return [{
-                es: "Debes crear la variable minimo para almacenar el calculo del puntaje mínimo de la lista.",
-                en: "You must create the minimum variable to store the calculation of the minimum score of the list.",
-                pt: "Você deve criar a variável minimum para armazenar o cálculo da pontuação mínima da lista."
-              }]
+              });
             }
-            else if (!code.replace(/\s+/g, '').trim().includes("minimo=min(puntajes)") && !code.replace(/\s+/g, '').trim().includes("minimum=min(scores)")) {
-              return [{
-                es: "Debes calcular el puntaje mínimo de la lista utilizando el método correcto.",
-                en: "You must calculate the minimum score of the list using the correct method.",
-                pt: "Você deve calcular a pontuação mínima da lista usando o método correto."
-              }]
+
+            const usingES = hasPuntajes; // true → usa 'puntajes', false → usa 'scores'
+            const listName = usingES ? "puntajes" : "scores";
+
+            // 2) mínimo / minimum
+            if (!compact.includes("minimo=") && !compact.includes("minimum=")) {
+              errors.push({
+                es: "Debes crear la variable 'minimo' para almacenar el puntaje mínimo de la lista.",
+                en: "You must create the 'minimum' variable to store the minimum score of the list.",
+                pt: "Você deve criar a variável 'minimum' para armazenar a pontuação mínima da lista."
+              });
+            } else {
+              const expectedMin = usingES
+                ? `minimo=min(${listName})`
+                : `minimum=min(${listName})`;
+              if (!compact.includes(expectedMin)) {
+                errors.push({
+                  es: "Debes calcular el puntaje mínimo de la lista utilizando el método min() sobre la lista de puntajes.",
+                  en: "You must calculate the minimum score of the list using min() on the scores list.",
+                  pt: "Você deve calcular a pontuação mínima da lista usando min() na lista de pontuações."
+                });
+              }
             }
-            else if (!code.replace(/\s+/g, '').trim().includes("maximo=") && !code.replace(/\s+/g, '').trim().includes("maximum=")) {
-              return [{
-                es: "Debes crear la variable maximo para almacenar el calculo del puntaje máximo de la lista.",
-                en: "You must create the maximum variable to store the calculation of the maximum score of the list.",
-                pt: "Você deve criar a variável maximum para armazenar o cálculo da pontuação máxima da lista."
-              }]
+
+            // 3) máximo / maximum
+            if (!compact.includes("maximo=") && !compact.includes("maximum=")) {
+              errors.push({
+                es: "Debes crear la variable 'maximo' para almacenar el puntaje máximo de la lista.",
+                en: "You must create the 'maximum' variable to store the maximum score of the list.",
+                pt: "Você deve criar a variável 'maximum' para armazenar a pontuação máxima da lista."
+              });
+            } else {
+              const expectedMax = usingES
+                ? `maximo=max(${listName})`
+                : `maximum=max(${listName})`;
+              if (!compact.includes(expectedMax)) {
+                errors.push({
+                  es: "Debes calcular el puntaje máximo de la lista utilizando el método max() sobre la lista de puntajes.",
+                  en: "You must calculate the maximum score of the list using max() on the scores list.",
+                  pt: "Você deve calcular a pontuação máxima da lista usando max() na lista de pontuações."
+                });
+              }
             }
-            else if (!code.replace(/\s+/g, '').trim().includes("maximo=max(puntajes)") && !code.replace(/\s+/g, '').trim().includes("maximum=max(scores)")) {
-              return [{
-                es: "Debes calcular el puntaje máximo con el método correcto.",
-                en: "You must calculate the maximum score with the correct method.",
-                pt: "Você deve calcular a pontuação máxima com o método correto."
-              }]
-            } else if (!code.replace(/\s+/g, '').trim().includes("promedio=sum(puntajes)/len(puntajes)") && !code.replace(/\s+/g, '').trim().includes("average=sum(scores)/len(scores)")) {
-              return [{
-                es: "Debes calcular el puntaje promedio ralizando la operacion con los métodos sugeridos en la consigna.",
-                en: "You must calculate the average score by performing the operation with the methods suggested in the instruction.",
-                pt: "Você deve calcular a pontuação média realizando a operação com os métodos sugeridos na atividade."
-              }]
-            } else if (!code.includes("puntajes.reverse()") && !code.includes("scores.reverse()")) {
-              return [{
-                es: "Debes invertir el orden de la lista puntajes.",
-                en: "You must reverse the order of the scores list.",
-                pt: "Você deve inverter a ordem da lista de pontuações."
-              }]
-            } else if (!code.replace(/\s+/g, '').trim().includes("puntajes.reverse()print(puntajes)") && !code.replace(/\s+/g, '').trim().includes("scores.reverse()print(scores)")) {
-              return [{
-                es: "Debes mostrar por consola la lista invertida",
-                en: "You must display the reversed list on the console.",
-                pt: "Você deve exibir a lista invertida no console."
-              }]
+
+            // 4) promedio / average
+            const hasPromedioVar = compact.includes("promedio=") || compact.includes("average=");
+            if (!hasPromedioVar) {
+              errors.push({
+                es: "Debes calcular el promedio y almacenarlo en la variable 'promedio'.",
+                en: "You must calculate the average and store it in the 'average' variable.",
+                pt: "Você deve calcular a média e armazená-la na variável 'average'."
+              });
+            } else {
+              const expectedAvg = usingES
+                ? "promedio=sum(puntajes)/len(puntajes)"
+                : "average=sum(scores)/len(scores)";
+              if (!compact.includes(expectedAvg)) {
+                errors.push({
+                  es: "Debes calcular el puntaje promedio realizando la operación con sum(lista) / len(lista).",
+                  en: "You must calculate the average score using sum(list) / len(list).",
+                  pt: "Você deve calcular a pontuação média usando sum(lista) / len(lista)."
+                });
+              }
             }
-            else if (!code.includes("puntajes.sort()") && !code.includes("scores.sort()")) {
-              return [{
-                es: "Debes ordenar los puntajes de menor a mayor.",
-                en: "You must sort the scores from lowest to highest.",
-                pt: "Você deve ordenar as pontuações de menor a maior."
-              }]
-            } else if (!code.replace(/\s+/g, '').trim().includes('print("ElTOPSCOREfinales:")') && !code.replace(/\s+/g, '').trim().includes("print('ElTOPSCOREfinales:')") && !code.replace(/\s+/g, '').trim().includes('print("TheTOPSCOREfinalis:")') && !code.replace(/\s+/g, '').trim().includes("print('TheTOPSCOREfinalis:')")) {
-              return [{
-                es: "Debe mostrar el texto 'El TOP SCORE final es: ' seguido de los puntajes.",
-                en: "It must display the text 'The TOP SCORE final is: ' followed by the scores.",
-                pt: "Deve exibir o texto 'O TOP SCORE final é: ' seguido das pontuações."
-              }]
-            } else if (!code.replace(/\s+/g, '').trim().includes('print("ElTOPSCOREfinales:")print(puntajes)') && !code.replace(/\s+/g, '').trim().includes("print('ElTOPSCOREfinales:')print(puntajes)") && !code.replace(/\s+/g, '').trim().includes('print("TheTOPSCOREfinalis:")print(scores)') && !code.replace(/\s+/g, '').trim().includes("print('TheTOPSCOREfinalis:')print(scores)")) {
-              return [{
-                es: "Luego del mensaje 'El TOP SCORE finales' en otro print() debes mostrar la lista .",
-                en: "After the message 'The TOP SCORE final is' in another print() you must display the list.",
-                pt: "Após a mensagem 'O TOP SCORE final é' em outro print() você deve exibir a lista."
-              }]
+
+            // 5) Invertir lista con reverse() y mostrarla
+            const reverseCallES = "puntajes.reverse()";
+            const reverseCallEN = "scores.reverse()";
+            const hasReverse = compact.includes(reverseCallES) || compact.includes(reverseCallEN);
+
+            if (!hasReverse) {
+              errors.push({
+                es: "Debes invertir el orden de la lista de puntajes utilizando el método reverse().",
+                en: "You must reverse the order of the scores list using the reverse() method.",
+                pt: "Você deve inverter a ordem da lista de pontuações usando o método reverse()."
+              });
+            } else {
+              // Queremos que haya al menos un print(puntajes) / print(scores) DESPUÉS del reverse
+              const idxReverse = usingES
+                ? norm.indexOf("puntajes.reverse()")
+                : norm.indexOf("scores.reverse()");
+              const idxPrintList = usingES
+                ? norm.indexOf("print(puntajes)")
+                : norm.indexOf("print(scores)");
+
+              if (idxPrintList === -1 || idxReverse === -1 || idxPrintList < idxReverse) {
+                errors.push({
+                  es: "Debes mostrar por consola la lista invertida luego de llamar a reverse().",
+                  en: "You must display the reversed list in the console after calling reverse().",
+                  pt: "Você deve exibir a lista invertida no console após chamar reverse()."
+                });
+              }
             }
+
+            // 6) Ordenar de menor a mayor con sort()
+            const hasSort = compact.includes("puntajes.sort()") || compact.includes("scores.sort()");
+            if (!hasSort) {
+              errors.push({
+                es: "Debes ordenar los puntajes de menor a mayor utilizando el método sort().",
+                en: "You must sort the scores from lowest to highest using the sort() method.",
+                pt: "Você deve ordenar as pontuações da menor para a maior usando o método sort()."
+              });
+            }
+
+            // 7) Mensaje 'El TOP SCORE final es: ' / 'The TOP SCORE final is: '
+            const hasTopMsg =
+              compact.includes('print("ElTOPSCOREfinales:")') ||
+              compact.includes("print('ElTOPSCOREfinales:')") ||
+              compact.includes('print("TheTOPSCOREfinalis:")') ||
+              compact.includes("print('TheTOPSCOREfinalis:')");
+
+            if (!hasTopMsg) {
+              errors.push({
+                es: "Debe mostrar el texto 'El TOP SCORE final es: ' antes de mostrar la lista ordenada.",
+                en: "It must display the text 'The TOP SCORE final is: ' before showing the sorted list.",
+                pt: "Deve exibir o texto 'O TOP SCORE final é: ' antes de mostrar a lista ordenada."
+              });
+            } else {
+              // Verificar que después del mensaje haya un print de la lista
+              const idxMsg =
+                norm.indexOf('print("El TOP SCORE final es:') !== -1
+                  ? norm.indexOf('print("El TOP SCORE final es:')
+                  : norm.indexOf("print('El TOP SCORE final es:");
+              const idxMsgEn =
+                norm.indexOf('print("The TOP SCORE final is:') !== -1
+                  ? norm.indexOf('print("The TOP SCORE final is:')
+                  : norm.indexOf("print('The TOP SCORE final is:");
+
+              const idxMsgAny = Math.max(idxMsg, idxMsgEn); // el que exista
+
+              const idxPrintFinal = usingES
+                ? norm.lastIndexOf("print(puntajes)")
+                : norm.lastIndexOf("print(scores)");
+
+              if (idxMsgAny === -1 || idxPrintFinal === -1 || idxPrintFinal <= idxMsgAny) {
+                errors.push({
+                  es: "Luego del mensaje 'El TOP SCORE final es: ' en otro print() debes mostrar la lista de puntajes.",
+                  en: "After the message 'The TOP SCORE final is: ' you must show the scores list in another print().",
+                  pt: "Após a mensagem 'O TOP SCORE final é: ' você deve exibir a lista de pontuações em outro print()."
+                });
+              }
+            }
+
+            // ==== Devolver solo el primer error ====
+            if (errors.length > 0) {
+              return [errors[0]];
+            }
+            return [];
+
+
+            // VALIDACION VIEJA
+            // if (!code.replace(/\s+/g, '').trim().includes("puntajes=[850,920,670,750,830,1000]") && !code.replace(/\s+/g, '').trim().includes("scores=[850,920,670,750,830,1000]")) {
+            //   return [{
+            //     es: "No debes eliminar ni modificar la lista llamada 'puntajes' con los puntajes proporcionados.",
+            //     en: "You must not delete or modify the list called 'scores' with the provided scores.",
+            //     pt: "Você não deve excluir ou modificar a lista chamada 'pontuações' com as pontuações fornecidas."
+            //   }]
+            // } else if (!code.replace(/\s+/g, '').trim().includes("minimo=") && !code.replace(/\s+/g, '').trim().includes("minimum=")) {
+            //   return [{
+            //     es: "Debes crear la variable minimo para almacenar el calculo del puntaje mínimo de la lista.",
+            //     en: "You must create the minimum variable to store the calculation of the minimum score of the list.",
+            //     pt: "Você deve criar a variável minimum para armazenar o cálculo da pontuação mínima da lista."
+            //   }]
+            // }
+            // else if (!code.replace(/\s+/g, '').trim().includes("minimo=min(puntajes)") && !code.replace(/\s+/g, '').trim().includes("minimum=min(scores)")) {
+            //   return [{
+            //     es: "Debes calcular el puntaje mínimo de la lista utilizando el método correcto.",
+            //     en: "You must calculate the minimum score of the list using the correct method.",
+            //     pt: "Você deve calcular a pontuação mínima da lista usando o método correto."
+            //   }]
+            // }
+            // else if (!code.replace(/\s+/g, '').trim().includes("maximo=") && !code.replace(/\s+/g, '').trim().includes("maximum=")) {
+            //   return [{
+            //     es: "Debes crear la variable maximo para almacenar el calculo del puntaje máximo de la lista.",
+            //     en: "You must create the maximum variable to store the calculation of the maximum score of the list.",
+            //     pt: "Você deve criar a variável maximum para armazenar o cálculo da pontuação máxima da lista."
+            //   }]
+            // }
+            // else if (!code.replace(/\s+/g, '').trim().includes("maximo=max(puntajes)") && !code.replace(/\s+/g, '').trim().includes("maximum=max(scores)")) {
+            //   return [{
+            //     es: "Debes calcular el puntaje máximo con el método correcto.",
+            //     en: "You must calculate the maximum score with the correct method.",
+            //     pt: "Você deve calcular a pontuação máxima com o método correto."
+            //   }]
+            // } else if (!code.replace(/\s+/g, '').trim().includes("promedio=sum(puntajes)/len(puntajes)") && !code.replace(/\s+/g, '').trim().includes("average=sum(scores)/len(scores)")) {
+            //   return [{
+            //     es: "Debes calcular el puntaje promedio ralizando la operacion con los métodos sugeridos en la consigna.",
+            //     en: "You must calculate the average score by performing the operation with the methods suggested in the instruction.",
+            //     pt: "Você deve calcular a pontuação média realizando a operação com os métodos sugeridos na atividade."
+            //   }]
+            // } else if (!code.includes("puntajes.reverse()") && !code.includes("scores.reverse()")) {
+            //   return [{
+            //     es: "Debes invertir el orden de la lista puntajes.",
+            //     en: "You must reverse the order of the scores list.",
+            //     pt: "Você deve inverter a ordem da lista de pontuações."
+            //   }]
+            // } else if (!code.replace(/\s+/g, '').trim().includes("puntajes.reverse()print(puntajes)") && !code.replace(/\s+/g, '').trim().includes("scores.reverse()print(scores)")) {
+            //   return [{
+            //     es: "Debes mostrar por consola la lista invertida",
+            //     en: "You must display the reversed list on the console.",
+            //     pt: "Você deve exibir a lista invertida no console."
+            //   }]
+            // }
+            // else if (!code.includes("puntajes.sort()") && !code.includes("scores.sort()")) {
+            //   return [{
+            //     es: "Debes ordenar los puntajes de menor a mayor.",
+            //     en: "You must sort the scores from lowest to highest.",
+            //     pt: "Você deve ordenar as pontuações de menor a maior."
+            //   }]
+            // } else if (!code.replace(/\s+/g, '').trim().includes('print("ElTOPSCOREfinales:")') && !code.replace(/\s+/g, '').trim().includes("print('ElTOPSCOREfinales:')") && !code.replace(/\s+/g, '').trim().includes('print("TheTOPSCOREfinalis:")') && !code.replace(/\s+/g, '').trim().includes("print('TheTOPSCOREfinalis:')")) {
+            //   return [{
+            //     es: "Debe mostrar el texto 'El TOP SCORE final es: ' seguido de los puntajes.",
+            //     en: "It must display the text 'The TOP SCORE final is: ' followed by the scores.",
+            //     pt: "Deve exibir o texto 'O TOP SCORE final é: ' seguido das pontuações."
+            //   }]
+            // } else if (!code.replace(/\s+/g, '').trim().includes('print("ElTOPSCOREfinales:")print(puntajes)') && !code.replace(/\s+/g, '').trim().includes("print('ElTOPSCOREfinales:')print(puntajes)") && !code.replace(/\s+/g, '').trim().includes('print("TheTOPSCOREfinalis:")print(scores)') && !code.replace(/\s+/g, '').trim().includes("print('TheTOPSCOREfinalis:')print(scores)")) {
+            //   return [{
+            //     es: "Luego del mensaje 'El TOP SCORE finales' en otro print() debes mostrar la lista .",
+            //     en: "After the message 'The TOP SCORE final is' in another print() you must display the list.",
+            //     pt: "Após a mensagem 'O TOP SCORE final é' em outro print() você deve exibir a lista."
+            //   }]
+            // }
 
           })
       }
-      // {
-      //   "description": "El código debe obtener el puntaje mínimo y mostrarlo.",
-      //   "test": (assert) => assert
-      //     .$variable("minimo")
-      //     .withAssignation("min(puntajes)")
-      //     .$functionCall("print")
-      //     .withArguments(["\"Puntaje mínimo: \" + str(minimo)"]).catch({
-      //       es: "Debe calcular el puntaje mínimo y mostrarlo.",
-      //       en: "It must calculate and display the minimum score.",
-      //       pt: "Deve calcular e exibir a pontuação mínima."
-      //     })
-      // },
-      // {
-      //   "description": "El código debe obtener el puntaje máximo y mostrarlo.",
-      //   "test": (assert) => assert
-      //     .$variable("maximo")
-      //     .withAssignation("max(puntajes)")
-      //     .$functionCall("print")
-      //     .withArguments(["\"Puntaje máximo: \" + str(maximo)"]).catch({
-      //       es: "Debe calcular el puntaje máximo y mostrarlo.",
-      //       en: "It must calculate and display the maximum score.",
-      //       pt: "Deve calcular e exibir a pontuação máxima."
-      //     })
-      // },
-      // {
-      //   "description": "El código debe obtener el puntaje promedio y mostrarlo.",
-      //   "test": (assert) => assert
-      //     .$variable("promedio")
-      //     .withAssignation("sum(puntajes) / len(puntajes)")
-      //     .$functionCall("print")
-      //     .withArguments(["\"Promedio de puntajes: \" + str(promedio)"]).catch({
-      //       es: "Debe calcular el promedio y mostrarlo.",
-      //       en: "It must calculate and display the average.",
-      //       pt: "Deve calcular e exibir a média."
-      //     })
-      // },
-      // {
-      //   "description": "El código debe invertir el orden de los puntajes y mostrarlos.",
-      //   "test": (assert) => assert
-      //     .$variableAssign("puntajes", "list(reversed(puntajes))")
-      //     .$functionCall("print")
-      //     .withArguments(["puntajes"]).catch({
-      //       es: "Debe invertir el orden de los puntajes y mostrarlos.",
-      //       en: "It must reverse and display the scores.",
-      //       pt: "Deve inverter e exibir as pontuações."
-      //     })
-      // },
-      // {
-      //   "description": "El código debe ordenar los puntajes de menor a mayor y mostrarlos.",
-      //   "test": (assert) => assert
-      //     .$variableAssign("puntajes", "sorted(puntajes)")
-      //     .$functionCall("print")
-      //     .withArguments(["\"El TOP SCORE final es: \"", "puntajes"]).catch({
-      //       es: "Debe ordenar los puntajes y mostrarlos con el texto indicado.",
-      //       en: "It must sort the scores and display them with the given text.",
-      //       pt: "Deve ordenar as pontuações e exibi-las com o texto indicado."
-      //     })
-      // }
     ]
   },
   {
@@ -4015,79 +4302,171 @@ export const exercises = [
         "test": (assert) => assert
           .$custom(code => {
             // console.log(code);
+            const norm = code.replace(/\r/g, "");
+            const compact = norm.replace(/\s+/g, "").trim();
+            const errors = [];
 
-            if (!code.replace(/\s+/g, '').trim().includes("palabra=") && !code.replace(/\s+/g, '').trim().includes("word=")) {
-              return [{
-                es: "Debes crear la variable palabra que almacene la palabra ingresada por la consola.",
-                en: "You must create the variable word that stores the word entered by the console.",
-                pt: "Você deve criar a variável palavra que armazena a palavra inserida pelo console."
-              }]
-            } else if (code.replace(/\s+/g, '').trim().includes("palabra=input(")) {
-              const lineasInput = code.match(/input\(["'].*?["']\)/g);
-              const preguntaPalabra = lineasInput[0].match(/["'](.*?)["']/)?.[1]; // Extraer el texto de la
-              // console.log(preguntaPalabra);
-              if (preguntaPalabra.length < 1) {
-                return [{
-                  es: "El mensaje del input no puede estar vacío.",
-                  en: "The input message cannot be empty.",
-                  pt: "A mensagem de entrada não pode estar vazia."
-                }]
-              }
-              if (preguntaPalabra) {
-                const contienePalabra = /palabra|ingrese una palabra/i.test(preguntaPalabra);
-                if (!contienePalabra) {
-                  seguirValidando = false
-                  return [{
-                    es: 'La pregunta del input "' + preguntaPalabra + '" no es válida porque no menciona "palabra" o "ingrese una palabra".',
-                    en: 'The input question ' + preguntaPalabra + ' is not valid because it does not mention "palabra" or "enter a word".',
-                    pt: 'A pergunta do input ' + preguntaPalabra + ' não é válida porque não menciona "palavra" ou "insira uma palavra".'
-                  }]
+            // 1) Variable palabra / word
+            const hasPalabra = /\bpalabra\s*=/.test(norm);
+            const hasWord = /\bword\s*=/.test(norm);
+
+            if (!hasPalabra && !hasWord) {
+              errors.push({
+                es: "Debes crear la variable 'palabra' que almacene la palabra ingresada por consola (o 'word' en inglés).",
+                en: "You must create the variable 'word' that stores the word entered from the console.",
+                pt: "Você deve criar a variável 'palavra' que armazena a palavra inserida pelo console."
+              });
+            }
+
+            // 2) Input con mensaje correcto
+            const usesES = hasPalabra; // si no, asumimos inglés
+            const varName = usesES ? "palabra" : "word";
+
+            if (compact.includes(`${varName}=input(`)) {
+              const inputs = code.match(/input\(["'].*?["']\)/g);
+              if (inputs && inputs.length > 0) {
+                const pregunta = inputs[0].match(/["'](.*?)["']/)?.[1] ?? "";
+
+                if (pregunta.length < 1) {
+                  errors.push({
+                    es: "El mensaje del input no puede estar vacío.",
+                    en: "The input message cannot be empty.",
+                    pt: "A mensagem do input não pode estar vazia."
+                  });
+                } else {
+                  if (usesES) {
+                    const ok = /palabra|ingrese una palabra/i.test(pregunta);
+                    if (!ok) {
+                      errors.push({
+                        es: `La pregunta del input "${pregunta}" no es válida porque no menciona "palabra" o "ingrese una palabra".`,
+                        en: `The input question "${pregunta}" is not valid because it does not mention "palabra" or "ingrese una palabra".`,
+                        pt: `A pergunta do input "${pregunta}" não é válida porque não menciona "palavra" ou "insira uma palavra".`
+                      });
+                    }
+                  } else {
+                    const ok = /word|enter a word/i.test(pregunta);
+                    if (!ok) {
+                      errors.push({
+                        es: `La pregunta del input "${pregunta}" no es válida porque no menciona "word" o "enter a word".`,
+                        en: `The input question "${pregunta}" is not valid because it does not mention "word" or "enter a word".`,
+                        pt: `A pergunta do input "${pregunta}" não é válida porque não menciona "word" ou "enter a word".`
+                      });
+                    }
+                  }
                 }
               }
+            } else {
+              // No se detectó input ligado a palabra/word
+              errors.push({
+                es: "Debes solicitar al usuario que ingrese una palabra con input() y guardarla en la variable correspondiente.",
+                en: "You must ask the user to enter a word with input() and store it in the corresponding variable.",
+                pt: "Você deve pedir ao usuário para inserir uma palavra com input() e armazená-la na variável correspondente."
+              });
+            }
 
-            } else if (code.replace(/\s+/g, '').trim().includes("word=input(")) {
-              const lineasInput = code.match(/input\(["'].*?["']\)/g);
-              const preguntaPalabra = lineasInput[0].match(/["'](.*?)["']/)?.[1]; // Extraer el texto de la
-              // console.log(preguntaPalabra);
-              if (preguntaPalabra.length < 1) {
-                return [{
-                  es: "El mensaje del input no puede estar vacío.",
-                  en: "The input message cannot be empty.",
-                  pt: "A mensagem de entrada não pode estar vazia."
-                }]
-              }
-              if (preguntaPalabra) {
-                const contienePalabra = /word|enter a word/i.test(preguntaPalabra);
-                if (!contienePalabra) {
-                  seguirValidando = false
-                  return [{
-                    es: 'La pregunta del input "' + preguntaPalabra + '" no es válida porque no menciona "word" o "enter a word".',
-                    en: 'The input question ' + preguntaPalabra + ' is not valid because it does not mention "word" or "enter a word".',
-                    pt: 'A pergunta do input ' + preguntaPalabra + ' não é válida porque não menciona "word" ou "enter a word".'
-                  }]
-                }
-              }
+            // 3) Bucle for letra in palabra / for letter in word
+            const iterName = usesES ? "letra" : "letter";
+            const forRegex = new RegExp(`for\\s+${iterName}\\s+in\\s+${varName}\\s*:`);
+            if (!forRegex.test(norm)) {
+              errors.push({
+                es: `En tu bucle for debes utilizar la variable "${iterName}" como iterador sobre "${varName}". Revisa la sintaxis: for ${iterName} in ${varName}:`,
+                en: `In your for loop you must use "${iterName}" as the iterator over "${varName}". Check the syntax: for ${iterName} in ${varName}:`,
+                pt: `No seu loop for você deve usar "${iterName}" como iterador sobre "${varName}". Verifique a sintaxe: for ${iterName} in ${varName}:`
+              });
             }
-            else {
-              return [{
-                es: "Debes solicitar al usuario que ingrese una palabra.",
-                en: "You must ask the user to enter a word.",
-                pt: "Você deve pedir ao usuário para inserir uma palavra."
-              }]
+
+            // 4) print de cada letra
+            const printIter = new RegExp(`print\\s*\\(\\s*${iterName}\\s*\\)`);
+            if (!printIter.test(norm)) {
+              errors.push({
+                es: "Debes mostrar cada letra de la palabra por consola usando print(letra).",
+                en: "You must display each letter of the word on the console using print(letter).",
+                pt: "Você deve exibir cada letra da palavra no console usando print(letra)."
+              });
             }
-            if (!code.replace(/\s+/g, '').trim().includes("forletrainpalabra:") && !code.replace(/\s+/g, '').trim().includes("forletterinword:")) {
-              return [{
-                es: 'En tu bucle for debes utilizar la variable "letra" como iterador. Revisa haber escrito su sintaxis correctamente.',
-                en: 'In your for loop you must use the variable "letter" as an iterator. Check that you have written its syntax correctly.',
-                pt: 'No seu loop for você deve usar a variável "letra" como iterador. Verifique se você escreveu sua sintaxe corretamente.'
-              }]
-            } else if (!code.replace(/\s+/g, '').trim().includes("forletrainpalabra:print(letra)") && !code.replace(/\s+/g, '').trim().includes("forletterinword:print(letter)")) {
-              return [{
-                es: "Debes mostrar cada letra de la palabra por consola.",
-                en: "You must display each letter of the word on the console.",
-                pt: "Você deve exibir cada letra da palavra no console."
-              }]
+
+            // 👉 Devolver solo el primer error
+            if (errors.length > 0) {
+              return [errors[0]];
             }
+            return [];
+
+
+
+
+            //VALIDACION VIEJA
+            // if (!code.replace(/\s+/g, '').trim().includes("palabra=") && !code.replace(/\s+/g, '').trim().includes("word=")) {
+            //   return [{
+            //     es: "Debes crear la variable palabra que almacene la palabra ingresada por la consola.",
+            //     en: "You must create the variable word that stores the word entered by the console.",
+            //     pt: "Você deve criar a variável palavra que armazena a palavra inserida pelo console."
+            //   }]
+            // } else if (code.replace(/\s+/g, '').trim().includes("palabra=input(")) {
+            //   const lineasInput = code.match(/input\(["'].*?["']\)/g);
+            //   const preguntaPalabra = lineasInput[0].match(/["'](.*?)["']/)?.[1]; // Extraer el texto de la
+            //   // console.log(preguntaPalabra);
+            //   if (preguntaPalabra.length < 1) {
+            //     return [{
+            //       es: "El mensaje del input no puede estar vacío.",
+            //       en: "The input message cannot be empty.",
+            //       pt: "A mensagem de entrada não pode estar vazia."
+            //     }]
+            //   }
+            //   if (preguntaPalabra) {
+            //     const contienePalabra = /palabra|ingrese una palabra/i.test(preguntaPalabra);
+            //     if (!contienePalabra) {
+            //       seguirValidando = false
+            //       return [{
+            //         es: 'La pregunta del input "' + preguntaPalabra + '" no es válida porque no menciona "palabra" o "ingrese una palabra".',
+            //         en: 'The input question ' + preguntaPalabra + ' is not valid because it does not mention "palabra" or "enter a word".',
+            //         pt: 'A pergunta do input ' + preguntaPalabra + ' não é válida porque não menciona "palavra" ou "insira uma palavra".'
+            //       }]
+            //     }
+            //   }
+
+            // } else if (code.replace(/\s+/g, '').trim().includes("word=input(")) {
+            //   const lineasInput = code.match(/input\(["'].*?["']\)/g);
+            //   const preguntaPalabra = lineasInput[0].match(/["'](.*?)["']/)?.[1]; // Extraer el texto de la
+            //   // console.log(preguntaPalabra);
+            //   if (preguntaPalabra.length < 1) {
+            //     return [{
+            //       es: "El mensaje del input no puede estar vacío.",
+            //       en: "The input message cannot be empty.",
+            //       pt: "A mensagem de entrada não pode estar vazia."
+            //     }]
+            //   }
+            //   if (preguntaPalabra) {
+            //     const contienePalabra = /word|enter a word/i.test(preguntaPalabra);
+            //     if (!contienePalabra) {
+            //       seguirValidando = false
+            //       return [{
+            //         es: 'La pregunta del input "' + preguntaPalabra + '" no es válida porque no menciona "word" o "enter a word".',
+            //         en: 'The input question ' + preguntaPalabra + ' is not valid because it does not mention "word" or "enter a word".',
+            //         pt: 'A pergunta do input ' + preguntaPalabra + ' não é válida porque não menciona "word" ou "enter a word".'
+            //       }]
+            //     }
+            //   }
+            // }
+            // else {
+            //   return [{
+            //     es: "Debes solicitar al usuario que ingrese una palabra.",
+            //     en: "You must ask the user to enter a word.",
+            //     pt: "Você deve pedir ao usuário para inserir uma palavra."
+            //   }]
+            // }
+            // if (!code.replace(/\s+/g, '').trim().includes("forletrainpalabra:") && !code.replace(/\s+/g, '').trim().includes("forletterinword:")) {
+            //   return [{
+            //     es: 'En tu bucle for debes utilizar la variable "letra" como iterador. Revisa haber escrito su sintaxis correctamente.',
+            //     en: 'In your for loop you must use the variable "letter" as an iterator. Check that you have written its syntax correctly.',
+            //     pt: 'No seu loop for você deve usar a variável "letra" como iterador. Verifique se você escreveu sua sintaxe corretamente.'
+            //   }]
+            // } else if (!code.replace(/\s+/g, '').trim().includes("forletrainpalabra:print(letra)") && !code.replace(/\s+/g, '').trim().includes("forletterinword:print(letter)")) {
+            //   return [{
+            //     es: "Debes mostrar cada letra de la palabra por consola.",
+            //     en: "You must display each letter of the word on the console.",
+            //     pt: "Você deve exibir cada letra da palavra no console."
+            //   }]
+            // }
           })
       }
     ]
@@ -4210,123 +4589,6 @@ export const exercises = [
       }
     ]
   },
-  // {
-  //   "id": "forIn-01",
-  //   "prompt": "Realiza las tareas según la actividad 'Traductor'.",
-  //   "mainEditor": "main.py",
-  //   "packages": ["micropip"],
-  //   "editors": {
-  //     "main.py": {
-  //       "code": "from translator import FakeTranslator\n\n# Reemplazar Translator por FakeTranslator en tu código\nsiglas_idiomas = [\"es\", \"fr\", \"de\", \"it\", \"pt\"]\nsigla = input(\"Ingrese las siglas del idioma al que desea traducir las frases (es, fr, de, it, pt): \").lower()\n\n# Validar que la sigla ingresada sea válida\nwhile sigla not in siglas_idiomas:\n    sigla = input(\"Sigla no válida. Ingrese una sigla correcta (es, fr, de, it, pt): \").lower()\n\n# Lista de frases en inglés para traducir\nfrases_ingles = [\n    \"Hello, how are you?\",\n    \"What is your name?\",\n    \"Where are you from?\",\n    \"I like to learn new languages.\",\n    \"Goodbye and take care.\"\n]\n\n# Lista para almacenar las frases traducidas\nfrases_traducidas = []\n\n# Función para traducir las frases usando FakeTranslator\ndef traducir_frases(idioma, frases):\n    traductor = FakeTranslator(to_lang=idioma)\n    for frase in frases:\n        traduccion = traductor.translate(frase)\n        frases_traducidas.append(traduccion)\n    return frases_traducidas\n\n# Traducir las frases al idioma seleccionado\ntraducir_frases(sigla, frases_ingles)\n\n# Imprimir las frases traducidas\nprint(\"Las frases traducidas son: \" + str(frases_traducidas))\n",
-  //       "isReadOnly": false
-  //     },
-  //     "translator": {
-  //       "code": "# SIMULACIÓN DE UNA CLASE TRANSLATOR\n# Esta clase simula la traducción de textos a diferentes idiomas.\n\nclass FakeTranslator:\n    # Inicializamos la clase con el idioma de destino.\n    def __init__(self, to_lang):\n        self.to_lang = to_lang\n\n    # Método para simular la traducción de texto.\n    def translate(self, text):\n        # Diccionario con traducciones simuladas.\n        traducciones_simuladas = {\n            \"es\": {\n                \"Hello, how are you?\": \"Hola, ¿cómo estás?\",\n                \"What is your name?\": \"¿Cómo te llamas?\",\n                \"Where are you from?\": \"¿De dónde eres?\",\n                \"I like to learn new languages.\": \"Me gusta aprender nuevos idiomas.\",\n                \"Goodbye and take care.\": \"Adiós y cuídate.\"\n            },\n            \"fr\": {\n                \"Hello, how are you?\": \"Bonjour, comment ça va?\",\n                \"What is your name?\": \"Comment vous appelez-vous?\",\n                \"Where are you from?\": \"D'où venez-vous?\",\n                \"I like to learn new languages.\": \"J'aime apprendre de nouvelles langues.\",\n                \"Goodbye and take care.\": \"Au revoir et prenez soin de vous.\"\n            },\n            \"de\": {\n                \"Hello, how are you?\": \"Hallo, wie geht's dir?\",\n                \"What is your name?\": \"Wie heißen Sie?\",\n                \"Where are you from?\": \"Woher kommst du?\",\n                \"I like to learn new languages.\": \"Ich lerne gerne neue Sprachen.\",\n                \"Goodbye and take care.\": \"Auf Wiedersehen und pass auf dich auf.\"\n            },\n            \"it\": {\n                \"Hello, how are you?\": \"Ciao, come stai?\",\n                \"What is your name?\": \"Come ti chiami?\",\n                \"Where are you from?\": \"Di dove sei?\",\n                \"I like to learn new languages.\": \"Mi piace imparare nuove lingue.\",\n                \"Goodbye and take care.\": \"Arrivederci e stammi bene.\"\n            },\n            \"pt\": {\n                \"Hello, how are you?\": \"Olá, como você está?\",\n                \"What is your name?\": \"Qual é o seu nome?\",\n                \"Where are you from?\": \"De onde você é?\",\n                \"I like to learn new languages.\": \"Eu gosto de aprender novos idiomas.\",\n                \"Goodbye and take care.\": \"Tchau e se cuide.\"\n            }\n        }\n        # Retorna la traducción simulada o un mensaje si no se encuentra.\n        return traducciones_simuladas.get(self.to_lang, {}).get(text, f\"[Traducción no disponible para '{text}' en {self.to_lang}]\")\n",
-  //       "isReadOnly": true
-  //     }
-  //   },
-  //   "validationAST": [
-  //     {
-  //       "description": "El código debe importar la clase Translator del módulo translate.",
-  //       "test": (assert) => assert
-  //         .$import("Translator", "translate")
-  //         .catch({
-  //           es: "Debe importar la clase Translator del módulo translate.",
-  //           en: "It must import the Translator class from the translate module.",
-  //           pt: "Deve importar a classe Translator do módulo translate."
-  //         })
-  //     },
-  //     {
-  //       "description": "El código debe crear una lista con las siglas de los idiomas.",
-  //       "test": (assert) => assert
-  //         .$variable("siglasIdiomas")
-  //         .withAssignation("list_of_language_codes")
-  //         .catch({
-  //           es: "Debe crear una lista con las siglas de los idiomas.",
-  //           en: "It must create a list with the language codes.",
-  //           pt: "Deve criar uma lista com os códigos de idiomas."
-  //         })
-  //     },
-  //     {
-  //       "description": "Debe pedir al usuario las siglas del idioma y convertirlo a minúsculas.",
-  //       "test": (assert) => assert
-  //         .$variable("idiomaSeleccionado")
-  //         .withAssignation("input().lower()")
-  //         .catch({
-  //           es: "Debe pedir las siglas al usuario y convertirlas a minúsculas.",
-  //           en: "It must prompt the user for language codes and convert them to lowercase.",
-  //           pt: "Deve solicitar ao usuário os códigos de idioma e convertê-los para minúsculas."
-  //         })
-  //     },
-  //     {
-  //       "description": "Debe incluir un bucle while para validar si las siglas están en la lista.",
-  //       "test": (assert) => assert
-  //         .$whileLoop("idiomaSeleccionado not in siglasIdiomas")
-  //         .catch({
-  //           es: "Debe usar un bucle while para validar las siglas.",
-  //           en: "It must use a while loop to validate the language codes.",
-  //           pt: "Deve usar um loop while para validar os códigos de idioma."
-  //         })
-  //     },
-  //     {
-  //       "description": "Debe crear una lista con las frases en inglés.",
-  //       "test": (assert) => assert
-  //         .$variable("frasesIngles")
-  //         .withAssignation("list_of_english_phrases")
-  //         .catch({
-  //           es: "Debe crear una lista con las frases en inglés.",
-  //           en: "It must create a list with English phrases.",
-  //           pt: "Deve criar uma lista com frases em inglês."
-  //         })
-  //     },
-  //     {
-  //       "description": "Debe crear una lista vacía llamada frasesTraducidas.",
-  //       "test": (assert) => assert
-  //         .$variable("frasesTraducidas")
-  //         .withAssignation("[]")
-  //         .catch({
-  //           es: "Debe crear una lista vacía llamada frasesTraducidas.",
-  //           en: "It must create an empty list called frasesTraducidas.",
-  //           pt: "Deve criar uma lista vazia chamada frasesTraducidas."
-  //         })
-  //     },
-  //     {
-  //       "description": "Debe crear una función para traducir las frases basándose en la sigla proporcionada.",
-  //       "test": (assert) => assert
-  //         .$function("traducirFrases")
-  //         .withParameter("sigla")
-  //         .withReturn("list")
-  //         .catch({
-  //           es: "Debe crear una función para traducir frases a un idioma específico.",
-  //           en: "It must create a function to translate phrases into a specific language.",
-  //           pt: "Deve criar uma função para traduzir frases para um idioma específico."
-  //         })
-  //     },
-  //     {
-  //       "description": "Dentro de la función, debe iterar las frases y agregar traducciones a frasesTraducidas.",
-  //       "test": (assert) => assert
-  //         .$forLoop("frasesIngles")
-  //         .$functionCall("append")
-  //         .forEachCallWithArguments(["frasesTraducidas", "translated_phrase"])
-  //         .catch({
-  //           es: "Debe iterar las frases y agregar traducciones a frasesTraducidas.",
-  //           en: "It must iterate over phrases and add translations to frasesTraducidas.",
-  //           pt: "Deve iterar sobre as frases e adicionar traduções a frasesTraducidas."
-  //         })
-  //     },
-  //     {
-  //       "description": "Debe mostrar las frases traducidas por consola.",
-  //       "test": (assert) => assert
-  //         .$functionCall("print")
-  //         .withArguments(["\"Las frases traducidas son: \"", "frasesTraducidas"])
-  //         .catch({
-  //           es: "Debe mostrar las frases traducidas con el texto proporcionado.",
-  //           en: "It must display the translated phrases with the given text.",
-  //           pt: "Deve exibir as frases traduzidas com o texto fornecido."
-  //         })
-  //     }
-  //   ]
-  // },
   {
     "id": "diccionario-01-01",
     "prompt": "Realiza las tareas según la actividad 'Diccionario'.",
@@ -4344,533 +4606,683 @@ export const exercises = [
         "test": (assert) => assert
           .$custom(code => {
 
-            if (!code.replace(/\s/g, '').trim().includes("auto1={") && !code.replace(/\s/g, '').trim().includes("car1={")) {
-              seguirValidando = false;
-              return [{
-                es: "Debe crear un diccionario llamado 'auto1'.",
-                en: "It must create a dictionary named 'car1'.",
-                pt: "Deve criar um dicionário chamado 'car1'."
-              }];
-            } else
-              // Verificar para auto1
-              if (code.replace(/\s/g, '').trim().includes("auto1={")) {
-                const auto1 = code.replace(/\s/g, '').trim().match(/auto1={(.*?)\}/s); // Obtener el contenido del diccionario auto1
+            const errors = [];
 
-                if (!auto1[1].includes("color")) {
-                  seguirValidando = false;
-                  return [{
-                    es: "El diccionario 'auto1' debe tener la clave 'color'.",
-                    en: "The dictionary 'auto1' must have the key 'color'.",
-                    pt: "O dicionário 'auto1' deve ter a chave 'color'."
-                  }];
-                } else if (auto1[1].includes("color")) {
-                  const keyRegex = new RegExp(`"color"\\s*:\\s*""`);
-                  if (keyRegex.test(auto1[1])) {
-                    seguirValidando = false;
-                    return [{
-                      es: `El diccionario 'auto1' debe tener la clave 'color' con un valor asignado.`,
-                      en: `The dictionary 'auto1' must have the key 'color' with an assigned value.`,
-                      pt: `O dicionário 'auto1' deve ter a chave 'color' com um valor atribuído.`
-                    }];
-                  }
-                }
-                else if (!auto1[1].includes("cantidad_puertas")) {
-                  seguirValidando = false;
-                  return [{
-                    es: "El diccionario 'auto1' debe tener la clave 'cantidad_puertas'.",
-                    en: "The dictionary 'auto1' must have the key 'cantidad_puertas'.",
-                    pt: "O dicionário 'auto1' deve ter a chave 'cantidad_puertas'."
-                  }];
-                } else if (auto1[1].includes("cantidad_puertas")) {
-                  const keyRegex = new RegExp(`"cantidad_puertas"\\s*:\\s*""`);
-                  if (keyRegex.test(auto1[1])) {
-                    seguirValidando = false;
-                    return [{
-                      es: `El diccionario 'auto1' debe tener la clave 'cantidad_puertas' con un valor asignado.`,
-                      en: `The dictionary 'auto1' must have the key 'door_quantity' with an assigned value.`,
-                      pt: `O dicionário 'auto1' deve ter a chave 'cantidad_puertas' com um valor atribuído.`
-                    }];
-                  }
-                }
-                else if (!auto1[1].includes("marca")) {
-                  seguirValidando = false;
-                  return [{
-                    es: "El diccionario 'auto1' debe tener la clave 'marca'.",
-                    en: "The dictionary 'auto1' must have the key 'marca'.",
-                    pt: "O dicionário 'auto1' deve ter a chave 'marca'."
-                  }];
-                } else if (auto1[1].includes("marca")) {
-                  const keyRegex = new RegExp(`"marca"\\s*:\\s*""`);
-                  if (keyRegex.test(auto1[1])) {
-                    seguirValidando = false;
-                    return [{
-                      es: `El diccionario 'auto1' debe tener la clave 'marca' con un valor asignado.`,
-                      en: `The dictionary 'auto1' must have the key 'marca' with an assigned value.`,
-                      pt: `O dicionário 'auto1' deve ter a chave 'marca' com um valor atribuído.`
-                    }];
-                  }
+            // ---------- Helpers ----------
+            // Buscar el bloque de un diccionario por nombre (auto1, car1, etc.)
+            const getDictBlock = (code, names) => {
+              for (const name of names) {
+                const regex = new RegExp(name + '\\s*=\\s*{([\\s\\S]*?)}');
+                const match = code.match(regex);
+                if (match) {
+                  return { name, content: match[1] };
                 }
               }
-            if (code.replace(/\s/g, '').trim().includes("car1={")) {
-              const auto1 = code.replace(/\s/g, '').trim().match(/car1={(.*?)\}/s); // Obtener el contenido del diccionario auto1
-              if (!auto1[1].includes("color")) {
-                seguirValidando = false;
-                return [{
-                  es: "El diccionario 'car1' debe tener la clave 'color'.",
-                  en: "The dictionary 'car1' must have the key 'color'.",
-                  pt: "O dicionário 'car1' deve ter a chave 'color'."
-                }];
-              } else if (auto1[1].includes("color")) {
-                const keyRegex = new RegExp(`"color"\\s*:\\s*""`);
-                if (keyRegex.test(auto1[1])) {
-                  seguirValidando = false;
-                  return [{
-                    es: `El diccionario 'car1' debe tener la clave 'color' con un valor asignado.`,
-                    en: `The dictionary 'car1' must have the key 'color' with an assigned value.`,
-                    pt: `O dicionário 'car1' deve ter a chave 'color' com um valor atribuído.`
-                  }];
-                }
-              }
-              else if (!auto1[1].includes("door_quantity")) {
-                seguirValidando = false;
-                return [{
-                  es: "El diccionario 'car1' debe tener la clave 'door_quantity'.",
-                  en: "The dictionary 'car1' must have the key 'door_quantity'.",
-                  pt: "O dicionário 'car1' deve ter a chave 'door_quantity'."
-                }];
-              } else if (auto1[1].includes("door_quantity")) {
-                const keyRegex = new RegExp(`"door_quantity"\\s*:\\s*""`);
-                if (keyRegex.test(auto1[1])) {
-                  seguirValidando = false;
-                  return [{
-                    es: `El diccionario 'car1' debe tener la clave 'door_quantity' con un valor asignado.`,
-                    en: `The dictionary 'car1' must have the key 'door_quantity' with an assigned value.`,
-                    pt: `O dicionário 'car1' deve ter a chave 'door_quantity' com um valor atribuído.`
-                  }];
-                }
-              }
-              else if (!auto1[1].includes("brand")) {
-                seguirValidando = false;
-                return [{
-                  es: "El diccionario 'car1' debe tener la clave 'brand'.",
-                  en: "The dictionary 'car1' must have the key 'brand'.",
-                  pt: "O dicionário 'car1' deve ter a chave 'brand'."
-                }];
-              } else if (auto1[1].includes("brand")) {
-                const keyRegex = new RegExp(`"brand"\\s*:\\s*""`);
-                if (keyRegex.test(auto1[1])) {
-                  seguirValidando = false;
-                  return [{
-                    es: `El diccionario 'car1' debe tener la clave 'brand' con un valor asignado.`,
-                    en: `The dictionary 'car1' must have the key 'brand' with an assigned value.`,
-                    pt: `O dicionário 'car1' deve ter a chave 'brand' com um valor atribuído.`
-                  }];
-                }
-              }
-            }
-            if (!code.replace(/\s/g, '').trim().includes("}auto2={") && !code.replace(/\s/g, '').trim().includes("}car2={")) {
-              seguirValidando = false;
-              return [{
-                es: "Debe crear un diccionario llamado 'auto2'.",
-                en: "It must create a dictionary named 'car2'.",
-                pt: "Deve criar um dicionário chamado 'auto2'."
-              }];
-            } else
-              if (code.replace(/\s/g, '').trim().includes('"}auto2={"')) {
-                const auto2 = code.replace(/\s/g, '').trim().match(/auto2={(.*?)\}/s); // Obtener el contenido del diccionario auto2
+              return null;
+            };
 
+            const hasEmptyValueForKey = (block, key) => {
+              const keyRegex = new RegExp(`"${key}"\\s*:\\s*""`);
+              return keyRegex.test(block);
+            };
 
-                if (!auto2[1].includes("color")) {
-                  seguirValidando = false;
-                  return [{
-                    es: "El diccionario 'auto2' debe tener la clave 'color'.",
-                    en: "The dictionary 'auto2' must have the key 'color'.",
-                    pt: "O dicionário 'auto2' deve ter a chave 'color'."
-                  }];
-                } else if (auto2[1].includes("color")) {
-                  const keyRegex = new RegExp(`"color"\\s*:\\s*""`);
-                  if (keyRegex.test(auto2[1])) {
-                    seguirValidando = false;
-                    return [{
-                      es: `El diccionario 'auto2' debe tener la clave 'color' con un valor asignado.`,
-                      en: `The dictionary 'auto2' must have the key 'color' with an assigned value.`,
-                      pt: `O dicionário 'auto2' deve ter a chave 'color' com um valor atribuído.`
-                    }];
-                  }
-                  else if (!auto2[1].includes("cantidad_puertas")) {
-                    seguirValidando = false;
-                    return [{
-                      es: "El diccionario 'auto2' debe tener la clave 'cantidad_puertas'.",
-                      en: "The dictionary 'auto2' must have the key 'cantidad_puertas'.",
-                      pt: "O dicionário 'auto2' deve ter a chave 'cantidad_puertas'."
-                    }];
-                  } else if (auto2[1].includes("cantidad_puertas")) {
-                    const keyRegex = new RegExp(`"cantidad_puertas"\\s*:\\s*""`);
-                    if (keyRegex.test(auto2[1])) {
-                      seguirValidando = false;
-                      return [{
-                        es: `El diccionario 'auto2' debe tener la clave 'cantidad_puertas' con un valor asignado.`,
-                        en: `The dictionary 'auto2' must have the key 'cantidad_puertas' with an assigned value.`,
-                        pt: `O dicionário 'auto2' deve ter a chave 'cantidad_puertas' com um valor atribuído.`
-                      }];
-                    }
-                  }
-                  else if (!auto2[1].includes("marca")) {
-                    seguirValidando = false;
-                    return [{
-                      es: "El diccionario 'auto2' debe tener la clave 'marca'.",
-                      en: "The dictionary 'auto2' must have the key 'marca'.",
-                      pt: "O dicionário 'auto2' deve ter a chave 'marca'."
-                    }];
-                  } else if (auto2[1].includes("marca")) {
-                    const keyRegex = new RegExp(`"marca"\\s*:\\s*""`);
-                    if (keyRegex.test(auto2[1])) {
-                      seguirValidando = false;
-                      return [{
-                        es: `El diccionario 'auto2' debe tener la clave 'marca' con un valor asignado.`,
-                        en: `The dictionary 'auto2' must have the key 'marca' with an assigned value.`,
-                        pt: `O dicionário 'auto2' deve ter a chave 'marca' com um valor atribuído.`
-                      }];
-                    }
-                  }
+            // Valida que un diccionario tenga las claves adecuadas
+            const validateDictKeys = (dict, esKeys, enKeys, dictLabel) => {
+              const { name, content } = dict;
+              // Detectar si está usando versión inglesa
+              const usesEnglish =
+                content.includes(enKeys[1]) || content.includes(enKeys[2]);
+
+              const keysToUse = usesEnglish ? enKeys : esKeys;
+
+              // Recorremos las tres claves esperadas
+              keysToUse.forEach((key) => {
+                if (!content.includes(key)) {
+                  errors.push({
+                    es: `El diccionario '${name}' debe tener la clave "${key}".`,
+                    en: `The dictionary '${name}' must have the key "${key}".`,
+                    pt: `O dicionário '${name}' deve ter a chave "${key}".`
+                  });
+                } else if (hasEmptyValueForKey(content, key)) {
+                  errors.push({
+                    es: `El diccionario '${name}' debe tener la clave "${key}" con un valor asignado.`,
+                    en: `The dictionary '${name}' must have the key "${key}" with an assigned value.`,
+                    pt: `O dicionário '${name}' deve ter a chave "${key}" com um valor atribuído.`
+                  });
                 }
-              }
-            if (code.replace(/\s/g, '').trim().includes("car2={")) {
-              const auto2 = code.replace(/\s/g, '').trim().match(/car2={(.*?)\}/s); // Obtener el contenido del diccionario auto2
-              if (!auto2[1].includes("color")) {
-                seguirValidando = false;
-                return [{
-                  es: "El diccionario 'car2' debe tener la clave 'color'.",
-                  en: "The dictionary 'car2' must have the key 'color'.",
-                  pt: "O dicionário 'car2' deve ter a chave 'color'."
-                }];
-              } else if (auto2[1].includes("color")) {
-                const keyRegex = new RegExp(`"color"\\s*:\\s*""`);
-                if (keyRegex.test(auto2[1])) {
-                  seguirValidando = false;
-                  return [{
-                    es: `El diccionario 'car2' debe tener la clave 'color' con un valor asignado.`,
-                    en: `The dictionary 'car2' must have the key 'color' with an assigned value.`,
-                    pt: `O dicionário 'car2' deve ter a chave 'color' com um valor atribuído.`
-                  }];
-                }
-              }
-              else if (!auto2[1].includes("door_quantity")) {
-                seguirValidando = false;
-                return [{
-                  es: "El diccionario 'car2' debe tener la clave 'door_quantity'.",
-                  en: "The dictionary 'car2' must have the key 'door_quantity'.",
-                  pt: "O dicionário 'car2' deve ter a chave 'door_quantity'."
-                }];
-              } else if (auto2[1].includes("door_quantity")) {
-                const keyRegex = new RegExp(`"door_quantity"\\s*:\\s*""`);
-                if (keyRegex.test(auto2[1])) {
-                  seguirValidando = false;
-                  return [{
-                    es: `El diccionario 'car2' debe tener la clave 'door_quantity' con un valor asignado.`,
-                    en: `The dictionary 'car2' must have the key 'door_quantity' with an assigned value.`,
-                    pt: `O dicionário 'car2' deve ter a chave 'door_quantity' com um valor atribuído.`
-                  }];
-                }
-              }
-              else if (!auto2[1].includes("brand")) {
-                seguirValidando = false;
-                return [{
-                  es: "El diccionario 'car2' debe tener la clave 'brand'.",
-                  en: "The dictionary 'car2' must have the key 'brand'.",
-                  pt: "O dicionário 'car2' deve ter a chave 'brand'."
-                }];
-              } else if (auto2[1].includes("brand")) {
-                const keyRegex = new RegExp(`"brand"\\s*:\\s*""`);
-                if (keyRegex.test(auto2[1])) {
-                  seguirValidando = false;
-                  return [{
-                    es: `El diccionario 'car2' debe tener la clave 'brand' con un valor asignado.`,
-                    en: `The dictionary 'car2' must have the key 'brand' with an assigned value.`,
-                    pt: `O dicionário 'car2' deve ter a chave 'brand' com um valor atribuído.`
-                  }];
-                }
-              }
+              });
+            };
+
+            // ---------- 1) auto1 / car1 ----------
+            const dict1 = getDictBlock(code, ["auto1", "car1"]);
+            if (!dict1) {
+              errors.push({
+                es: "Debe crear un diccionario llamado 'auto1' (o 'car1').",
+                en: "You must create a dictionary named 'auto1' (or 'car1').",
+                pt: "Você deve criar um dicionário chamado 'auto1' (ou 'car1')."
+              });
+            } else {
+              // ES: color, cantidad_puertas, marca
+              // EN: color, door_quantity, brand
+              validateDictKeys(
+                dict1,
+                ["color", "cantidad_puertas", "marca"],
+                ["color", "door_quantity", "brand"],
+                "auto1"
+              );
             }
 
-            if (!code.replace(/\s/g, '').trim().includes("}auto3={") && !code.replace(/\s/g, '').trim().includes("}car3={")) {
-              seguirValidando = false;
-              return [{
-                es: "Debe crear un diccionario llamado 'auto3'.",
-                en: "It must create a dictionary named 'auto3'.",
-                pt: "Deve criar um dicionário chamado 'auto3'."
-              }];
+            // ---------- 2) auto2 / car2 ----------
+            const dict2 = getDictBlock(code, ["auto2", "car2"]);
+            if (!dict2) {
+              errors.push({
+                es: "Debe crear un diccionario llamado 'auto2' (o 'car2').",
+                en: "You must create a dictionary named 'auto2' (or 'car2').",
+                pt: "Você deve criar um dicionário chamado 'auto2' (ou 'car2')."
+              });
+            } else {
+              validateDictKeys(
+                dict2,
+                ["color", "cantidad_puertas", "marca"],
+                ["color", "door_quantity", "brand"],
+                "auto2"
+              );
             }
 
-            else if (code.replace(/\s/g, '').trim().includes("}auto3={")) {
-              const auto3 = code.replace(/\s/g, '').trim().match(/auto3={(.*?)\}/s); // Obtener el contenido del diccionario auto3
-
-              if (!auto3[1].includes("color")) {
-                seguirValidando = false;
-                return [{
-                  es: "El diccionario 'auto3' debe tener la clave 'color'.",
-                  en: "The dictionary 'auto3' must have the key 'color'.",
-                  pt: "O dicionário 'auto3' deve ter a chave 'color'."
-                }];
-              } else if (auto3[1].includes("color")) {
-                const keyRegex = new RegExp(`"color"\\s*:\\s*""`);
-                if (keyRegex.test(auto3[1])) {
-                  seguirValidando = false;
-                  return [{
-                    es: `El diccionario 'auto3' debe tener la clave 'color' con un valor asignado.`,
-                    en: `The dictionary 'auto3' must have the key 'color' with an assigned value.`,
-                    pt: `O dicionário 'auto3' deve ter a chave 'color' com um valor atribuído.`
-                  }];
-                }
-              }
-              else if (!auto3[1].includes("cantidad_puertas")) {
-                seguirValidando = false;
-                return [{
-                  es: "El diccionario 'auto3' debe tener la clave 'cantidad_puertas'.",
-                  en: "The dictionary 'auto3' must have the key 'cantidad_puertas'.",
-                  pt: "O dicionário 'auto3' deve ter a chave 'cantidad_puertas'."
-                }];
-              } else if (auto3[1].includes("cantidad_puertas")) {
-                const keyRegex = new RegExp(`"cantidad_puertas"\\s*:\\s*""`);
-                if (keyRegex.test(auto3[1])) {
-                  seguirValidando = false;
-                  return [{
-                    es: `El diccionario 'auto3' debe tener la clave 'cantidad_puertas' con un valor asignado.`,
-                    en: `The dictionary 'auto3' must have the key 'cantidad_puertas' with an assigned value.`,
-                    pt: `O dicionário 'auto3' deve ter a chave 'cantidad_puertas' com um valor atribuído.`
-                  }];
-                }
-              }
-              else if (!auto3[1].includes("marca")) {
-                seguirValidando = false;
-                return [{
-                  es: "El diccionario 'auto3' debe tener la clave 'marca'.",
-                  en: "The dictionary 'auto3' must have the key 'marca'.",
-                  pt: "O dicionário 'auto3' deve ter a chave 'marca'."
-                }];
-              } else if (auto3[1].includes("marca")) {
-                const keyRegex = new RegExp(`"marca"\\s*:\\s*""`);
-                if (keyRegex.test(auto3[1])) {
-                  seguirValidando = false;
-                  return [{
-                    es: `El diccionario 'auto3' debe tener la clave 'marca' con un valor asignado.`,
-                    en: `The dictionary 'auto3' must have the key 'marca' with an assigned value.`,
-                    pt: `O dicionário 'auto3' deve ter a chave 'marca' com um valor atribuído.`
-                  }];
-                }
-              }
-            }
-            if (code.replace(/\s/g, '').trim().includes("car3={")) {
-              const auto3 = code.replace(/\s/g, '').trim().match(/car3={(.*?)\}/s); // Obtener el contenido del diccionario auto3
-              if (!auto3[1].includes("color")) {
-                seguirValidando = false;
-                return [{
-                  es: "El diccionario 'car3' debe tener la clave 'color'.",
-                  en: "The dictionary 'car3' must have the key 'color'.",
-                  pt: "O dicionário 'car3' deve ter a chave 'color'."
-                }];
-              } else if (auto3[1].includes("color")) {
-                const keyRegex = new RegExp(`"color"\\s*:\\s*""`);
-                if (keyRegex.test(auto3[1])) {
-                  seguirValidando = false;
-                  return [{
-                    es: `El diccionario 'car3' debe tener la clave 'color' con un valor asignado.`,
-                    en: `The dictionary 'car3' must have the key 'color' with an assigned value.`,
-                    pt: `O dicionário 'car3' deve ter a chave 'color' com um valor atribuído.`
-                  }];
-                }
-              }
-              else if (!auto3[1].includes("door_quantity")) {
-                seguirValidando = false;
-                return [{
-                  es: "El diccionario 'car3' debe tener la clave 'door_quantity'.",
-                  en: "The dictionary 'car3' must have the key 'door_quantity'.",
-                  pt: "O dicionário 'car3' deve ter a chave 'door_quantity'."
-                }];
-              } else if (auto3[1].includes("door_quantity")) {
-                const keyRegex = new RegExp(`"door_quantity"\\s*:\\s*""`);
-                if (keyRegex.test(auto3[1])) {
-                  seguirValidando = false;
-                  return [{
-                    es: `El diccionario 'car3' debe tener la clave 'door_quantity' con un valor asignado.`,
-                    en: `The dictionary 'car3' must have the key 'door_quantity' with an assigned value.`,
-                    pt: `O dicionário 'car3' deve ter a chave 'door_quantity' com um valor atribuído.`
-                  }];
-                }
-              }
-              else if (!auto3[1].includes("brand")) {
-                seguirValidando = false;
-                return [{
-                  es: "El diccionario 'car3' debe tener la clave 'brand'.",
-                  en: "The dictionary 'car3' must have the key 'brand'.",
-                  pt: "O dicionário 'car3' deve ter a chave 'brand'."
-                }];
-              } else if (auto3[1].includes("brand")) {
-                const keyRegex = new RegExp(`"brand"\\s*:\\s*""`);
-                if (keyRegex.test(auto3[1])) {
-                  seguirValidando = false;
-                  return [{
-                    es: `El diccionario 'car3' debe tener la clave 'brand' con un valor asignado.`,
-                    en: `The dictionary 'car3' must have the key 'brand' with an assigned value.`,
-                    pt: `O dicionário 'car3' deve ter a chave 'brand' com um valor atribuído.`
-                  }];
-                }
-              }
+            // ---------- 3) auto3 / car3 ----------
+            const dict3 = getDictBlock(code, ["auto3", "car3"]);
+            if (!dict3) {
+              errors.push({
+                es: "Debe crear un diccionario llamado 'auto3' (o 'car3').",
+                en: "You must create a dictionary named 'auto3' (or 'car3').",
+                pt: "Você deve criar um dicionário chamado 'auto3' (ou 'car3')."
+              });
+            } else {
+              validateDictKeys(
+                dict3,
+                ["color", "cantidad_puertas", "marca"],
+                ["color", "door_quantity", "brand"],
+                "auto3"
+              );
             }
 
-            if (!code.replace(/\s/g, '').trim().includes("}auto4={") && !code.replace(/\s/g, '').trim().includes("}car4={")) {
-              seguirValidando = false;
-              return [{
-                es: "Debe crear un diccionario llamado 'auto4'.",
-                en: "It must create a dictionary named 'auto4'.",
-                pt: "Deve criar um dicionário chamado 'auto4'."
-              }];
-            } else
-              if (code.replace(/\s/g, '').trim().includes("}auto4={")) {
-                const auto4 = code.replace(/\s/g, '').trim().match(/auto4={(.*?)\}/s); // Obtener el contenido del diccionario auto4
-
-
-                if (!auto4[1].includes("color")) {
-                  seguirValidando = false;
-                  return [{
-                    es: "El diccionario 'auto4' debe tener la clave 'color'.",
-                    en: "The dictionary 'auto4' must have the key 'color'.",
-                    pt: "O dicionário 'auto4' deve ter a chave 'color'."
-                  }];
-                } else if (auto4[1].includes("color")) {
-                  const keyRegex = new RegExp(`"color"\\s*:\\s*""`);
-                  if (keyRegex.test(auto4[1])) {
-                    seguirValidando = false;
-                    return [{
-                      es: `El diccionario 'auto4' debe tener la clave 'color' con un valor asignado.`,
-                      en: `The dictionary 'auto4' must have the key 'color' with an assigned value.`,
-                      pt: `O dicionário 'auto4' deve ter a chave 'color' com um valor atribuído.`
-                    }];
-                  }
-                }
-                else if (!auto4[1].includes("cantidad_puertas")) {
-                  seguirValidando = false;
-                  return [{
-                    es: "El diccionario 'auto4' debe tener la clave 'cantidad_puertas'.",
-                    en: "The dictionary 'auto4' must have the key 'cantidad_puertas'.",
-                    pt: "O dicionário 'auto4' deve ter a chave 'cantidad_puertas'."
-                  }];
-                } else if (auto4[1].includes("cantidad_puertas")) {
-                  const keyRegex = new RegExp(`"cantidad_puertas"\\s*:\\s*""`);
-                  if (keyRegex.test(auto4[1])) {
-                    seguirValidando = false;
-                    return [{
-                      es: `El diccionario 'auto4' debe tener la clave 'cantidad_puertas' con un valor asignado.`,
-                      en: `The dictionary 'auto4' must have the key 'cantidad_puertas' with an assigned value.`,
-                      pt: `O dicionário 'auto4' deve ter a chave 'cantidad_puertas' com um valor atribuído.`
-                    }];
-                  }
-                }
-                else if (!auto4[1].includes("marca")) {
-                  seguirValidando = false;
-                  return [{
-                    es: "El diccionario 'auto4' debe tener la clave 'marca'.",
-                    en: "The dictionary 'auto4' must have the key 'marca'.",
-                    pt: "O dicionário 'auto4' deve ter a chave 'marca'."
-                  }];
-                } else if (auto4[1].includes("marca")) {
-                  const keyRegex = new RegExp(`"marca"\\s*:\\s*""`);
-                  if (keyRegex.test(auto4[1])) {
-                    seguirValidando = false;
-                    return [{
-                      es: `El diccionario 'auto4' debe tener la clave 'marca' con un valor asignado.`,
-                      en: `The dictionary 'auto4' must have the key 'marca' with an assigned value.`,
-                      pt: `O dicionário 'auto4' deve ter a chave 'marca' com um valor atribuído.`
-                    }];
-                  }
-                }
-              }
-            if (code.replace(/\s/g, '').trim().includes("car4={")) {
-              const auto4 = code.replace(/\s/g, '').trim().match(/car4={(.*?)\}/s); // Obtener el contenido del diccionario auto4
-              if (!auto4[1].includes("color")) {
-                seguirValidando = false;
-                return [{
-                  es: "El diccionario 'car4' debe tener la clave 'color'.",
-                  en: "The dictionary 'car4' must have the key 'color'.",
-                  pt: "O dicionário 'car4' deve ter a chave 'color'."
-                }];
-              } else if (auto4[1].includes("color")) {
-                const keyRegex = new RegExp(`"color"\\s*:\\s*""`);
-                if (keyRegex.test(auto4[1])) {
-                  seguirValidando = false;
-                  return [{
-                    es: `El diccionario 'car4' debe tener la clave 'color' con un valor asignado.`,
-                    en: `The dictionary 'car4' must have the key 'color' with an assigned value.`,
-                    pt: `O dicionário 'car4' deve ter a chave 'color' com um valor atribuído.`
-                  }];
-                }
-              }
-              else if (!auto4[1].includes("door_quantity")) {
-                seguirValidando = false;
-                return [{
-                  es: "El diccionario 'car4' debe tener la clave 'door_quantity'.",
-                  en: "The dictionary 'car4' must have the key 'door_quantity'.",
-                  pt: "O dicionário 'car4' deve ter a chave 'door_quantity'."
-                }];
-              } else if (auto4[1].includes("door_quantity")) {
-                const keyRegex = new RegExp(`"door_quantity"\\s*:\\s*""`);
-                if (keyRegex.test(auto4[1])) {
-                  seguirValidando = false;
-                  return [{
-                    es: `El diccionario 'car4' debe tener la clave 'door_quantity' con un valor asignado.`,
-                    en: `The dictionary 'car4' must have the key 'door_quantity' with an assigned value.`,
-                    pt: `O dicionário 'car4' deve ter a chave 'door_quantity' com um valor atribuído.`
-                  }];
-                }
-              }
-              else if (!auto4[1].includes("brand")) {
-                seguirValidando = false;
-                return [{
-                  es: "El diccionario 'car4' debe tener la clave 'brand'.",
-                  en: "The dictionary 'car4' must have the key 'brand'.",
-                  pt: "O dicionário 'car4' deve ter a chave 'brand'."
-                }];
-              } else if (auto4[1].includes("brand")) {
-                const keyRegex = new RegExp(`"brand"\\s*:\\s*""`);
-                if (keyRegex.test(auto4[1])) {
-                  seguirValidando = false;
-                  return [{
-                    es: `El diccionario 'car4' debe tener la clave 'brand' con un valor asignado.`,
-                    en: `The dictionary 'car4' must have the key 'brand' with an assigned value.`,
-                    pt: `O dicionário 'car4' deve ter a chave 'brand' com um valor atribuído.`
-                  }];
-                }
-              }
+            // ---------- 4) auto4 / car4 ----------
+            const dict4 = getDictBlock(code, ["auto4", "car4"]);
+            if (!dict4) {
+              errors.push({
+                es: "Debe crear un diccionario llamado 'auto4' (o 'car4').",
+                en: "You must create a dictionary named 'auto4' (or 'car4').",
+                pt: "Você deve criar um dicionário chamado 'auto4' (ou 'car4')."
+              });
+            } else {
+              validateDictKeys(
+                dict4,
+                ["color", "cantidad_puertas", "marca"],
+                ["color", "door_quantity", "brand"],
+                "auto4"
+              );
             }
 
-            if (!code.replace(/\s/g, '').trim().includes('"}auto2["color"]=') && !code.replace(/\s/g, '').trim().includes("}auto2['color']=") && !code.replace(/\s/g, '').trim().includes('"}car2["color"]=') && !code.replace(/\s/g, '').trim().includes("}car2['color]=")) {
-              seguirValidando = false;
-              return [{
+            // ---------- 5) Modificar color de auto2 / car2 ----------
+            const codeNoSpaces = code.replace(/\s/g, "").trim();
+
+            const changedColor =
+              codeNoSpaces.includes('auto2["color"]="') ||
+              codeNoSpaces.includes("auto2['color']='") ||
+              codeNoSpaces.includes('car2["color"]="') ||
+              codeNoSpaces.includes("car2['color']='");
+
+            if (!changedColor) {
+              errors.push({
                 es: "Debe modificar el color del auto2.",
-                en: "It must modify the color of car2.",
-                pt: "Deve modificar a cor do auto2."
-              }];
-            } else if (!code.includes('print(auto2["color"])') && !code.includes("print(auto2['color'])") && !code.includes('print(car2["color"])') && !code.includes("print(car2['color'])")) {
-              seguirValidando = false;
-              return [{
-                es: "Debe mostrar el color del auto2.",
-                en: "It must display the color of car2.",
-                pt: "Deve exibir a cor do auto2."
-              }];
+                en: "You must modify the color of car2.",
+                pt: "Você deve modificar a cor do auto2."
+              });
             }
+
+            const printsColor =
+              code.includes('print(auto2["color"])') ||
+              code.includes("print(auto2['color'])") ||
+              code.includes('print(car2["color"])') ||
+              code.includes("print(car2['color'])");
+
+            if (!printsColor) {
+              errors.push({
+                es: "Debe mostrar el color del auto2 por consola.",
+                en: "You must display the color of car2 on the console.",
+                pt: "Você deve exibir a cor do auto2 no console."
+              });
+            }
+
+            // ---------- Devolvemos SOLO el primer error ----------
+            if (errors.length > 0) {
+              return [errors[0]];
+            }
+            return [];
+
+
+
+
+
+            // VALIDACION VIEJA
+            // if (!code.replace(/\s/g, '').trim().includes("auto1={") && !code.replace(/\s/g, '').trim().includes("car1={")) {
+            //   seguirValidando = false;
+            //   return [{
+            //     es: "Debe crear un diccionario llamado 'auto1'.",
+            //     en: "It must create a dictionary named 'car1'.",
+            //     pt: "Deve criar um dicionário chamado 'car1'."
+            //   }];
+            // } else
+            //   // Verificar para auto1
+            //   if (code.replace(/\s/g, '').trim().includes("auto1={")) {
+            //     const auto1 = code.replace(/\s/g, '').trim().match(/auto1={(.*?)\}/s); // Obtener el contenido del diccionario auto1
+
+            //     if (!auto1[1].includes("color")) {
+            //       seguirValidando = false;
+            //       return [{
+            //         es: "El diccionario 'auto1' debe tener la clave 'color'.",
+            //         en: "The dictionary 'auto1' must have the key 'color'.",
+            //         pt: "O dicionário 'auto1' deve ter a chave 'color'."
+            //       }];
+            //     } else if (auto1[1].includes("color")) {
+            //       const keyRegex = new RegExp(`"color"\\s*:\\s*""`);
+            //       if (keyRegex.test(auto1[1])) {
+            //         seguirValidando = false;
+            //         return [{
+            //           es: `El diccionario 'auto1' debe tener la clave 'color' con un valor asignado.`,
+            //           en: `The dictionary 'auto1' must have the key 'color' with an assigned value.`,
+            //           pt: `O dicionário 'auto1' deve ter a chave 'color' com um valor atribuído.`
+            //         }];
+            //       }
+            //     }
+            //     else if (!auto1[1].includes("cantidad_puertas")) {
+            //       seguirValidando = false;
+            //       return [{
+            //         es: "El diccionario 'auto1' debe tener la clave 'cantidad_puertas'.",
+            //         en: "The dictionary 'auto1' must have the key 'cantidad_puertas'.",
+            //         pt: "O dicionário 'auto1' deve ter a chave 'cantidad_puertas'."
+            //       }];
+            //     } else if (auto1[1].includes("cantidad_puertas")) {
+            //       const keyRegex = new RegExp(`"cantidad_puertas"\\s*:\\s*""`);
+            //       if (keyRegex.test(auto1[1])) {
+            //         seguirValidando = false;
+            //         return [{
+            //           es: `El diccionario 'auto1' debe tener la clave 'cantidad_puertas' con un valor asignado.`,
+            //           en: `The dictionary 'auto1' must have the key 'door_quantity' with an assigned value.`,
+            //           pt: `O dicionário 'auto1' deve ter a chave 'cantidad_puertas' com um valor atribuído.`
+            //         }];
+            //       }
+            //     }
+            //     else if (!auto1[1].includes("marca")) {
+            //       seguirValidando = false;
+            //       return [{
+            //         es: "El diccionario 'auto1' debe tener la clave 'marca'.",
+            //         en: "The dictionary 'auto1' must have the key 'marca'.",
+            //         pt: "O dicionário 'auto1' deve ter a chave 'marca'."
+            //       }];
+            //     } else if (auto1[1].includes("marca")) {
+            //       const keyRegex = new RegExp(`"marca"\\s*:\\s*""`);
+            //       if (keyRegex.test(auto1[1])) {
+            //         seguirValidando = false;
+            //         return [{
+            //           es: `El diccionario 'auto1' debe tener la clave 'marca' con un valor asignado.`,
+            //           en: `The dictionary 'auto1' must have the key 'marca' with an assigned value.`,
+            //           pt: `O dicionário 'auto1' deve ter a chave 'marca' com um valor atribuído.`
+            //         }];
+            //       }
+            //     }
+            //   }
+            // if (code.replace(/\s/g, '').trim().includes("car1={")) {
+            //   const auto1 = code.replace(/\s/g, '').trim().match(/car1={(.*?)\}/s); // Obtener el contenido del diccionario auto1
+            //   if (!auto1[1].includes("color")) {
+            //     seguirValidando = false;
+            //     return [{
+            //       es: "El diccionario 'car1' debe tener la clave 'color'.",
+            //       en: "The dictionary 'car1' must have the key 'color'.",
+            //       pt: "O dicionário 'car1' deve ter a chave 'color'."
+            //     }];
+            //   } else if (auto1[1].includes("color")) {
+            //     const keyRegex = new RegExp(`"color"\\s*:\\s*""`);
+            //     if (keyRegex.test(auto1[1])) {
+            //       seguirValidando = false;
+            //       return [{
+            //         es: `El diccionario 'car1' debe tener la clave 'color' con un valor asignado.`,
+            //         en: `The dictionary 'car1' must have the key 'color' with an assigned value.`,
+            //         pt: `O dicionário 'car1' deve ter a chave 'color' com um valor atribuído.`
+            //       }];
+            //     }
+            //   }
+            //   else if (!auto1[1].includes("door_quantity")) {
+            //     seguirValidando = false;
+            //     return [{
+            //       es: "El diccionario 'car1' debe tener la clave 'door_quantity'.",
+            //       en: "The dictionary 'car1' must have the key 'door_quantity'.",
+            //       pt: "O dicionário 'car1' deve ter a chave 'door_quantity'."
+            //     }];
+            //   } else if (auto1[1].includes("door_quantity")) {
+            //     const keyRegex = new RegExp(`"door_quantity"\\s*:\\s*""`);
+            //     if (keyRegex.test(auto1[1])) {
+            //       seguirValidando = false;
+            //       return [{
+            //         es: `El diccionario 'car1' debe tener la clave 'door_quantity' con un valor asignado.`,
+            //         en: `The dictionary 'car1' must have the key 'door_quantity' with an assigned value.`,
+            //         pt: `O dicionário 'car1' deve ter a chave 'door_quantity' com um valor atribuído.`
+            //       }];
+            //     }
+            //   }
+            //   else if (!auto1[1].includes("brand")) {
+            //     seguirValidando = false;
+            //     return [{
+            //       es: "El diccionario 'car1' debe tener la clave 'brand'.",
+            //       en: "The dictionary 'car1' must have the key 'brand'.",
+            //       pt: "O dicionário 'car1' deve ter a chave 'brand'."
+            //     }];
+            //   } else if (auto1[1].includes("brand")) {
+            //     const keyRegex = new RegExp(`"brand"\\s*:\\s*""`);
+            //     if (keyRegex.test(auto1[1])) {
+            //       seguirValidando = false;
+            //       return [{
+            //         es: `El diccionario 'car1' debe tener la clave 'brand' con un valor asignado.`,
+            //         en: `The dictionary 'car1' must have the key 'brand' with an assigned value.`,
+            //         pt: `O dicionário 'car1' deve ter a chave 'brand' com um valor atribuído.`
+            //       }];
+            //     }
+            //   }
+            // }
+            // if (!code.replace(/\s/g, '').trim().includes("}auto2={") && !code.replace(/\s/g, '').trim().includes("}car2={")) {
+            //   seguirValidando = false;
+            //   return [{
+            //     es: "Debe crear un diccionario llamado 'auto2'.",
+            //     en: "It must create a dictionary named 'car2'.",
+            //     pt: "Deve criar um dicionário chamado 'auto2'."
+            //   }];
+            // } else
+            //   if (code.replace(/\s/g, '').trim().includes('"}auto2={"')) {
+            //     const auto2 = code.replace(/\s/g, '').trim().match(/auto2={(.*?)\}/s); // Obtener el contenido del diccionario auto2
+
+
+            //     if (!auto2[1].includes("color")) {
+            //       seguirValidando = false;
+            //       return [{
+            //         es: "El diccionario 'auto2' debe tener la clave 'color'.",
+            //         en: "The dictionary 'auto2' must have the key 'color'.",
+            //         pt: "O dicionário 'auto2' deve ter a chave 'color'."
+            //       }];
+            //     } else if (auto2[1].includes("color")) {
+            //       const keyRegex = new RegExp(`"color"\\s*:\\s*""`);
+            //       if (keyRegex.test(auto2[1])) {
+            //         seguirValidando = false;
+            //         return [{
+            //           es: `El diccionario 'auto2' debe tener la clave 'color' con un valor asignado.`,
+            //           en: `The dictionary 'auto2' must have the key 'color' with an assigned value.`,
+            //           pt: `O dicionário 'auto2' deve ter a chave 'color' com um valor atribuído.`
+            //         }];
+            //       }
+            //       else if (!auto2[1].includes("cantidad_puertas")) {
+            //         seguirValidando = false;
+            //         return [{
+            //           es: "El diccionario 'auto2' debe tener la clave 'cantidad_puertas'.",
+            //           en: "The dictionary 'auto2' must have the key 'cantidad_puertas'.",
+            //           pt: "O dicionário 'auto2' deve ter a chave 'cantidad_puertas'."
+            //         }];
+            //       } else if (auto2[1].includes("cantidad_puertas")) {
+            //         const keyRegex = new RegExp(`"cantidad_puertas"\\s*:\\s*""`);
+            //         if (keyRegex.test(auto2[1])) {
+            //           seguirValidando = false;
+            //           return [{
+            //             es: `El diccionario 'auto2' debe tener la clave 'cantidad_puertas' con un valor asignado.`,
+            //             en: `The dictionary 'auto2' must have the key 'cantidad_puertas' with an assigned value.`,
+            //             pt: `O dicionário 'auto2' deve ter a chave 'cantidad_puertas' com um valor atribuído.`
+            //           }];
+            //         }
+            //       }
+            //       else if (!auto2[1].includes("marca")) {
+            //         seguirValidando = false;
+            //         return [{
+            //           es: "El diccionario 'auto2' debe tener la clave 'marca'.",
+            //           en: "The dictionary 'auto2' must have the key 'marca'.",
+            //           pt: "O dicionário 'auto2' deve ter a chave 'marca'."
+            //         }];
+            //       } else if (auto2[1].includes("marca")) {
+            //         const keyRegex = new RegExp(`"marca"\\s*:\\s*""`);
+            //         if (keyRegex.test(auto2[1])) {
+            //           seguirValidando = false;
+            //           return [{
+            //             es: `El diccionario 'auto2' debe tener la clave 'marca' con un valor asignado.`,
+            //             en: `The dictionary 'auto2' must have the key 'marca' with an assigned value.`,
+            //             pt: `O dicionário 'auto2' deve ter a chave 'marca' com um valor atribuído.`
+            //           }];
+            //         }
+            //       }
+            //     }
+            //   }
+            // if (code.replace(/\s/g, '').trim().includes("car2={")) {
+            //   const auto2 = code.replace(/\s/g, '').trim().match(/car2={(.*?)\}/s); // Obtener el contenido del diccionario auto2
+            //   if (!auto2[1].includes("color")) {
+            //     seguirValidando = false;
+            //     return [{
+            //       es: "El diccionario 'car2' debe tener la clave 'color'.",
+            //       en: "The dictionary 'car2' must have the key 'color'.",
+            //       pt: "O dicionário 'car2' deve ter a chave 'color'."
+            //     }];
+            //   } else if (auto2[1].includes("color")) {
+            //     const keyRegex = new RegExp(`"color"\\s*:\\s*""`);
+            //     if (keyRegex.test(auto2[1])) {
+            //       seguirValidando = false;
+            //       return [{
+            //         es: `El diccionario 'car2' debe tener la clave 'color' con un valor asignado.`,
+            //         en: `The dictionary 'car2' must have the key 'color' with an assigned value.`,
+            //         pt: `O dicionário 'car2' deve ter a chave 'color' com um valor atribuído.`
+            //       }];
+            //     }
+            //   }
+            //   else if (!auto2[1].includes("door_quantity")) {
+            //     seguirValidando = false;
+            //     return [{
+            //       es: "El diccionario 'car2' debe tener la clave 'door_quantity'.",
+            //       en: "The dictionary 'car2' must have the key 'door_quantity'.",
+            //       pt: "O dicionário 'car2' deve ter a chave 'door_quantity'."
+            //     }];
+            //   } else if (auto2[1].includes("door_quantity")) {
+            //     const keyRegex = new RegExp(`"door_quantity"\\s*:\\s*""`);
+            //     if (keyRegex.test(auto2[1])) {
+            //       seguirValidando = false;
+            //       return [{
+            //         es: `El diccionario 'car2' debe tener la clave 'door_quantity' con un valor asignado.`,
+            //         en: `The dictionary 'car2' must have the key 'door_quantity' with an assigned value.`,
+            //         pt: `O dicionário 'car2' deve ter a chave 'door_quantity' com um valor atribuído.`
+            //       }];
+            //     }
+            //   }
+            //   else if (!auto2[1].includes("brand")) {
+            //     seguirValidando = false;
+            //     return [{
+            //       es: "El diccionario 'car2' debe tener la clave 'brand'.",
+            //       en: "The dictionary 'car2' must have the key 'brand'.",
+            //       pt: "O dicionário 'car2' deve ter a chave 'brand'."
+            //     }];
+            //   } else if (auto2[1].includes("brand")) {
+            //     const keyRegex = new RegExp(`"brand"\\s*:\\s*""`);
+            //     if (keyRegex.test(auto2[1])) {
+            //       seguirValidando = false;
+            //       return [{
+            //         es: `El diccionario 'car2' debe tener la clave 'brand' con un valor asignado.`,
+            //         en: `The dictionary 'car2' must have the key 'brand' with an assigned value.`,
+            //         pt: `O dicionário 'car2' deve ter a chave 'brand' com um valor atribuído.`
+            //       }];
+            //     }
+            //   }
+            // }
+
+            // if (!code.replace(/\s/g, '').trim().includes("}auto3={") && !code.replace(/\s/g, '').trim().includes("}car3={")) {
+            //   seguirValidando = false;
+            //   return [{
+            //     es: "Debe crear un diccionario llamado 'auto3'.",
+            //     en: "It must create a dictionary named 'auto3'.",
+            //     pt: "Deve criar um dicionário chamado 'auto3'."
+            //   }];
+            // }
+
+            // else if (code.replace(/\s/g, '').trim().includes("}auto3={")) {
+            //   const auto3 = code.replace(/\s/g, '').trim().match(/auto3={(.*?)\}/s); // Obtener el contenido del diccionario auto3
+
+            //   if (!auto3[1].includes("color")) {
+            //     seguirValidando = false;
+            //     return [{
+            //       es: "El diccionario 'auto3' debe tener la clave 'color'.",
+            //       en: "The dictionary 'auto3' must have the key 'color'.",
+            //       pt: "O dicionário 'auto3' deve ter a chave 'color'."
+            //     }];
+            //   } else if (auto3[1].includes("color")) {
+            //     const keyRegex = new RegExp(`"color"\\s*:\\s*""`);
+            //     if (keyRegex.test(auto3[1])) {
+            //       seguirValidando = false;
+            //       return [{
+            //         es: `El diccionario 'auto3' debe tener la clave 'color' con un valor asignado.`,
+            //         en: `The dictionary 'auto3' must have the key 'color' with an assigned value.`,
+            //         pt: `O dicionário 'auto3' deve ter a chave 'color' com um valor atribuído.`
+            //       }];
+            //     }
+            //   }
+            //   else if (!auto3[1].includes("cantidad_puertas")) {
+            //     seguirValidando = false;
+            //     return [{
+            //       es: "El diccionario 'auto3' debe tener la clave 'cantidad_puertas'.",
+            //       en: "The dictionary 'auto3' must have the key 'cantidad_puertas'.",
+            //       pt: "O dicionário 'auto3' deve ter a chave 'cantidad_puertas'."
+            //     }];
+            //   } else if (auto3[1].includes("cantidad_puertas")) {
+            //     const keyRegex = new RegExp(`"cantidad_puertas"\\s*:\\s*""`);
+            //     if (keyRegex.test(auto3[1])) {
+            //       seguirValidando = false;
+            //       return [{
+            //         es: `El diccionario 'auto3' debe tener la clave 'cantidad_puertas' con un valor asignado.`,
+            //         en: `The dictionary 'auto3' must have the key 'cantidad_puertas' with an assigned value.`,
+            //         pt: `O dicionário 'auto3' deve ter a chave 'cantidad_puertas' com um valor atribuído.`
+            //       }];
+            //     }
+            //   }
+            //   else if (!auto3[1].includes("marca")) {
+            //     seguirValidando = false;
+            //     return [{
+            //       es: "El diccionario 'auto3' debe tener la clave 'marca'.",
+            //       en: "The dictionary 'auto3' must have the key 'marca'.",
+            //       pt: "O dicionário 'auto3' deve ter a chave 'marca'."
+            //     }];
+            //   } else if (auto3[1].includes("marca")) {
+            //     const keyRegex = new RegExp(`"marca"\\s*:\\s*""`);
+            //     if (keyRegex.test(auto3[1])) {
+            //       seguirValidando = false;
+            //       return [{
+            //         es: `El diccionario 'auto3' debe tener la clave 'marca' con un valor asignado.`,
+            //         en: `The dictionary 'auto3' must have the key 'marca' with an assigned value.`,
+            //         pt: `O dicionário 'auto3' deve ter a chave 'marca' com um valor atribuído.`
+            //       }];
+            //     }
+            //   }
+            // }
+            // if (code.replace(/\s/g, '').trim().includes("car3={")) {
+            //   const auto3 = code.replace(/\s/g, '').trim().match(/car3={(.*?)\}/s); // Obtener el contenido del diccionario auto3
+            //   if (!auto3[1].includes("color")) {
+            //     seguirValidando = false;
+            //     return [{
+            //       es: "El diccionario 'car3' debe tener la clave 'color'.",
+            //       en: "The dictionary 'car3' must have the key 'color'.",
+            //       pt: "O dicionário 'car3' deve ter a chave 'color'."
+            //     }];
+            //   } else if (auto3[1].includes("color")) {
+            //     const keyRegex = new RegExp(`"color"\\s*:\\s*""`);
+            //     if (keyRegex.test(auto3[1])) {
+            //       seguirValidando = false;
+            //       return [{
+            //         es: `El diccionario 'car3' debe tener la clave 'color' con un valor asignado.`,
+            //         en: `The dictionary 'car3' must have the key 'color' with an assigned value.`,
+            //         pt: `O dicionário 'car3' deve ter a chave 'color' com um valor atribuído.`
+            //       }];
+            //     }
+            //   }
+            //   else if (!auto3[1].includes("door_quantity")) {
+            //     seguirValidando = false;
+            //     return [{
+            //       es: "El diccionario 'car3' debe tener la clave 'door_quantity'.",
+            //       en: "The dictionary 'car3' must have the key 'door_quantity'.",
+            //       pt: "O dicionário 'car3' deve ter a chave 'door_quantity'."
+            //     }];
+            //   } else if (auto3[1].includes("door_quantity")) {
+            //     const keyRegex = new RegExp(`"door_quantity"\\s*:\\s*""`);
+            //     if (keyRegex.test(auto3[1])) {
+            //       seguirValidando = false;
+            //       return [{
+            //         es: `El diccionario 'car3' debe tener la clave 'door_quantity' con un valor asignado.`,
+            //         en: `The dictionary 'car3' must have the key 'door_quantity' with an assigned value.`,
+            //         pt: `O dicionário 'car3' deve ter a chave 'door_quantity' com um valor atribuído.`
+            //       }];
+            //     }
+            //   }
+            //   else if (!auto3[1].includes("brand")) {
+            //     seguirValidando = false;
+            //     return [{
+            //       es: "El diccionario 'car3' debe tener la clave 'brand'.",
+            //       en: "The dictionary 'car3' must have the key 'brand'.",
+            //       pt: "O dicionário 'car3' deve ter a chave 'brand'."
+            //     }];
+            //   } else if (auto3[1].includes("brand")) {
+            //     const keyRegex = new RegExp(`"brand"\\s*:\\s*""`);
+            //     if (keyRegex.test(auto3[1])) {
+            //       seguirValidando = false;
+            //       return [{
+            //         es: `El diccionario 'car3' debe tener la clave 'brand' con un valor asignado.`,
+            //         en: `The dictionary 'car3' must have the key 'brand' with an assigned value.`,
+            //         pt: `O dicionário 'car3' deve ter a chave 'brand' com um valor atribuído.`
+            //       }];
+            //     }
+            //   }
+            // }
+
+            // if (!code.replace(/\s/g, '').trim().includes("}auto4={") && !code.replace(/\s/g, '').trim().includes("}car4={")) {
+            //   seguirValidando = false;
+            //   return [{
+            //     es: "Debe crear un diccionario llamado 'auto4'.",
+            //     en: "It must create a dictionary named 'auto4'.",
+            //     pt: "Deve criar um dicionário chamado 'auto4'."
+            //   }];
+            // } else
+            //   if (code.replace(/\s/g, '').trim().includes("}auto4={")) {
+            //     const auto4 = code.replace(/\s/g, '').trim().match(/auto4={(.*?)\}/s); // Obtener el contenido del diccionario auto4
+
+
+            //     if (!auto4[1].includes("color")) {
+            //       seguirValidando = false;
+            //       return [{
+            //         es: "El diccionario 'auto4' debe tener la clave 'color'.",
+            //         en: "The dictionary 'auto4' must have the key 'color'.",
+            //         pt: "O dicionário 'auto4' deve ter a chave 'color'."
+            //       }];
+            //     } else if (auto4[1].includes("color")) {
+            //       const keyRegex = new RegExp(`"color"\\s*:\\s*""`);
+            //       if (keyRegex.test(auto4[1])) {
+            //         seguirValidando = false;
+            //         return [{
+            //           es: `El diccionario 'auto4' debe tener la clave 'color' con un valor asignado.`,
+            //           en: `The dictionary 'auto4' must have the key 'color' with an assigned value.`,
+            //           pt: `O dicionário 'auto4' deve ter a chave 'color' com um valor atribuído.`
+            //         }];
+            //       }
+            //     }
+            //     else if (!auto4[1].includes("cantidad_puertas")) {
+            //       seguirValidando = false;
+            //       return [{
+            //         es: "El diccionario 'auto4' debe tener la clave 'cantidad_puertas'.",
+            //         en: "The dictionary 'auto4' must have the key 'cantidad_puertas'.",
+            //         pt: "O dicionário 'auto4' deve ter a chave 'cantidad_puertas'."
+            //       }];
+            //     } else if (auto4[1].includes("cantidad_puertas")) {
+            //       const keyRegex = new RegExp(`"cantidad_puertas"\\s*:\\s*""`);
+            //       if (keyRegex.test(auto4[1])) {
+            //         seguirValidando = false;
+            //         return [{
+            //           es: `El diccionario 'auto4' debe tener la clave 'cantidad_puertas' con un valor asignado.`,
+            //           en: `The dictionary 'auto4' must have the key 'cantidad_puertas' with an assigned value.`,
+            //           pt: `O dicionário 'auto4' deve ter a chave 'cantidad_puertas' com um valor atribuído.`
+            //         }];
+            //       }
+            //     }
+            //     else if (!auto4[1].includes("marca")) {
+            //       seguirValidando = false;
+            //       return [{
+            //         es: "El diccionario 'auto4' debe tener la clave 'marca'.",
+            //         en: "The dictionary 'auto4' must have the key 'marca'.",
+            //         pt: "O dicionário 'auto4' deve ter a chave 'marca'."
+            //       }];
+            //     } else if (auto4[1].includes("marca")) {
+            //       const keyRegex = new RegExp(`"marca"\\s*:\\s*""`);
+            //       if (keyRegex.test(auto4[1])) {
+            //         seguirValidando = false;
+            //         return [{
+            //           es: `El diccionario 'auto4' debe tener la clave 'marca' con un valor asignado.`,
+            //           en: `The dictionary 'auto4' must have the key 'marca' with an assigned value.`,
+            //           pt: `O dicionário 'auto4' deve ter a chave 'marca' com um valor atribuído.`
+            //         }];
+            //       }
+            //     }
+            //   }
+            // if (code.replace(/\s/g, '').trim().includes("car4={")) {
+            //   const auto4 = code.replace(/\s/g, '').trim().match(/car4={(.*?)\}/s); // Obtener el contenido del diccionario auto4
+            //   if (!auto4[1].includes("color")) {
+            //     seguirValidando = false;
+            //     return [{
+            //       es: "El diccionario 'car4' debe tener la clave 'color'.",
+            //       en: "The dictionary 'car4' must have the key 'color'.",
+            //       pt: "O dicionário 'car4' deve ter a chave 'color'."
+            //     }];
+            //   } else if (auto4[1].includes("color")) {
+            //     const keyRegex = new RegExp(`"color"\\s*:\\s*""`);
+            //     if (keyRegex.test(auto4[1])) {
+            //       seguirValidando = false;
+            //       return [{
+            //         es: `El diccionario 'car4' debe tener la clave 'color' con un valor asignado.`,
+            //         en: `The dictionary 'car4' must have the key 'color' with an assigned value.`,
+            //         pt: `O dicionário 'car4' deve ter a chave 'color' com um valor atribuído.`
+            //       }];
+            //     }
+            //   }
+            //   else if (!auto4[1].includes("door_quantity")) {
+            //     seguirValidando = false;
+            //     return [{
+            //       es: "El diccionario 'car4' debe tener la clave 'door_quantity'.",
+            //       en: "The dictionary 'car4' must have the key 'door_quantity'.",
+            //       pt: "O dicionário 'car4' deve ter a chave 'door_quantity'."
+            //     }];
+            //   } else if (auto4[1].includes("door_quantity")) {
+            //     const keyRegex = new RegExp(`"door_quantity"\\s*:\\s*""`);
+            //     if (keyRegex.test(auto4[1])) {
+            //       seguirValidando = false;
+            //       return [{
+            //         es: `El diccionario 'car4' debe tener la clave 'door_quantity' con un valor asignado.`,
+            //         en: `The dictionary 'car4' must have the key 'door_quantity' with an assigned value.`,
+            //         pt: `O dicionário 'car4' deve ter a chave 'door_quantity' com um valor atribuído.`
+            //       }];
+            //     }
+            //   }
+            //   else if (!auto4[1].includes("brand")) {
+            //     seguirValidando = false;
+            //     return [{
+            //       es: "El diccionario 'car4' debe tener la clave 'brand'.",
+            //       en: "The dictionary 'car4' must have the key 'brand'.",
+            //       pt: "O dicionário 'car4' deve ter a chave 'brand'."
+            //     }];
+            //   } else if (auto4[1].includes("brand")) {
+            //     const keyRegex = new RegExp(`"brand"\\s*:\\s*""`);
+            //     if (keyRegex.test(auto4[1])) {
+            //       seguirValidando = false;
+            //       return [{
+            //         es: `El diccionario 'car4' debe tener la clave 'brand' con un valor asignado.`,
+            //         en: `The dictionary 'car4' must have the key 'brand' with an assigned value.`,
+            //         pt: `O dicionário 'car4' deve ter a chave 'brand' com um valor atribuído.`
+            //       }];
+            //     }
+            //   }
+            // }
+
+            // if (!code.replace(/\s/g, '').trim().includes('"}auto2["color"]=') && !code.replace(/\s/g, '').trim().includes("}auto2['color']=") && !code.replace(/\s/g, '').trim().includes('"}car2["color"]=') && !code.replace(/\s/g, '').trim().includes("}car2['color]=")) {
+            //   seguirValidando = false;
+            //   return [{
+            //     es: "Debe modificar el color del auto2.",
+            //     en: "It must modify the color of car2.",
+            //     pt: "Deve modificar a cor do auto2."
+            //   }];
+            // } else if (!code.includes('print(auto2["color"])') && !code.includes("print(auto2['color'])") && !code.includes('print(car2["color"])') && !code.includes("print(car2['color'])")) {
+            //   seguirValidando = false;
+            //   return [{
+            //     es: "Debe mostrar el color del auto2.",
+            //     en: "It must display the color of car2.",
+            //     pt: "Deve exibir a cor do auto2."
+            //   }];
+            // }
 
           })
       }
-      // {
-      //   "description":"El código debe solicitar una palabra al usuario y mostrar su traducción.",
-      //   "test":(assert) => assert
-      //   .$variable("palabra")
-      //   .withAssignation("input()")
-      //   .$variable("traduccion")
-      //   .withAssignation("traducciones.get(palabra)")
-      //   .$functionCall("print")
-      //   .withArguments(["\"La traducción de \" + palabra + \" es: \" + traduccion"])
-      // }
+
     ]
   },
   {
