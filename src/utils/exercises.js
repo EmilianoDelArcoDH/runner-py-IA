@@ -5302,103 +5302,260 @@ export const exercises = [
         "test": (assert) => assert
           .$custom(code => {
 
-            if (!code.replace(/\s+/g, '').trim().includes("superheroe={}") && !code.replace(/\s+/g, '').trim().includes("superhero={")) {
-              return [{
+            const errors = [];
+            const raw = (code || "").toString();
+            const compact = raw.replace(/\s+/g, "").trim();
+
+            const stopAndReturn = (msg) => {
+              // por si usás seguirValidando en otras validaciones
+              if (typeof seguirValidando !== "undefined") {
+                seguirValidando = false;
+              }
+              errors.push(msg);
+            };
+
+            // 1) Diccionario vacío superheroe / superhero
+            const hasDictEs = compact.includes("superheroe={}");
+            const hasDictEn = compact.includes("superhero={}");
+            if (!hasDictEs && !hasDictEn) {
+              stopAndReturn({
                 es: "Debes crear un diccionario llamado 'superheroe' vacío sin propiedades.",
                 en: "You must create an empty dictionary called 'superhero' without properties.",
                 pt: "Você deve criar um dicionário vazio chamado 'superheroe' sem propriedades."
-              }]
-            } else if (!code.includes('superheroe["nombre"]') && !code.includes('superhero["name"]')) {
-              seguirValidando = false;
+              });
+            }
 
-              return [{
-                es: "Debes agregar la propiedad 'nombre' utilizando la funcionalidad variable[“clave”] = valor.",
-                en: "You must add the 'name' property using the variable[“key”] = value functionality.",
-                pt: "Você deve adicionar a propriedade 'nome' usando a funcionalidade variável[“chave”] = valor."
+            // 2) Propiedad nombre / name
+            const hasNombre =
+              raw.includes('superheroe["nombre"]') ||
+              raw.includes("superheroe['nombre']") ||
+              raw.includes('superhero["name"]') ||
+              raw.includes("superhero['name']");
+            if (!hasNombre) {
+              stopAndReturn({
+                es: "Debes agregar la propiedad 'nombre' utilizando la sintaxis variable[\"clave\"] = valor.",
+                en: "You must add the 'name' property using the syntax variable[\"key\"] = value.",
+                pt: "Você deve adicionar a propriedade 'nome' usando a sintaxe variável[\"chave\"] = valor."
+              });
+            }
 
-              }];
-            } else if (!code.includes('superheroe["edad"]') && !code.includes('superhero["age"]')) {
-              seguirValidando = false;
-              return [{
-                es: "Debes agregar la propiedad 'edad' utilizando la funcionalidad variable[“clave”] = valor.",
-                en: "You must add the 'age' property using the variable[“key”] = value functionality.",
-                pt: "Você deve adicionar a propriedade 'idade' usando a funcionalidade variável[“chave”] = valor."
-              }];
-            } else if (!code.includes('superheroe["ciudad"]') && !code.includes('superhero["city"]')) {
-              seguirValidando = false;
-              return [{
-                es: "Debes agregar la propiedad 'ciudad' utilizando la funcionalidad variable[“clave”] = valor.",
-                en: "You must add the 'city' property using the variable[“key”] = value functionality.",
-                pt: "Você deve adicionar a propriedade 'cidade' usando a funcionalidade variável[“chave”] = valor."
-              }];
-            } else if (!code.includes('superheroe["identidadSecreta"]') && !code.includes('superhero["secretIdentity"]')) {
-              seguirValidando = false;
-              return [{
-                es: "Debes agregar la propiedad 'identidadSecreta' utilizando la funcionalidad variable[“clave”] = valor.",
-                en: "You must add the 'secretIdentity' property using the variable[“key”] = value functionality.",
-                pt: "Você deve adicionar a propriedade 'identidadeSecreta' usando a funcionalidade variável[“chave”] = valor."
-              }];
-            } else if (!code.includes('superheroe["enemigos"]') && !code.includes('superhero["enemies"]')) {
-              seguirValidando = false;
-              return [{
-                es: "Debes agregar la propiedad 'enemigos' utilizando la funcionalidad variable[“clave”] = valor.",
-                en: "You must add the 'enemies' property using the variable[“key”] = value functionality.",
-                pt: "Você deve adicionar a propriedade 'inimigos' usando a funcionalidade variável[“chave”] = valor."
-              }];
+            // 3) Propiedad edad / age
+            const hasEdad =
+              raw.includes('superheroe["edad"]') ||
+              raw.includes("superheroe['edad']") ||
+              raw.includes('superhero["age"]') ||
+              raw.includes("superhero['age']");
+            if (!hasEdad) {
+              stopAndReturn({
+                es: "Debes agregar la propiedad 'edad' utilizando la sintaxis variable[\"clave\"] = valor.",
+                en: "You must add the 'age' property using the syntax variable[\"key\"] = value.",
+                pt: "Você deve adicionar a propriedade 'idade' usando a sintaxe variável[\"chave\"] = valor."
+              });
+            }
 
-            } else if (!code.replace(/\s+/g, '').trim().includes('superheroe["poderes"]=') && !code.replace(/\s+/g, '').trim().includes('superhero["powers"]=')) {
-              seguirValidando = false;
-              return [{
-                es: "Debes agregar la propiedad 'poderes' utilizando la funcionalidad variable[“clave”] = valor.",
-                en: "You must add the 'powers' property using the variable[“key”] = value functionality.",
-                pt: "Você deve adicionar a propriedade 'poderes' usando a funcionalidade variável[“chave”] = valor."
-              }];
-            } else if (code.replace(/\s+/g, '').trim().includes('superheroe["poderes"]=[') || code.replace(/\s+/g, '').trim().includes('superhero["powers"]=[')) {
-              const match = code.match(/superheroe\["poderes"\]\s*=\s*\[(.*?)\]/);
-              // console.log(match);
+            // 4) Propiedad ciudad / city
+            const hasCiudad =
+              raw.includes('superheroe["ciudad"]') ||
+              raw.includes("superheroe['ciudad']") ||
+              raw.includes('superhero["city"]') ||
+              raw.includes("superhero['city']");
+            if (!hasCiudad) {
+              stopAndReturn({
+                es: "Debes agregar la propiedad 'ciudad' utilizando la sintaxis variable[\"clave\"] = valor.",
+                en: "You must add the 'city' property using the syntax variable[\"key\"] = value.",
+                pt: "Você deve adicionar a propriedade 'cidade' usando a sintaxe variável[\"chave\"] = valor."
+              });
+            }
 
-              const match2 = code.match(/superhero\["powers"\]\s*=\s*\[(.*?)\]/);
-              if (match || match2) {
-                const poderes = match ? match[1] : null;
-                const poderes2 = match2 ? match2[1] : null;
+            // 5) Propiedad identidadSecreta / secretIdentity
+            const hasIdentidadSecreta =
+              raw.includes('superheroe["identidadSecreta"]') ||
+              raw.includes("superheroe['identidadSecreta']") ||
+              raw.includes('superhero["secretIdentity"]') ||
+              raw.includes("superhero['secretIdentity']");
+            if (!hasIdentidadSecreta) {
+              stopAndReturn({
+                es: "Debes agregar la propiedad 'identidadSecreta' utilizando la sintaxis variable[\"clave\"] = valor.",
+                en: "You must add the 'secretIdentity' property using the syntax variable[\"key\"] = value.",
+                pt: "Você deve adicionar a propriedade 'identidadeSecreta' usando a sintaxe variável[\"chave\"] = valor."
+              });
+            }
 
-                // Preferimos el que exista
-                const poderesContent = poderes !== null ? poderes : poderes2;
+            // 6) Propiedad enemigos / enemies
+            const hasEnemigos =
+              raw.includes('superheroe["enemigos"]') ||
+              raw.includes("superheroe['enemigos']") ||
+              raw.includes('superhero["enemies"]') ||
+              raw.includes("superhero['enemies']");
+            if (!hasEnemigos) {
+              stopAndReturn({
+                es: "Debes agregar la propiedad 'enemigos' utilizando la sintaxis variable[\"clave\"] = valor.",
+                en: "You must add the 'enemies' property using the syntax variable[\"key\"] = value.",
+                pt: "Você deve adicionar a propriedade 'inimigos' usando a sintaxe variável[\"chave\"] = valor."
+              });
+            }
 
-                // console.log("Contenido dentro de los corchetes:", poderesContent);
+            // 7) Propiedad poderes / powers
+            const hasPoderesKey =
+              compact.includes('superheroe["poderes"]=') ||
+              compact.includes("superheroe['poderes']=") ||
+              compact.includes('superhero["powers"]=') ||
+              compact.includes("superhero['powers']=");
 
-                if (poderesContent !== null) {
-                  const listaPoderes = poderesContent.split(",").map(poder => poder.trim()).filter(p => p !== "");
-                  // console.log("Lista de poderes:", listaPoderes);
+            if (!hasPoderesKey) {
+              stopAndReturn({
+                es: "Debes agregar la propiedad 'poderes' utilizando la sintaxis variable[\"clave\"] = valor.",
+                en: "You must add the 'powers' property using the syntax variable[\"key\"] = value.",
+                pt: "Você deve adicionar a propriedade 'poderes' usando a sintaxe variável[\"chave\"] = valor."
+              });
+            } else {
+              // Aceptar lista en varias líneas
+              const matchEs = raw.match(/superheroe\["poderes"\]\s*=\s*\[([\s\S]*?)\]/);
+              const matchEn = raw.match(/superhero\["powers"\]\s*=\s*\[([\s\S]*?)\]/);
+              const match = matchEs || matchEn;
 
-                  if (listaPoderes.length > 1) {
-                    // Lista válida
-                  } else {
-                    seguirValidando = false;
-                    return [{
-                      es: "Debes agregar más de un poder a la lista de 'poderes'.",
-                      en: "You must add more than one power to the 'powers' list.",
-                      pt: "Você deve adicionar mais de um poder à lista de 'poderes'."
-                    }];
-                  }
+              if (!match) {
+                stopAndReturn({
+                  es: "Debes agregar una lista de poderes como valor en la propiedad 'poderes'.",
+                  en: "You must add a list of powers as the value in the 'powers' property.",
+                  pt: "Você deve adicionar uma lista de poderes como valor na propriedade 'poderes'."
+                });
+              } else {
+                const contenido = match[1]; // lo que está dentro de [ ... ]
+                const listaPoderes = contenido
+                  .split(",")
+                  .map(p => p.trim())
+                  .filter(p => p !== "");
+
+                if (listaPoderes.length < 2) {
+                  stopAndReturn({
+                    es: "Debes agregar más de un poder a la lista de 'poderes'.",
+                    en: "You must add more than one power to the 'powers' list.",
+                    pt: "Você deve adicionar mais de um poder à lista de 'poderes'."
+                  });
                 }
               }
-            } else {
-              seguirValidando = false;
-              return [{
-                es: "Debes agregar una lista de poderes como valor en la propiedad 'poderes'.",
-                en: "You must add a list of powers as the value in the 'powers' property.",
-                pt: "Você deve adicionar uma lista de poderes como valor na propriedade 'poderes'."
-              }]
             }
-            if (!code.replace(/\s+/g, '').trim().includes('print(superheroe)') && !code.replace(/\s+/g, '').trim().includes('print(superhero)')) {
-              seguirValidando = false;
-              return [{
-                es: "Debe mostrar el diccionario 'superheroe'.",
-                en: "It must display the dictionary 'superhero'.",
-                pt: "Deve exibir o dicionário 'superheroe'."
-              }];
+
+            // 8) Mostrar el diccionario
+            const printsDict =
+              compact.includes("print(superheroe)") ||
+              compact.includes("print(superhero)");
+            if (!printsDict) {
+              stopAndReturn({
+                es: "Debes mostrar el diccionario 'superheroe' utilizando print().",
+                en: "You must display the 'superhero' dictionary using print().",
+                pt: "Você deve exibir o dicionário 'superheroe' usando print()."
+              });
             }
+
+            // Devolver solo el primer error (si hay)
+            if (errors.length > 0) {
+              return [errors[0]];
+            }
+            return [];
+
+
+
+
+            //VALIDACION VIEJA
+            // if (!code.replace(/\s+/g, '').trim().includes("superheroe={}") && !code.replace(/\s+/g, '').trim().includes("superhero={")) {
+            //   return [{
+            //     es: "Debes crear un diccionario llamado 'superheroe' vacío sin propiedades.",
+            //     en: "You must create an empty dictionary called 'superhero' without properties.",
+            //     pt: "Você deve criar um dicionário vazio chamado 'superheroe' sem propriedades."
+            //   }]
+            // } else if (!code.includes('superheroe["nombre"]') && !code.includes('superhero["name"]')) {
+            //   seguirValidando = false;
+
+            //   return [{
+            //     es: "Debes agregar la propiedad 'nombre' utilizando la funcionalidad variable[“clave”] = valor.",
+            //     en: "You must add the 'name' property using the variable[“key”] = value functionality.",
+            //     pt: "Você deve adicionar a propriedade 'nome' usando a funcionalidade variável[“chave”] = valor."
+
+            //   }];
+            // } else if (!code.includes('superheroe["edad"]') && !code.includes('superhero["age"]')) {
+            //   seguirValidando = false;
+            //   return [{
+            //     es: "Debes agregar la propiedad 'edad' utilizando la funcionalidad variable[“clave”] = valor.",
+            //     en: "You must add the 'age' property using the variable[“key”] = value functionality.",
+            //     pt: "Você deve adicionar a propriedade 'idade' usando a funcionalidade variável[“chave”] = valor."
+            //   }];
+            // } else if (!code.includes('superheroe["ciudad"]') && !code.includes('superhero["city"]')) {
+            //   seguirValidando = false;
+            //   return [{
+            //     es: "Debes agregar la propiedad 'ciudad' utilizando la funcionalidad variable[“clave”] = valor.",
+            //     en: "You must add the 'city' property using the variable[“key”] = value functionality.",
+            //     pt: "Você deve adicionar a propriedade 'cidade' usando a funcionalidade variável[“chave”] = valor."
+            //   }];
+            // } else if (!code.includes('superheroe["identidadSecreta"]') && !code.includes('superhero["secretIdentity"]')) {
+            //   seguirValidando = false;
+            //   return [{
+            //     es: "Debes agregar la propiedad 'identidadSecreta' utilizando la funcionalidad variable[“clave”] = valor.",
+            //     en: "You must add the 'secretIdentity' property using the variable[“key”] = value functionality.",
+            //     pt: "Você deve adicionar a propriedade 'identidadeSecreta' usando a funcionalidade variável[“chave”] = valor."
+            //   }];
+            // } else if (!code.includes('superheroe["enemigos"]') && !code.includes('superhero["enemies"]')) {
+            //   seguirValidando = false;
+            //   return [{
+            //     es: "Debes agregar la propiedad 'enemigos' utilizando la funcionalidad variable[“clave”] = valor.",
+            //     en: "You must add the 'enemies' property using the variable[“key”] = value functionality.",
+            //     pt: "Você deve adicionar a propriedade 'inimigos' usando a funcionalidade variável[“chave”] = valor."
+            //   }];
+
+            // } else if (!code.replace(/\s+/g, '').trim().includes('superheroe["poderes"]=') && !code.replace(/\s+/g, '').trim().includes('superhero["powers"]=')) {
+            //   seguirValidando = false;
+            //   return [{
+            //     es: "Debes agregar la propiedad 'poderes' utilizando la funcionalidad variable[“clave”] = valor.",
+            //     en: "You must add the 'powers' property using the variable[“key”] = value functionality.",
+            //     pt: "Você deve adicionar a propriedade 'poderes' usando a funcionalidade variável[“chave”] = valor."
+            //   }];
+            // } else if (code.replace(/\s+/g, '').trim().includes('superheroe["poderes"]=[') || code.replace(/\s+/g, '').trim().includes('superhero["powers"]=[')) {
+            //   const match = code.match(/superheroe\["poderes"\]\s*=\s*\[(.*?)\]/);
+            //   // console.log(match);
+
+            //   const match2 = code.match(/superhero\["powers"\]\s*=\s*\[(.*?)\]/);
+            //   if (match || match2) {
+            //     const poderes = match ? match[1] : null;
+            //     const poderes2 = match2 ? match2[1] : null;
+
+            //     // Preferimos el que exista
+            //     const poderesContent = poderes !== null ? poderes : poderes2;
+
+            //     // console.log("Contenido dentro de los corchetes:", poderesContent);
+
+            //     if (poderesContent !== null) {
+            //       const listaPoderes = poderesContent.split(",").map(poder => poder.trim()).filter(p => p !== "");
+            //       // console.log("Lista de poderes:", listaPoderes);
+
+            //       if (listaPoderes.length > 1) {
+            //         // Lista válida
+            //       } else {
+            //         seguirValidando = false;
+            //         return [{
+            //           es: "Debes agregar más de un poder a la lista de 'poderes'.",
+            //           en: "You must add more than one power to the 'powers' list.",
+            //           pt: "Você deve adicionar mais de um poder à lista de 'poderes'."
+            //         }];
+            //       }
+            //     }
+            //   }
+            // } else {
+            //   seguirValidando = false;
+            //   return [{
+            //     es: "Debes agregar una lista de poderes como valor en la propiedad 'poderes'.",
+            //     en: "You must add a list of powers as the value in the 'powers' property.",
+            //     pt: "Você deve adicionar uma lista de poderes como valor na propriedade 'poderes'."
+            //   }]
+            // }
+            // if (!code.replace(/\s+/g, '').trim().includes('print(superheroe)') && !code.replace(/\s+/g, '').trim().includes('print(superhero)')) {
+            //   seguirValidando = false;
+            //   return [{
+            //     es: "Debe mostrar el diccionario 'superheroe'.",
+            //     en: "It must display the dictionary 'superhero'.",
+            //     pt: "Deve exibir o dicionário 'superheroe'."
+            //   }];
+            // }
 
           })
       },
@@ -5422,1062 +5579,1225 @@ export const exercises = [
           .$custom(code => {
             // console.log(code.replace(/\s/g, '').trim());
 
-            if (code.replace(/\s/g, '').trim().includes("pelicula1={")) {
-              const pelicula1 = code.match(/pelicula1 = \{(.*?)\}/s); // Obtener el contenido del diccionario pelicula1
+            const errors = [];
+            const raw = (code || "").toString();
+            const compact = raw.replace(/\s+/g, "").trim();
 
-              if (!pelicula1[1].includes("título")) {
+            const stopAndReturn = (msg) => {
+              if (typeof seguirValidando !== "undefined") {
                 seguirValidando = false;
-                return [{
-                  es: "El diccionario 'pelicula1' debe tener la clave 'título'.",
-                  en: "The dictionary 'pelicula1' must have the key 'título'.",
-                  pt: "O dicionário 'pelicula1' deve ter a chave 'título'."
-                }];
-              } else if (pelicula1[1].includes("título")) {
-                const keyRegex = new RegExp(`"título"\\s*:\\s*""`);
-                if (keyRegex.test(pelicula1[1])) {
-                  seguirValidando = false;
-                  return [{
-                    es: `El diccionario 'pelicula1' debe tener la clave 'título' con un valor asignado.`,
-                    en: `The dictionary 'movie1' must have the key 'title' with an assigned value.`,
-                    pt: `O dicionário 'pelicula1' deve ter a chave 'título' com um valor atribuído.`
-                  }];
-                }
               }
-              else if (!pelicula1[1].includes("protagonista")) {
-                seguirValidando = false;
-                return [{
-                  es: "El diccionario 'pelicula1' debe tener la clave 'protagonista'.",
-                  en: "The dictionary 'movie1' must have the key 'protagonista'.",
-                  pt: "O dicionário 'pelicula1' deve ter a chave 'protagonista'."
-                }];
-              } else if (pelicula1[1].includes("protagonista")) {
-                const keyRegex = new RegExp(`"protagonista"\\s*:\\s*""`);
-                if (keyRegex.test(pelicula1[1])) {
-                  seguirValidando = false;
-                  return [{
-                    es: `El diccionario 'pelicula1' debe tener la clave 'protagonista' con un valor asignado.`,
-                    en: `The dictionary 'movie1' must have the key 'protagonista' with an assigned value.`,
-                    pt: `O dicionário 'pelicula1' deve ter a chave 'protagonista' com um valor atribuído.`
-                  }];
-                }
+              errors.push(msg);
+            };
+
+            // Helper para buscar diccionario peliculaN / movieN
+            const getDictMatch = (n) => {
+              const reEs = new RegExp(`pelicula${n}\\s*=\\s*\\{([\\s\\S]*?)\\}`, "m");
+              const reEn = new RegExp(`movie${n}\\s*=\\s*\\{([\\s\\S]*?)\\}`, "m");
+              const mEs = raw.match(reEs);
+              const mEn = raw.match(reEn);
+              if (mEs) return { name: `pelicula${n}`, content: mEs[1] };
+              if (mEn) return { name: `movie${n}`, content: mEn[1] };
+              return null;
+            };
+
+            const hasKey = (content, possibleKeys) => {
+              return possibleKeys.some(k =>
+                content.includes(`"${k}"`) || content.includes(`'${k}'`)
+              );
+            };
+
+            const keyIsEmpty = (content, possibleKeys) => {
+              return possibleKeys.some(k => {
+                const re = new RegExp(
+                  `["']${k}["']\\s*:\\s*["']\\s*["']`
+                );
+                return re.test(content);
+              });
+            };
+
+            // Valida un diccionario peliculaN/movieN
+            const validateMovieDict = (n) => {
+              const dict = getDictMatch(n);
+              if (!dict) {
+                stopAndReturn({
+                  es: `Debe crear un diccionario llamado 'pelicula${n}'.`,
+                  en: `You must create a dictionary named 'pelicula${n}'.`,
+                  pt: `Você deve criar um dicionário chamado 'pelicula${n}'.`
+                });
+                return;
               }
-              else if (!pelicula1[1].includes("genero")) {
-                seguirValidando = false;
-                return [{
-                  es: "El diccionario 'pelicula1' debe tener la clave 'genero'.",
-                  en: "The dictionary 'pelicula1' must have the key 'genre'.",
-                  pt: "O dicionário 'pelicula1' deve ter a chave 'genero'."
-                }];
-              } else if (pelicula1[1].includes("genero")) {
-                const keyRegex = new RegExp(`"genero"\\s*:\\s*""`);
-                if (keyRegex.test(pelicula1[1])) {
-                  seguirValidando = false;
-                  return [{
-                    es: `El diccionario 'pelicula1' debe tener la clave 'genero' con un valor asignado.`,
-                    en: `The dictionary 'movie1' must have the key 'genre' with an assigned value.`,
-                    pt: `O dicionário 'pelicula1' deve ter a chave 'genero' com um valor atribuído.`
-                  }];
-                }
+
+              const { name, content } = dict;
+
+              // 1) título / title
+              const titleKeys = ["título", "titulo", "title"];
+              if (!hasKey(content, titleKeys)) {
+                stopAndReturn({
+                  es: `El diccionario '${name}' debe tener la clave 'título'.`,
+                  en: `The dictionary '${name}' must have the key 'title'.`,
+                  pt: `O dicionário '${name}' deve ter a chave 'title'.`
+                });
+                return;
               }
-              else if (!pelicula1[1].includes("duracion")) {
-                seguirValidando = false;
-                return [{
-                  es: "El diccionario 'pelicula1' debe tener la clave 'duracion'.",
-                  en: "The dictionary 'pelicula1' must have the key 'duration'.",
-                  pt: "O dicionário 'pelicula1' deve ter a chave 'duracion'."
-                }];
-              } else if (pelicula1[1].includes("duracion")) {
-                const keyRegex = new RegExp(`"duracion"\\s*:\\s*""`);
-                if (keyRegex.test(pelicula1[1])) {
-                  seguirValidando = false;
-                  return [{
-                    es: `El diccionario 'pelicula1' debe tener la clave 'duracion' con un valor asignado.`,
-                    en: `The dictionary 'movie1' must have the key 'duration' with an assigned value.`,
-                    pt: `O dicionário 'pelicula1' deve ter a chave 'duracion' com um valor atribuído.`
-                  }];
-                }
+              if (keyIsEmpty(content, titleKeys)) {
+                stopAndReturn({
+                  es: `El diccionario '${name}' debe tener la clave 'título' con un valor asignado.`,
+                  en: `The dictionary '${name}' must have the key 'title' with an assigned value.`,
+                  pt: `O dicionário '${name}' deve ter a chave 'title' com um valor atribuído.`
+                });
+                return;
+              }
+
+              // 2) protagonista / protagonist
+              const protKeys = ["protagonista", "protagonist"];
+              if (!hasKey(content, protKeys)) {
+                stopAndReturn({
+                  es: `El diccionario '${name}' debe tener la clave 'protagonista'.`,
+                  en: `The dictionary '${name}' must have the key 'protagonist'.`,
+                  pt: `O dicionário '${name}' deve ter a chave 'protagonist'.`
+                });
+                return;
+              }
+              if (keyIsEmpty(content, protKeys)) {
+                stopAndReturn({
+                  es: `El diccionario '${name}' debe tener la clave 'protagonista' con un valor asignado.`,
+                  en: `The dictionary '${name}' must have the key 'protagonist' with an assigned value.`,
+                  pt: `O dicionário '${name}' deve ter a chave 'protagonist' com um valor atribuído.`
+                });
+                return;
+              }
+
+              // 3) genero / genre
+              const genreKeys = ["genero", "género", "genre"];
+              if (!hasKey(content, genreKeys)) {
+                stopAndReturn({
+                  es: `El diccionario '${name}' debe tener la clave 'genero'.`,
+                  en: `The dictionary '${name}' must have the key 'genre'.`,
+                  pt: `O dicionário '${name}' deve ter a chave 'genre'.`
+                });
+                return;
+              }
+              if (keyIsEmpty(content, genreKeys)) {
+                stopAndReturn({
+                  es: `El diccionario '${name}' debe tener la clave 'genero' con un valor asignado.`,
+                  en: `The dictionary '${name}' must have the key 'genre' with an assigned value.`,
+                  pt: `O dicionário '${name}' deve ter a chave 'genre' com um valor atribuído.`
+                });
+                return;
+              }
+
+              // 4) duracion / duration
+              const durKeys = ["duracion", "duración", "duration"];
+              if (!hasKey(content, durKeys)) {
+                stopAndReturn({
+                  es: `El diccionario '${name}' debe tener la clave 'duracion'.`,
+                  en: `The dictionary '${name}' must have the key 'duration'.`,
+                  pt: `O dicionário '${name}' deve ter a chave 'duration'.`
+                });
+                return;
+              }
+              if (keyIsEmpty(content, durKeys)) {
+                stopAndReturn({
+                  es: `El diccionario '${name}' debe tener la clave 'duracion' con un valor asignado.`,
+                  en: `The dictionary '${name}' must have the key 'duration' with an assigned value.`,
+                  pt: `O dicionário '${name}' deve ter a chave 'duration' com um valor atribuído.`
+                });
+                return;
+              }
+            };
+
+            // Validar pelicula1..pelicula6 / movie1..movie6
+            for (let i = 1; i <= 6; i++) {
+              if (errors.length === 0) {
+                validateMovieDict(i);
               }
             }
-            if (!code.replace(/\s/g, '').trim().includes('pelicula1={"')) {
-              seguirValidando = false;
-              return [{
-                es: "Debe crear un diccionario llamado 'pelicula1'.",
-                en: "It must create a dictionary named 'pelicula1'.",
-                pt: "Deve criar um dicionário chamado 'pelicula1'."
-              }];
-            }
-            else if (code.replace(/\s/g, '').trim().includes("movie1={")) {
-              const pelicula1 = code.replace(/\s/g, '').trim().match(/movie1={(.*?)\}/s); // Obtener el contenido del diccionario pelicula1
-              if (!pelicula1[1].includes("title")) {
-                seguirValidando = false;
-                return [{
-                  es: "El diccionario 'movie1' debe tener la clave 'title'.",
-                  en: "The dictionary 'movie1' must have the key 'title'.",
-                  pt: "O dicionário 'movie1' deve ter a chave 'title'."
-                }];
-              } else if (pelicula1[1].includes("title")) {
-                const keyRegex = new RegExp(`"title"\\s*:\\s*""`);
-                if (keyRegex.test(pelicula1[1])) {
-                  seguirValidando = false;
-                  return [{
-                    es: `El diccionario 'movie1' debe tener la clave 'title' con un valor asignado.`,
-                    en: `The dictionary 'movie1' must have the key 'title' with an assigned value.`,
-                    pt: `O dicionário 'movie1' deve ter a chave 'title' com um valor atribuído.`
-                  }];
-                }
-              }
-              else if (!pelicula1[1].includes("protagonist")) {
-                seguirValidando = false;
-                return [{
-                  es: "El diccionario 'movie1' debe tener la clave 'protagonist'.",
-                  en: "The dictionary 'movie1' must have the key 'protagonist'.",
-                  pt: "O dicionário 'movie1' deve ter a chave 'protagonist'."
-                }];
-              } else if (pelicula1[1].includes("protagonist")) {
-                const keyRegex = new RegExp(`"protagonist"\\s*:\\s*""`);
-                if (keyRegex.test(pelicula1[1])) {
-                  seguirValidando = false;
-                  return [{
-                    es: `El diccionario 'movie1' debe tener la clave 'protagonist' con un valor asignado.`,
-                    en: `The dictionary 'movie1' must have the key 'protagonist' with an assigned value.`,
-                    pt: `O dicionário 'movie1' deve ter a chave 'protagonist' com um valor atribuído.`
-                  }];
-                }
-              }
-              else if (!pelicula1[1].includes("genre")) {
-                seguirValidando = false;
-                return [{
-                  es: "El diccionario 'movie1' debe tener la clave 'genre'.",
-                  en: "The dictionary 'movie1' must have the key 'genre'.",
-                  pt: "O dicionário 'movie1' deve ter a chave 'genre'."
-                }];
-              } else if (pelicula1[1].includes("genre")) {
-                const keyRegex = new RegExp(`"genre"\\s*:\\s*""`);
-                if (keyRegex.test(pelicula1[1])) {
-                  seguirValidando = false;
-                  return [{
-                    es: `El diccionario 'movie1' debe tener la clave 'genre' con un valor asignado.`,
-                    en: `The dictionary 'movie1' must have the key 'genre' with an assigned value.`,
-                    pt: `O dicionário 'movie1' deve ter a chave 'genre' com um valor atribuído.`
-                  }];
-                }
-              }
-              else if (!pelicula1[1].includes("duration")) {
-                seguirValidando = false;
-                return [{
-                  es: "El diccionario 'movie1' debe tener la clave 'duration'.",
-                  en: "The dictionary 'movie1' must have the key 'duration'.",
-                  pt: "O dicionário 'movie1' deve ter a chave 'duration'."
-                }];
-              } else if (pelicula1[1].includes("duration")) {
-                const keyRegex = new RegExp(`"duration"\\s*:\\s*""`);
-                if (keyRegex.test(pelicula1[1])) {
-                  seguirValidando = false;
-                  return [{
-                    es: `El diccionario 'movie1' debe tener la clave 'duration' con un valor asignado.`,
-                    en: `The dictionary 'movie1' must have the key 'duration' with an assigned value.`,
-                    pt: `O dicionário 'movie1' deve ter a chave 'duration' com um valor atribuído.`
-                  }];
+
+            // Validar los print de cada película
+            if (errors.length === 0) {
+              const prints = (n) =>
+                raw.includes(`print(pelicula${n})`) ||
+                raw.includes(`print(movie${n})`);
+
+              for (let i = 1; i <= 6; i++) {
+                if (!prints(i)) {
+                  stopAndReturn({
+                    es: `Debe mostrar el diccionario 'pelicula${i}' utilizando print().`,
+                    en: `You must display the dictionary 'pelicula${i}' using print().`,
+                    pt: `Você deve exibir o dicionário 'pelicula${i}' usando print().`
+                  });
+                  break;
                 }
               }
             }
 
-            else if (code.replace(/\s/g, '').trim().includes('movie1={"') && !code.replace(/\s/g, '').trim().includes('movie1={"')) {
-              seguirValidando = false;
-              return [{
-                es: "Debe crear un diccionario llamado 'movie1'.",
-                en: "It must create a dictionary named 'movie1'.",
-                pt: "Deve criar um dicionário chamado 'movie1'."
-              }];
+            // Devolver solo el primer error (si hay)
+            if (errors.length > 0) {
+              return [errors[0]];
             }
-            if (code.includes("pelicula2 = {")) {
-              const pelicula2 = code.match(/pelicula2 = \{(.*?)\}/s); // Obtener el contenido del diccionario pelicula2
+            return [];
 
-              if (!pelicula2[1].includes("título")) {
-                seguirValidando = false;
-                return [{
-                  es: "El diccionario 'pelicula2' debe tener la clave 'título'.",
-                  en: "The dictionary 'pelicula2' must have the key 'título'.",
-                  pt: "O dicionário 'pelicula2' deve ter a chave 'título'."
-                }];
-              } else if (!pelicula2[1].includes("titulo")) {
-                const keyRegex = new RegExp(`"titulo"\\s*:\\s*""`);
-                if (keyRegex.test(pelicula2[1])) {
-                  seguirValidando = false;
-                  return [{
-                    es: `El diccionario 'pelicula2' debe tener la clave 'titulo' con un valor asignado.`,
-                    en: `The dictionary 'movie1' must have the key 'title' with an assigned value.`,
-                    pt: `O dicionário 'movie1' deve ter a chave 'title' com um valor atribuído.`
-                  }];
-                }
-              }
-              else if (!pelicula2[1].includes("protagonista")) {
-                seguirValidando = false;
-                return [{
-                  es: "El diccionario 'pelicula2' debe tener la clave 'protagonista'.",
-                  en: "The dictionary 'movie2' must have the key 'protagonista'.",
-                  pt: "O dicionário 'pelicula2' deve ter a chave 'protagonista'."
-                }];
-              } else if (pelicula2[1].includes("protagonista")) {
-                const keyRegex = new RegExp(`"protagonista"\\s*:\\s*""`);
-                if (keyRegex.test(pelicula2[1])) {
-                  seguirValidando = false;
-                  return [{
-                    es: `El diccionario 'pelicula2' debe tener la clave 'protagonista' con un valor asignado.`,
-                    en: `The dictionary 'movie2' must have the key 'protagonista' with an assigned value.`,
-                    pt: `O dicionário 'pelicula2' deve ter a chave 'protagonista' com um valor atribuído.`
-                  }];
-                }
-              }
-              else if (!pelicula2[1].includes("genero")) {
-                seguirValidando = false;
-                return [{
-                  es: "El diccionario 'pelicula2' debe tener la clave 'genero'.",
-                  en: "The dictionary 'pelicula2' must have the key 'genero'.",
-                  pt: "O dicionário 'pelicula2' deve ter a chave 'genero'."
-                }];
-              } else if (pelicula2[1].includes("genero")) {
-                const keyRegex = new RegExp(`"genero"\\s*:\\s*""`);
-                if (keyRegex.test(pelicula2[1])) {
-                  seguirValidando = false;
-                  return [{
-                    es: `El diccionario 'pelicula2' debe tener la clave 'genero' con un valor asignado.`,
-                    en: `The dictionary 'movie2' must have the key 'genero' with an assigned value.`,
-                    pt: `O dicionário 'pelicula2' deve ter a chave 'genero' com um valor atribuído.`
-                  }];
-                }
-              }
-              else if (!pelicula2[1].includes("duracion")) {
-                seguirValidando = false;
-                return [{
-                  es: "El diccionario 'pelicula2' debe tener la clave 'duracion'.",
-                  en: "The dictionary 'pelicula2' must have the key 'duracion'.",
-                  pt: "O dicionário 'pelicula2' deve ter a chave 'duracion'."
-                }];
-              }
-              else if (pelicula2[1].includes("duracion")) {
-                const keyRegex = new RegExp(`"duracion"\\s*:\\s*""`);
-                if (keyRegex.test(pelicula2[1])) {
-                  seguirValidando = false;
-                  return [{
-                    es: `El diccionario 'pelicula2' debe tener la clave 'duracion' con un valor asignado.`,
-                    en: `The dictionary 'movie2' must have the key 'duration' with an assigned value.`,
-                    pt: `O dicionário 'pelicula2' deve ter a chave 'duracion' com um valor atribuído.`
-                  }];
-                }
-              }
-            }
-            if (!code.replace(/\s/g, '').trim().includes('pelicula2={"')) {
-              seguirValidando = false;
-              return [{
-                es: "Debe crear un diccionario llamado 'pelicula2'.",
-                en: "It must create a dictionary named 'pelicula2'.",
-                pt: "Deve criar um dicionário chamado 'pelicula2'."
-              }];
-            }
 
-            else if (code.replace(/\s/g, '').trim().includes("movie2={")) {
-              const pelicula2 = code.replace(/\s/g, '').trim().match(/movie2={(.*?)\}/s); // Obtener el contenido del diccionario pelicula2
-              if (!pelicula2[1].includes("title")) {
-                seguirValidando = false;
-                return [{
-                  es: "El diccionario 'movie2' debe tener la clave 'title'.",
-                  en: "The dictionary 'movie2' must have the key 'title'.",
-                  pt: "O dicionário 'movie2' deve ter a chave 'title'."
-                }];
-              } else if (pelicula2[1].includes("title")) {
-                const keyRegex = new RegExp(`"title"\\s*:\\s*""`);
-                if (keyRegex.test(pelicula2[1])) {
-                  seguirValidando = false;
-                  return [{
-                    es: `El diccionario 'movie2' debe tener la clave 'title' con un valor asignado.`,
-                    en: `The dictionary 'movie2' must have the key 'title' with an assigned value.`,
-                    pt: `O dicionário 'movie2' deve ter a chave 'title' com um valor atribuído.`
-                  }];
-                }
-              }
-              else if (!pelicula2[1].includes("protagonist")) {
-                seguirValidando = false;
-                return [{
-                  es: "El diccionario 'movie2' debe tener la clave 'protagonist'.",
-                  en: "The dictionary 'movie2' must have the key 'protagonist'.",
-                  pt: "O dicionário 'movie2' deve ter a chave 'protagonist'."
 
-                }];
-              } else if (pelicula2[1].includes("protagonist")) {
-                const keyRegex = new RegExp(`"protagonist"\\s*:\\s*""`);
-                if (keyRegex.test(pelicula2[1])) {
-                  seguirValidando = false;
-                  return [{
-                    es: `El diccionario 'movie2' debe tener la clave 'protagonist' con un valor asignado.`,
-                    en: `The dictionary 'movie2' must have the key 'protagonist' with an assigned value.`,
-                    pt: `O dicionário 'movie2' deve ter a chave 'protagonist' com um valor atribuído.`
-                  }];
-                }
-              }
-              else if (!pelicula2[1].includes("genre")) {
-                seguirValidando = false;
-                return [{
-                  es: "El diccionario 'movie2' debe tener la clave 'genre'.",
-                  en: "The dictionary 'movie2' must have the key 'genre'.",
-                  pt: "O dicionário 'movie2' deve ter a chave 'genre'."
-                }];
-              } else if (pelicula2[1].includes("genre")) {
-                const keyRegex = new RegExp(`"genre"\\s*:\\s*""`);
-                if (keyRegex.test(pelicula2[1])) {
-                  seguirValidando = false;
-                  return [{
-                    es: `El diccionario 'movie2' debe tener la clave 'genre' con un valor asignado.`,
-                    en: `The dictionary 'movie2' must have the key 'genre' with an assigned value.`,
-                    pt: `O dicionário 'movie2' deve ter a chave 'genre' com um valor atribuído.`
-                  }];
-                }
-              }
-              else if (!pelicula2[1].includes("duration")) {
-                seguirValidando = false;
-                return [{
-                  es: "El diccionario 'movie2' debe tener la clave 'duration'.",
-                  en: "The dictionary 'movie2' must have the key 'duration'.",
-                  pt: "O dicionário 'movie2' deve ter a chave 'duration'."
-                }];
-              } else if (pelicula2[1].includes("duration")) {
-                const keyRegex = new RegExp(`"duration"\\s*:\\s*""`);
-                if (keyRegex.test(pelicula2[1])) {
-                  seguirValidando = false;
-                  return [{
-                    es: `El diccionario 'movie2' debe tener la clave 'duration' con un valor asignado.`,
-                    en: `The dictionary 'movie2' must have the key 'duration' with an assigned value.`,
-                    pt: `O dicionário 'movie2' deve ter a chave 'duration' com um valor atribuído.`
-                  }];
-                }
-              }
-            }
-            else if (code.replace(/\s/g, '').trim().includes('movie2={"') && !code.replace(/\s/g, '').trim().includes('movie2={"')) {
-              seguirValidando = false;
-              return [{
-                es: "Debe crear un diccionario llamado 'movie2'.",
-                en: "It must create a dictionary named 'movie2'.",
-                pt: "Deve criar um dicionário chamado 'movie2'."
-              }];
-            }
 
-            if (code.includes("pelicula3 = {")) {
-              const pelicula3 = code.match(/pelicula3 = \{(.*?)\}/s); // Obtener el contenido del diccionario pelicula3
-              if (!pelicula3[1].includes("título")) {
-                seguirValidando = false;
-                return [{
-                  es: "El diccionario 'pelicula3' debe tener la clave 'título'.",
-                  en: "The dictionary 'pelicula3' must have the key 'título'.",
-                  pt: "O dicionário 'pelicula3' deve ter a chave 'título'."
-                }];
-              } else if (pelicula3[1].includes("título")) {
-                const keyRegex = new RegExp(`"título"\\s*:\\s*""`);
-                if (keyRegex.test(pelicula3[1])) {
-                  seguirValidando = false;
-                  return [{
-                    es: `El diccionario 'pelicula3' debe tener la clave 'título' con un valor asignado.`,
-                    en: `The dictionary 'movie3' must have the key 'title' with an assigned value.`,
-                    pt: `O dicionário 'pelicula3' deve ter a chave 'título' com um valor atribuído.`
-                  }];
-                }
-              }
-              else if (!pelicula3[1].includes("protagonista")) {
-                seguirValidando = false;
-                return [{
-                  es: "El diccionario 'pelicula3' debe tener la clave 'protagonista'.",
-                  en: "The dictionary 'pelicula3' must have the key 'protagonista'.",
-                  pt: "O dicionário 'pelicula3' deve ter a chave 'protagonista'."
-                }];
-              } else if (pelicula3[1].includes("protagonista")) {
-                const keyRegex = new RegExp(`"protagonista"\\s*:\\s*""`);
-                if (keyRegex.test(pelicula3[1])) {
-                  seguirValidando = false;
-                  return [{
-                    es: `El diccionario 'pelicula3' debe tener la clave 'protagonista' con un valor asignado.`,
-                    en: `The dictionary 'movie3' must have the key 'protagonista' with an assigned value.`,
-                    pt: `O dicionário 'pelicula3' deve ter a chave 'protagonista' com um valor atribuído.`
-                  }];
-                }
-              }
-              else if (!pelicula3[1].includes("genero")) {
-                seguirValidando = false;
-                return [{
-                  es: "El diccionario 'pelicula3' debe tener la clave 'genero'.",
-                  en: "The dictionary 'pelicula3' must have the key 'genero'.",
-                  pt: "O dicionário 'pelicula3' deve ter a chave 'genero'."
-                }];
-              } else if (pelicula3[1].includes("genero")) {
-                const keyRegex = new RegExp(`"genero"\\s*:\\s*""`);
-                if (keyRegex.test(pelicula3[1])) {
-                  seguirValidando = false;
-                  return [{
-                    es: `El diccionario 'pelicula3' debe tener la clave 'genero' con un valor asignado.`,
-                    en: `The dictionary 'movie3' must have the key 'genero' with an assigned value.`,
-                    pt: `O dicionário 'pelicula3' deve ter a chave 'genero' com um valor atribuído.`
-                  }];
-                }
-              }
-              else if (!pelicula3[1].includes("duracion")) {
-                seguirValidando = false;
-                return [{
-                  es: "El diccionario 'pelicula3' debe tener la clave 'duracion'.",
-                  en: "The dictionary 'pelicula3' must have the key 'duracion'.",
-                  pt: "O dicionário 'pelicula3' deve ter a chave 'duracion'."
-                }];
-              } else if (pelicula3[1].includes("duracion")) {
-                const keyRegex = new RegExp(`"duracion"\\s*:\\s*""`);
-                if (keyRegex.test(pelicula3[1])) {
-                  seguirValidando = false;
-                  return [{
-                    es: `El diccionario 'pelicula3' debe tener la clave 'duracion' con un valor asignado.`,
-                    en: `The dictionary 'movie3' must have the key 'duration' with an assigned value.`,
-                    pt: `O dicionário 'pelicula3' deve ter a chave 'duracion' com um valor atribuído.`
-                  }];
-                }
-              }
-            }
-            if (!code.replace(/\s/g, '').trim().includes('pelicula3={"')) {
-              seguirValidando = false;
-              return [{
-                es: "Debe crear un diccionario llamado 'pelicula3'.",
-                en: "It must create a dictionary named 'pelicula3'.",
-                pt: "Deve criar um dicionário chamado 'pelicula3'."
-              }];
-            }
+            //VALIDACION VIEJA
+            // if (code.replace(/\s/g, '').trim().includes("pelicula1={")) {
+            //   const pelicula1 = code.match(/pelicula1 = \{(.*?)\}/s); // Obtener el contenido del diccionario pelicula1
 
-            else if (code.replace(/\s/g, '').trim().includes("movie3={")) {
-              const pelicula3 = code.replace(/\s/g, '').trim().match(/movie3={(.*?)\}/s); // Obtener el contenido del diccionario pelicula3
-              if (!pelicula3[1].includes("title")) {
-                seguirValidando = false;
-                return [{
-                  es: "El diccionario 'movie3' debe tener la clave 'title'.",
-                  en: "The dictionary 'movie3' must have the key 'title'.",
-                  pt: "O dicionário 'movie3' deve ter a chave 'title'."
-                }];
-              } else if (pelicula3[1].includes("title")) {
-                const keyRegex = new RegExp(`"title"\\s*:\\s*""`);
-                if (keyRegex.test(pelicula3[1])) {
-                  seguirValidando = false;
-                  return [{
-                    es: `El diccionario 'movie3' debe tener la clave 'title' con un valor asignado.`,
-                    en: `The dictionary 'movie3' must have the key 'title' with an assigned value.`,
-                    pt: `O dicionário 'movie3' deve ter a chave 'title' com um valor atribuído.`
-                  }];
-                }
-              }
-              else if (!pelicula3[1].includes("protagonist")) {
-                seguirValidando = false;
-                return [{
-                  es: "El diccionario 'movie3' debe tener la clave 'protagonist'.",
-                  en: "The dictionary 'movie3' must have the key 'protagonist'.",
-                  pt: "O dicionário 'movie3' deve ter a chave 'protagonist'."
-                }];
-              } else if (pelicula3[1].includes("protagonist")) {
-                const keyRegex = new RegExp(`"protagonist"\\s*:\\s*""`);
-                if (keyRegex.test(pelicula3[1])) {
-                  seguirValidando = false;
-                  return [{
-                    es: `El diccionario 'movie3' debe tener la clave 'protagonist' con un valor asignado.`,
-                    en: `The dictionary 'movie3' must have the key 'protagonist' with an assigned value.`,
-                    pt: `O dicionário 'movie3' deve ter a chave 'protagonist' com um valor atribuído.`
-                  }];
-                }
-              }
-              else if (!pelicula3[1].includes("genre")) {
-                seguirValidando = false;
-                return [{
-                  es: "El diccionario 'movie3' debe tener la clave 'genre'.",
-                  en: "The dictionary 'movie3' must have the key 'genre'.",
-                  pt: "O dicionário 'movie3' deve ter a chave 'genre'."
-                }];
-              } else if (pelicula3[1].includes("genre")) {
-                const keyRegex = new RegExp(`"genre"\\s*:\\s*""`);
-                if (keyRegex.test(pelicula3[1])) {
-                  seguirValidando = false;
-                  return [{
-                    es: `El diccionario 'movie3' debe tener la clave 'genre' con un valor asignado.`,
-                    en: `The dictionary 'movie3' must have the key 'genre' with an assigned value.`,
-                    pt: `O dicionário 'movie3' deve ter a chave 'genre' com um valor atribuído.`
-                  }];
-                }
-              }
-              else if (!pelicula3[1].includes("duration")) {
-                seguirValidando = false;
-                return [{
-                  es: "El diccionario 'movie3' debe tener la clave 'duration'.",
-                  en: "The dictionary 'movie3' must have the key 'duration'.",
-                  pt: "O dicionário 'movie3' deve ter a chave 'duration'."
-                }];
-              } else if (pelicula3[1].includes("duration")) {
-                const keyRegex = new RegExp(`"duration"\\s*:\\s*""`);
-                if (keyRegex.test(pelicula3[1])) {
-                  seguirValidando = false;
-                  return [{
-                    es: `El diccionario 'movie3' debe tener la clave 'duration' con un valor asignado.`,
-                    en: `The dictionary 'movie3' must have the key 'duration' with an assigned value.`,
-                    pt: `O dicionário 'movie3' deve ter a chave 'duration' com um valor atribuído.`
-                  }];
-                }
-              }
-            }
+            //   if (!pelicula1[1].includes("título")) {
+            //     seguirValidando = false;
+            //     return [{
+            //       es: "El diccionario 'pelicula1' debe tener la clave 'título'.",
+            //       en: "The dictionary 'pelicula1' must have the key 'título'.",
+            //       pt: "O dicionário 'pelicula1' deve ter a chave 'título'."
+            //     }];
+            //   } else if (pelicula1[1].includes("título")) {
+            //     const keyRegex = new RegExp(`"título"\\s*:\\s*""`);
+            //     if (keyRegex.test(pelicula1[1])) {
+            //       seguirValidando = false;
+            //       return [{
+            //         es: `El diccionario 'pelicula1' debe tener la clave 'título' con un valor asignado.`,
+            //         en: `The dictionary 'movie1' must have the key 'title' with an assigned value.`,
+            //         pt: `O dicionário 'pelicula1' deve ter a chave 'título' com um valor atribuído.`
+            //       }];
+            //     }
+            //   }
+            //   else if (!pelicula1[1].includes("protagonista")) {
+            //     seguirValidando = false;
+            //     return [{
+            //       es: "El diccionario 'pelicula1' debe tener la clave 'protagonista'.",
+            //       en: "The dictionary 'movie1' must have the key 'protagonista'.",
+            //       pt: "O dicionário 'pelicula1' deve ter a chave 'protagonista'."
+            //     }];
+            //   } else if (pelicula1[1].includes("protagonista")) {
+            //     const keyRegex = new RegExp(`"protagonista"\\s*:\\s*""`);
+            //     if (keyRegex.test(pelicula1[1])) {
+            //       seguirValidando = false;
+            //       return [{
+            //         es: `El diccionario 'pelicula1' debe tener la clave 'protagonista' con un valor asignado.`,
+            //         en: `The dictionary 'movie1' must have the key 'protagonista' with an assigned value.`,
+            //         pt: `O dicionário 'pelicula1' deve ter a chave 'protagonista' com um valor atribuído.`
+            //       }];
+            //     }
+            //   }
+            //   else if (!pelicula1[1].includes("genero")) {
+            //     seguirValidando = false;
+            //     return [{
+            //       es: "El diccionario 'pelicula1' debe tener la clave 'genero'.",
+            //       en: "The dictionary 'pelicula1' must have the key 'genre'.",
+            //       pt: "O dicionário 'pelicula1' deve ter a chave 'genero'."
+            //     }];
+            //   } else if (pelicula1[1].includes("genero")) {
+            //     const keyRegex = new RegExp(`"genero"\\s*:\\s*""`);
+            //     if (keyRegex.test(pelicula1[1])) {
+            //       seguirValidando = false;
+            //       return [{
+            //         es: `El diccionario 'pelicula1' debe tener la clave 'genero' con un valor asignado.`,
+            //         en: `The dictionary 'movie1' must have the key 'genre' with an assigned value.`,
+            //         pt: `O dicionário 'pelicula1' deve ter a chave 'genero' com um valor atribuído.`
+            //       }];
+            //     }
+            //   }
+            //   else if (!pelicula1[1].includes("duracion")) {
+            //     seguirValidando = false;
+            //     return [{
+            //       es: "El diccionario 'pelicula1' debe tener la clave 'duracion'.",
+            //       en: "The dictionary 'pelicula1' must have the key 'duration'.",
+            //       pt: "O dicionário 'pelicula1' deve ter a chave 'duracion'."
+            //     }];
+            //   } else if (pelicula1[1].includes("duracion")) {
+            //     const keyRegex = new RegExp(`"duracion"\\s*:\\s*""`);
+            //     if (keyRegex.test(pelicula1[1])) {
+            //       seguirValidando = false;
+            //       return [{
+            //         es: `El diccionario 'pelicula1' debe tener la clave 'duracion' con un valor asignado.`,
+            //         en: `The dictionary 'movie1' must have the key 'duration' with an assigned value.`,
+            //         pt: `O dicionário 'pelicula1' deve ter a chave 'duracion' com um valor atribuído.`
+            //       }];
+            //     }
+            //   }
+            // }
+            // if (!code.replace(/\s/g, '').trim().includes('pelicula1={"')) {
+            //   seguirValidando = false;
+            //   return [{
+            //     es: "Debe crear un diccionario llamado 'pelicula1'.",
+            //     en: "It must create a dictionary named 'pelicula1'.",
+            //     pt: "Deve criar um dicionário chamado 'pelicula1'."
+            //   }];
+            // }
+            // else if (code.replace(/\s/g, '').trim().includes("movie1={")) {
+            //   const pelicula1 = code.replace(/\s/g, '').trim().match(/movie1={(.*?)\}/s); // Obtener el contenido del diccionario pelicula1
+            //   if (!pelicula1[1].includes("title")) {
+            //     seguirValidando = false;
+            //     return [{
+            //       es: "El diccionario 'movie1' debe tener la clave 'title'.",
+            //       en: "The dictionary 'movie1' must have the key 'title'.",
+            //       pt: "O dicionário 'movie1' deve ter a chave 'title'."
+            //     }];
+            //   } else if (pelicula1[1].includes("title")) {
+            //     const keyRegex = new RegExp(`"title"\\s*:\\s*""`);
+            //     if (keyRegex.test(pelicula1[1])) {
+            //       seguirValidando = false;
+            //       return [{
+            //         es: `El diccionario 'movie1' debe tener la clave 'title' con un valor asignado.`,
+            //         en: `The dictionary 'movie1' must have the key 'title' with an assigned value.`,
+            //         pt: `O dicionário 'movie1' deve ter a chave 'title' com um valor atribuído.`
+            //       }];
+            //     }
+            //   }
+            //   else if (!pelicula1[1].includes("protagonist")) {
+            //     seguirValidando = false;
+            //     return [{
+            //       es: "El diccionario 'movie1' debe tener la clave 'protagonist'.",
+            //       en: "The dictionary 'movie1' must have the key 'protagonist'.",
+            //       pt: "O dicionário 'movie1' deve ter a chave 'protagonist'."
+            //     }];
+            //   } else if (pelicula1[1].includes("protagonist")) {
+            //     const keyRegex = new RegExp(`"protagonist"\\s*:\\s*""`);
+            //     if (keyRegex.test(pelicula1[1])) {
+            //       seguirValidando = false;
+            //       return [{
+            //         es: `El diccionario 'movie1' debe tener la clave 'protagonist' con un valor asignado.`,
+            //         en: `The dictionary 'movie1' must have the key 'protagonist' with an assigned value.`,
+            //         pt: `O dicionário 'movie1' deve ter a chave 'protagonist' com um valor atribuído.`
+            //       }];
+            //     }
+            //   }
+            //   else if (!pelicula1[1].includes("genre")) {
+            //     seguirValidando = false;
+            //     return [{
+            //       es: "El diccionario 'movie1' debe tener la clave 'genre'.",
+            //       en: "The dictionary 'movie1' must have the key 'genre'.",
+            //       pt: "O dicionário 'movie1' deve ter a chave 'genre'."
+            //     }];
+            //   } else if (pelicula1[1].includes("genre")) {
+            //     const keyRegex = new RegExp(`"genre"\\s*:\\s*""`);
+            //     if (keyRegex.test(pelicula1[1])) {
+            //       seguirValidando = false;
+            //       return [{
+            //         es: `El diccionario 'movie1' debe tener la clave 'genre' con un valor asignado.`,
+            //         en: `The dictionary 'movie1' must have the key 'genre' with an assigned value.`,
+            //         pt: `O dicionário 'movie1' deve ter a chave 'genre' com um valor atribuído.`
+            //       }];
+            //     }
+            //   }
+            //   else if (!pelicula1[1].includes("duration")) {
+            //     seguirValidando = false;
+            //     return [{
+            //       es: "El diccionario 'movie1' debe tener la clave 'duration'.",
+            //       en: "The dictionary 'movie1' must have the key 'duration'.",
+            //       pt: "O dicionário 'movie1' deve ter a chave 'duration'."
+            //     }];
+            //   } else if (pelicula1[1].includes("duration")) {
+            //     const keyRegex = new RegExp(`"duration"\\s*:\\s*""`);
+            //     if (keyRegex.test(pelicula1[1])) {
+            //       seguirValidando = false;
+            //       return [{
+            //         es: `El diccionario 'movie1' debe tener la clave 'duration' con un valor asignado.`,
+            //         en: `The dictionary 'movie1' must have the key 'duration' with an assigned value.`,
+            //         pt: `O dicionário 'movie1' deve ter a chave 'duration' com um valor atribuído.`
+            //       }];
+            //     }
+            //   }
+            // }
 
-            else if (code.replace(/\s/g, '').trim().includes('movie3={"') && !code.replace(/\s/g, '').trim().includes('movie3={"')) {
-              seguirValidando = false;
-              return [{
-                es: "Debe crear un diccionario llamado 'movie3'.",
-                en: "It must create a dictionary named 'movie3'.",
-                pt: "Deve criar um dicionário chamado 'movie3'."
-              }];
-            }
+            // else if (code.replace(/\s/g, '').trim().includes('movie1={"') && !code.replace(/\s/g, '').trim().includes('movie1={"')) {
+            //   seguirValidando = false;
+            //   return [{
+            //     es: "Debe crear un diccionario llamado 'movie1'.",
+            //     en: "It must create a dictionary named 'movie1'.",
+            //     pt: "Deve criar um dicionário chamado 'movie1'."
+            //   }];
+            // }
+            // if (code.includes("pelicula2 = {")) {
+            //   const pelicula2 = code.match(/pelicula2 = \{(.*?)\}/s); // Obtener el contenido del diccionario pelicula2
 
-            if (code.includes("pelicula4 = {")) {
-              const pelicula4 = code.match(/pelicula4 = \{(.*?)\}/s); // Obtener el contenido del diccionario pelicula4
+            //   if (!pelicula2[1].includes("título")) {
+            //     seguirValidando = false;
+            //     return [{
+            //       es: "El diccionario 'pelicula2' debe tener la clave 'título'.",
+            //       en: "The dictionary 'pelicula2' must have the key 'título'.",
+            //       pt: "O dicionário 'pelicula2' deve ter a chave 'título'."
+            //     }];
+            //   } else if (!pelicula2[1].includes("titulo")) {
+            //     const keyRegex = new RegExp(`"titulo"\\s*:\\s*""`);
+            //     if (keyRegex.test(pelicula2[1])) {
+            //       seguirValidando = false;
+            //       return [{
+            //         es: `El diccionario 'pelicula2' debe tener la clave 'titulo' con un valor asignado.`,
+            //         en: `The dictionary 'movie1' must have the key 'title' with an assigned value.`,
+            //         pt: `O dicionário 'movie1' deve ter a chave 'title' com um valor atribuído.`
+            //       }];
+            //     }
+            //   }
+            //   else if (!pelicula2[1].includes("protagonista")) {
+            //     seguirValidando = false;
+            //     return [{
+            //       es: "El diccionario 'pelicula2' debe tener la clave 'protagonista'.",
+            //       en: "The dictionary 'movie2' must have the key 'protagonista'.",
+            //       pt: "O dicionário 'pelicula2' deve ter a chave 'protagonista'."
+            //     }];
+            //   } else if (pelicula2[1].includes("protagonista")) {
+            //     const keyRegex = new RegExp(`"protagonista"\\s*:\\s*""`);
+            //     if (keyRegex.test(pelicula2[1])) {
+            //       seguirValidando = false;
+            //       return [{
+            //         es: `El diccionario 'pelicula2' debe tener la clave 'protagonista' con un valor asignado.`,
+            //         en: `The dictionary 'movie2' must have the key 'protagonista' with an assigned value.`,
+            //         pt: `O dicionário 'pelicula2' deve ter a chave 'protagonista' com um valor atribuído.`
+            //       }];
+            //     }
+            //   }
+            //   else if (!pelicula2[1].includes("genero")) {
+            //     seguirValidando = false;
+            //     return [{
+            //       es: "El diccionario 'pelicula2' debe tener la clave 'genero'.",
+            //       en: "The dictionary 'pelicula2' must have the key 'genero'.",
+            //       pt: "O dicionário 'pelicula2' deve ter a chave 'genero'."
+            //     }];
+            //   } else if (pelicula2[1].includes("genero")) {
+            //     const keyRegex = new RegExp(`"genero"\\s*:\\s*""`);
+            //     if (keyRegex.test(pelicula2[1])) {
+            //       seguirValidando = false;
+            //       return [{
+            //         es: `El diccionario 'pelicula2' debe tener la clave 'genero' con un valor asignado.`,
+            //         en: `The dictionary 'movie2' must have the key 'genero' with an assigned value.`,
+            //         pt: `O dicionário 'pelicula2' deve ter a chave 'genero' com um valor atribuído.`
+            //       }];
+            //     }
+            //   }
+            //   else if (!pelicula2[1].includes("duracion")) {
+            //     seguirValidando = false;
+            //     return [{
+            //       es: "El diccionario 'pelicula2' debe tener la clave 'duracion'.",
+            //       en: "The dictionary 'pelicula2' must have the key 'duracion'.",
+            //       pt: "O dicionário 'pelicula2' deve ter a chave 'duracion'."
+            //     }];
+            //   }
+            //   else if (pelicula2[1].includes("duracion")) {
+            //     const keyRegex = new RegExp(`"duracion"\\s*:\\s*""`);
+            //     if (keyRegex.test(pelicula2[1])) {
+            //       seguirValidando = false;
+            //       return [{
+            //         es: `El diccionario 'pelicula2' debe tener la clave 'duracion' con un valor asignado.`,
+            //         en: `The dictionary 'movie2' must have the key 'duration' with an assigned value.`,
+            //         pt: `O dicionário 'pelicula2' deve ter a chave 'duracion' com um valor atribuído.`
+            //       }];
+            //     }
+            //   }
+            // }
+            // if (!code.replace(/\s/g, '').trim().includes('pelicula2={"')) {
+            //   seguirValidando = false;
+            //   return [{
+            //     es: "Debe crear un diccionario llamado 'pelicula2'.",
+            //     en: "It must create a dictionary named 'pelicula2'.",
+            //     pt: "Deve criar um dicionário chamado 'pelicula2'."
+            //   }];
+            // }
 
-              if (!pelicula4[1].includes("título")) {
-                seguirValidando = false;
-                return [{
-                  es: "El diccionario 'pelicula4' debe tener la clave 'título'.",
-                  en: "The dictionary 'pelicula4' must have the key 'título'.",
-                  pt: "O dicionário 'pelicula4' deve ter a chave 'título'."
-                }];
-              } else if (!pelicula4[1].includes("titulo")) {
-                const keyRegex = new RegExp(`"titulo"\\s*:\\s*""`);
-                if (keyRegex.test(pelicula4[1])) {
-                  seguirValidando = false;
-                  return [{
-                    es: `El diccionario 'pelicula4' debe tener la clave 'titulo' con un valor asignado.`,
-                    en: `The dictionary 'movie4' must have the key 'title' with an assigned value.`,
-                    pt: `O dicionário 'movie4' deve ter a chave 'title' com um valor atribuído.`
-                  }];
-                }
-              }
-              else if (!pelicula4[1].includes("protagonista")) {
-                seguirValidando = false;
-                return [{
-                  es: "El diccionario 'pelicula4' debe tener la clave 'protagonista'.",
-                  en: "The dictionary 'pelicula4' must have the key 'protagonista'.",
-                  pt: "O dicionário 'pelicula4' deve ter a chave 'protagonista'."
-                }];
-              } else if (!pelicula4[1].includes("protagonista")) {
-                const keyRegex = new RegExp(`"protagonista"\\s*:\\s*""`);
-                if (keyRegex.test(pelicula4[1])) {
-                  seguirValidando = false;
-                  return [{
-                    es: `El diccionario 'pelicula4' debe tener la clave 'protagonista' con un valor asignado.`,
-                    en: `The dictionary 'movie4' must have the key 'protagonist' with an assigned value.`,
-                    pt: `O dicionário 'movie4' deve ter a chave 'protagonist' com um valor atribuído.`
-                  }];
-                }
-              }
-              else if (!pelicula4[1].includes("genero")) {
-                seguirValidando = false;
-                return [{
-                  es: "El diccionario 'pelicula4' debe tener la clave 'genero'.",
-                  en: "The dictionary 'pelicula4' must have the key 'genero'.",
-                  pt: "O dicionário 'pelicula4' deve ter a chave 'genero'."
-                }];
-              } else if (!pelicula4[1].includes("genero")) {
-                const keyRegex = new RegExp(`"genero"\\s*:\\s*""`);
-                if (keyRegex.test(pelicula4[1])) {
-                  seguirValidando = false;
-                  return [{
-                    es: `El diccionario 'pelicula4' debe tener la clave 'genero' con un valor asignado.`,
-                    en: `The dictionary 'movie4' must have the key 'genre' with an assigned value.`,
-                    pt: `O dicionário 'movie4' deve ter a chave 'genre' com um valor atribuído.`
-                  }];
-                }
-              }
-              else if (!pelicula4[1].includes("duracion")) {
-                seguirValidando = false;
-                return [{
-                  es: "El diccionario 'pelicula4' debe tener la clave 'duracion'.",
-                  en: "The dictionary 'pelicula4' must have the key 'duracion'.",
-                  pt: "O dicionário 'pelicula4' deve ter a chave 'duracion'."
-                }];
-              } else if (!pelicula4[1].includes("duracion")) {
-                const keyRegex = new RegExp(`"duracion"\\s*:\\s*""`);
-                if (keyRegex.test(pelicula4[1])) {
-                  seguirValidando = false;
-                  return [{
-                    es: `El diccionario 'pelicula4' debe tener la clave 'duracion' con un valor asignado.`,
-                    en: `The dictionary 'movie4' must have the key 'duration' with an assigned value.`,
-                    pt: `O dicionário 'movie4' deve ter a chave 'duration' com um valor atribuído.`
-                  }];
-                }
-              }
-            }
-            if (!code.replace(/\s/g, '').trim().includes('pelicula4={"')) {
-              seguirValidando = false;
-              return [{
-                es: "Debe crear un diccionario llamado 'pelicula4'.",
-                en: "It must create a dictionary named 'pelicula4'.",
-                pt: "Deve criar um dicionário chamado 'pelicula4'."
-              }];
-            }
+            // else if (code.replace(/\s/g, '').trim().includes("movie2={")) {
+            //   const pelicula2 = code.replace(/\s/g, '').trim().match(/movie2={(.*?)\}/s); // Obtener el contenido del diccionario pelicula2
+            //   if (!pelicula2[1].includes("title")) {
+            //     seguirValidando = false;
+            //     return [{
+            //       es: "El diccionario 'movie2' debe tener la clave 'title'.",
+            //       en: "The dictionary 'movie2' must have the key 'title'.",
+            //       pt: "O dicionário 'movie2' deve ter a chave 'title'."
+            //     }];
+            //   } else if (pelicula2[1].includes("title")) {
+            //     const keyRegex = new RegExp(`"title"\\s*:\\s*""`);
+            //     if (keyRegex.test(pelicula2[1])) {
+            //       seguirValidando = false;
+            //       return [{
+            //         es: `El diccionario 'movie2' debe tener la clave 'title' con un valor asignado.`,
+            //         en: `The dictionary 'movie2' must have the key 'title' with an assigned value.`,
+            //         pt: `O dicionário 'movie2' deve ter a chave 'title' com um valor atribuído.`
+            //       }];
+            //     }
+            //   }
+            //   else if (!pelicula2[1].includes("protagonist")) {
+            //     seguirValidando = false;
+            //     return [{
+            //       es: "El diccionario 'movie2' debe tener la clave 'protagonist'.",
+            //       en: "The dictionary 'movie2' must have the key 'protagonist'.",
+            //       pt: "O dicionário 'movie2' deve ter a chave 'protagonist'."
 
-            else if (code.replace(/\s/g, '').trim().includes("movie4={")) {
-              const pelicula4 = code.replace(/\s/g, '').trim().match(/movie4={(.*?)\}/s); // Obtener el contenido del diccionario pelicula4
-              if (!pelicula4[1].includes("title")) {
-                seguirValidando = false;
-                return [{
-                  es: "El diccionario 'movie4' debe tener la clave 'title'.",
-                  en: "The dictionary 'movie4' must have the key 'title'.",
-                  pt: "O dicionário 'movie4' deve ter a chave 'title'."
-                }];
-              } else if (pelicula4[1].includes("title")) {
-                const keyRegex = new RegExp(`"title"\\s*:\\s*""`);
-                if (keyRegex.test(pelicula4[1])) {
-                  seguirValidando = false;
-                  return [{
-                    es: `El diccionario 'movie4' debe tener la clave 'title' con un valor asignado.`,
-                    en: `The dictionary 'movie4' must have the key 'title' with an assigned value.`,
-                    pt: `O dicionário 'movie4' deve ter a chave 'title' com um valor atribuído.`
-                  }];
-                }
-              }
-              else if (!pelicula4[1].includes("protagonist")) {
-                seguirValidando = false;
-                return [{
-                  es: "El diccionario 'movie4' debe tener la clave 'protagonist'.",
-                  en: "The dictionary 'movie4' must have the key 'protagonist'.",
-                  pt: "O dicionário 'movie4' deve ter a chave 'protagonist'."
-                }];
-              } else if (pelicula4[1].includes("protagonist")) {
-                const keyRegex = new RegExp(`"protagonist"\\s*:\\s*""`);
-                if (keyRegex.test(pelicula4[1])) {
-                  seguirValidando = false;
-                  return [{
-                    es: `El diccionario 'movie4' debe tener la clave 'protagonist' con un valor asignado.`,
-                    en: `The dictionary 'movie4' must have the key 'protagonist' with an assigned value.`,
-                    pt: `O dicionário 'movie4' deve ter a chave 'protagonist' com um valor atribuído.`
-                  }];
-                }
-              }
-              else if (!pelicula4[1].includes("genre")) {
-                seguirValidando = false;
-                return [{
-                  es: "El diccionario 'movie4' debe tener la clave 'genre'.",
-                  en: "The dictionary 'movie4' must have the key 'genre'.",
-                  pt: "O dicionário 'movie4' deve ter a chave 'genre'."
-                }];
-              } else if (pelicula4[1].includes("genre")) {
-                const keyRegex = new RegExp(`"genre"\\s*:\\s*""`);
-                if (keyRegex.test(pelicula4[1])) {
-                  seguirValidando = false;
-                  return [{
-                    es: `El diccionario 'movie4' debe tener la clave 'genre' con un valor asignado.`,
-                    en: `The dictionary 'movie4' must have the key 'genre' with an assigned value.`,
-                    pt: `O dicionário 'movie4' deve ter a chave 'genre' com um valor atribuído.`
-                  }];
-                }
-              }
-              else if (!pelicula4[1].includes("duration")) {
-                seguirValidando = false;
-                return [{
-                  es: "El diccionario 'movie4' debe tener la clave 'duration'.",
-                  en: "The dictionary 'movie4' must have the key 'duration'.",
-                  pt: "O dicionário 'movie4' deve ter a chave 'duration'."
-                }];
-              } else if (pelicula4[1].includes("duration")) {
-                const keyRegex = new RegExp(`"duration"\\s*:\\s*""`);
-                if (keyRegex.test(pelicula4[1])) {
-                  seguirValidando = false;
-                  return [{
-                    es: `El diccionario 'movie4' debe tener la clave 'duration' con un valor asignado.`,
-                    en: `The dictionary 'movie4' must have the key 'duration' with an assigned value.`,
-                    pt: `O dicionário 'movie4' deve ter a chave 'duration' com um valor atribuído.`
-                  }];
-                }
-              }
-            }
-            else if (code.replace(/\s/g, '').trim().includes('movie4={"') && !code.replace(/\s/g, '').trim().includes('movie4={"')) {
-              seguirValidando = false;
-              return [{
-                es: "Debe crear un diccionario llamado 'movie4'.",
-                en: "It must create a dictionary named 'movie4'.",
-                pt: "Deve criar um dicionário chamado 'movie4'."
-              }];
-            }
+            //     }];
+            //   } else if (pelicula2[1].includes("protagonist")) {
+            //     const keyRegex = new RegExp(`"protagonist"\\s*:\\s*""`);
+            //     if (keyRegex.test(pelicula2[1])) {
+            //       seguirValidando = false;
+            //       return [{
+            //         es: `El diccionario 'movie2' debe tener la clave 'protagonist' con un valor asignado.`,
+            //         en: `The dictionary 'movie2' must have the key 'protagonist' with an assigned value.`,
+            //         pt: `O dicionário 'movie2' deve ter a chave 'protagonist' com um valor atribuído.`
+            //       }];
+            //     }
+            //   }
+            //   else if (!pelicula2[1].includes("genre")) {
+            //     seguirValidando = false;
+            //     return [{
+            //       es: "El diccionario 'movie2' debe tener la clave 'genre'.",
+            //       en: "The dictionary 'movie2' must have the key 'genre'.",
+            //       pt: "O dicionário 'movie2' deve ter a chave 'genre'."
+            //     }];
+            //   } else if (pelicula2[1].includes("genre")) {
+            //     const keyRegex = new RegExp(`"genre"\\s*:\\s*""`);
+            //     if (keyRegex.test(pelicula2[1])) {
+            //       seguirValidando = false;
+            //       return [{
+            //         es: `El diccionario 'movie2' debe tener la clave 'genre' con un valor asignado.`,
+            //         en: `The dictionary 'movie2' must have the key 'genre' with an assigned value.`,
+            //         pt: `O dicionário 'movie2' deve ter a chave 'genre' com um valor atribuído.`
+            //       }];
+            //     }
+            //   }
+            //   else if (!pelicula2[1].includes("duration")) {
+            //     seguirValidando = false;
+            //     return [{
+            //       es: "El diccionario 'movie2' debe tener la clave 'duration'.",
+            //       en: "The dictionary 'movie2' must have the key 'duration'.",
+            //       pt: "O dicionário 'movie2' deve ter a chave 'duration'."
+            //     }];
+            //   } else if (pelicula2[1].includes("duration")) {
+            //     const keyRegex = new RegExp(`"duration"\\s*:\\s*""`);
+            //     if (keyRegex.test(pelicula2[1])) {
+            //       seguirValidando = false;
+            //       return [{
+            //         es: `El diccionario 'movie2' debe tener la clave 'duration' con un valor asignado.`,
+            //         en: `The dictionary 'movie2' must have the key 'duration' with an assigned value.`,
+            //         pt: `O dicionário 'movie2' deve ter a chave 'duration' com um valor atribuído.`
+            //       }];
+            //     }
+            //   }
+            // }
+            // else if (code.replace(/\s/g, '').trim().includes('movie2={"') && !code.replace(/\s/g, '').trim().includes('movie2={"')) {
+            //   seguirValidando = false;
+            //   return [{
+            //     es: "Debe crear un diccionario llamado 'movie2'.",
+            //     en: "It must create a dictionary named 'movie2'.",
+            //     pt: "Deve criar um dicionário chamado 'movie2'."
+            //   }];
+            // }
 
-            if (code.includes("pelicula5 = {")) {
-              const pelicula5 = code.match(/pelicula5 = \{(.*?)\}/s); // Obtener el contenido del diccionario pelicula5
+            // if (code.includes("pelicula3 = {")) {
+            //   const pelicula3 = code.match(/pelicula3 = \{(.*?)\}/s); // Obtener el contenido del diccionario pelicula3
+            //   if (!pelicula3[1].includes("título")) {
+            //     seguirValidando = false;
+            //     return [{
+            //       es: "El diccionario 'pelicula3' debe tener la clave 'título'.",
+            //       en: "The dictionary 'pelicula3' must have the key 'título'.",
+            //       pt: "O dicionário 'pelicula3' deve ter a chave 'título'."
+            //     }];
+            //   } else if (pelicula3[1].includes("título")) {
+            //     const keyRegex = new RegExp(`"título"\\s*:\\s*""`);
+            //     if (keyRegex.test(pelicula3[1])) {
+            //       seguirValidando = false;
+            //       return [{
+            //         es: `El diccionario 'pelicula3' debe tener la clave 'título' con un valor asignado.`,
+            //         en: `The dictionary 'movie3' must have the key 'title' with an assigned value.`,
+            //         pt: `O dicionário 'pelicula3' deve ter a chave 'título' com um valor atribuído.`
+            //       }];
+            //     }
+            //   }
+            //   else if (!pelicula3[1].includes("protagonista")) {
+            //     seguirValidando = false;
+            //     return [{
+            //       es: "El diccionario 'pelicula3' debe tener la clave 'protagonista'.",
+            //       en: "The dictionary 'pelicula3' must have the key 'protagonista'.",
+            //       pt: "O dicionário 'pelicula3' deve ter a chave 'protagonista'."
+            //     }];
+            //   } else if (pelicula3[1].includes("protagonista")) {
+            //     const keyRegex = new RegExp(`"protagonista"\\s*:\\s*""`);
+            //     if (keyRegex.test(pelicula3[1])) {
+            //       seguirValidando = false;
+            //       return [{
+            //         es: `El diccionario 'pelicula3' debe tener la clave 'protagonista' con un valor asignado.`,
+            //         en: `The dictionary 'movie3' must have the key 'protagonista' with an assigned value.`,
+            //         pt: `O dicionário 'pelicula3' deve ter a chave 'protagonista' com um valor atribuído.`
+            //       }];
+            //     }
+            //   }
+            //   else if (!pelicula3[1].includes("genero")) {
+            //     seguirValidando = false;
+            //     return [{
+            //       es: "El diccionario 'pelicula3' debe tener la clave 'genero'.",
+            //       en: "The dictionary 'pelicula3' must have the key 'genero'.",
+            //       pt: "O dicionário 'pelicula3' deve ter a chave 'genero'."
+            //     }];
+            //   } else if (pelicula3[1].includes("genero")) {
+            //     const keyRegex = new RegExp(`"genero"\\s*:\\s*""`);
+            //     if (keyRegex.test(pelicula3[1])) {
+            //       seguirValidando = false;
+            //       return [{
+            //         es: `El diccionario 'pelicula3' debe tener la clave 'genero' con un valor asignado.`,
+            //         en: `The dictionary 'movie3' must have the key 'genero' with an assigned value.`,
+            //         pt: `O dicionário 'pelicula3' deve ter a chave 'genero' com um valor atribuído.`
+            //       }];
+            //     }
+            //   }
+            //   else if (!pelicula3[1].includes("duracion")) {
+            //     seguirValidando = false;
+            //     return [{
+            //       es: "El diccionario 'pelicula3' debe tener la clave 'duracion'.",
+            //       en: "The dictionary 'pelicula3' must have the key 'duracion'.",
+            //       pt: "O dicionário 'pelicula3' deve ter a chave 'duracion'."
+            //     }];
+            //   } else if (pelicula3[1].includes("duracion")) {
+            //     const keyRegex = new RegExp(`"duracion"\\s*:\\s*""`);
+            //     if (keyRegex.test(pelicula3[1])) {
+            //       seguirValidando = false;
+            //       return [{
+            //         es: `El diccionario 'pelicula3' debe tener la clave 'duracion' con un valor asignado.`,
+            //         en: `The dictionary 'movie3' must have the key 'duration' with an assigned value.`,
+            //         pt: `O dicionário 'pelicula3' deve ter a chave 'duracion' com um valor atribuído.`
+            //       }];
+            //     }
+            //   }
+            // }
+            // if (!code.replace(/\s/g, '').trim().includes('pelicula3={"')) {
+            //   seguirValidando = false;
+            //   return [{
+            //     es: "Debe crear un diccionario llamado 'pelicula3'.",
+            //     en: "It must create a dictionary named 'pelicula3'.",
+            //     pt: "Deve criar um dicionário chamado 'pelicula3'."
+            //   }];
+            // }
 
-              if (!pelicula5[1].includes("título")) {
-                seguirValidando = false;
-                return [{
-                  es: "El diccionario 'pelicula5' debe tener la clave 'título'.",
-                  en: "The dictionary 'pelicula5' must have the key 'título'.",
-                  pt: "O dicionário 'pelicula5' deve ter a chave 'título'."
-                }];
-              } else if (!pelicula5[1].includes("titulo")) {
-                const keyRegex = new RegExp(`"titulo"\\s*:\\s*""`);
-                if (keyRegex.test(pelicula5[1])) {
-                  seguirValidando = false;
-                  return [{
-                    es: `El diccionario 'pelicula5' debe tener la clave 'titulo' con un valor asignado.`,
-                    en: `The dictionary 'movie5' must have the key 'title' with an assigned value.`,
-                    pt: `O dicionário 'movie5' deve ter a chave 'title' com um valor atribuído.`
-                  }];
-                }
-              }
-              else if (!pelicula5[1].includes("protagonista")) {
-                seguirValidando = false;
-                return [{
-                  es: "El diccionario 'pelicula5' debe tener la clave 'protagonista'.",
-                  en: "The dictionary 'pelicula5' must have the key 'protagonista'.",
-                  pt: "O dicionário 'pelicula5' deve ter a chave 'protagonista'."
-                }];
-              } else if (!pelicula5[1].includes("protagonista")) {
-                const keyRegex = new RegExp(`"protagonista"\\s*:\\s*""`);
-                if (keyRegex.test(pelicula5[1])) {
-                  seguirValidando = false;
-                  return [{
-                    es: `El diccionario 'pelicula5' debe tener la clave 'protagonista' con un valor asignado.`,
-                    en: `The dictionary 'movie5' must have the key 'protagonist' with an assigned value.`,
-                    pt: `O dicionário 'movie5' deve ter a chave 'protagonist' com um valor atribuído.`
-                  }];
-                }
-              }
-              else if (!pelicula5[1].includes("genero")) {
-                seguirValidando = false;
-                return [{
-                  es: "El diccionario 'pelicula5' debe tener la clave 'genero'.",
-                  en: "The dictionary 'pelicula5' must have the key 'genero'.",
-                  pt: "O dicionário 'pelicula5' deve ter a chave 'genero'."
-                }];
-              } else if (!pelicula5[1].includes("genero")) {
-                const keyRegex = new RegExp(`"genero"\\s*:\\s*""`);
-                if (keyRegex.test(pelicula5[1])) {
-                  seguirValidando = false;
-                  return [{
-                    es: `El diccionario 'pelicula5' debe tener la clave 'genero' con un valor asignado.`,
-                    en: `The dictionary 'movie5' must have the key 'genre' with an assigned value.`,
-                    pt: `O dicionário 'movie5' deve ter a chave 'genre' com um valor atribuído.`
-                  }];
-                }
-              }
-              else if (!pelicula5[1].includes("duracion")) {
-                seguirValidando = false;
-                return [{
-                  es: "El diccionario 'pelicula5' debe tener la clave 'duracion'.",
-                  en: "The dictionary 'pelicula5' must have the key 'duracion'.",
-                  pt: "O dicionário 'pelicula5' deve ter a chave 'duracion'."
-                }];
-              } else if (!pelicula5[1].includes("duracion")) {
-                const keyRegex = new RegExp(`"duracion"\\s*:\\s*""`);
-                if (keyRegex.test(pelicula5[1])) {
-                  seguirValidando = false;
-                  return [{
-                    es: `El diccionario 'pelicula5' debe tener la clave 'duracion' con un valor asignado.`,
-                    en: `The dictionary 'movie5' must have the key 'duration' with an assigned value.`,
-                    pt: `O dicionário 'movie5' deve ter a chave 'duration' com um valor atribuído.`
-                  }];
-                }
-              }
-            } if (!code.replace(/\s/g, '').trim().includes('pelicula5={"')) {
-              seguirValidando = false;
-              return [{
-                es: "Debe crear un diccionario llamado 'pelicula5'.",
-                en: "It must create a dictionary named 'pelicula5'.",
-                pt: "Deve criar um dicionário chamado 'pelicula5'."
-              }];
-            }
+            // else if (code.replace(/\s/g, '').trim().includes("movie3={")) {
+            //   const pelicula3 = code.replace(/\s/g, '').trim().match(/movie3={(.*?)\}/s); // Obtener el contenido del diccionario pelicula3
+            //   if (!pelicula3[1].includes("title")) {
+            //     seguirValidando = false;
+            //     return [{
+            //       es: "El diccionario 'movie3' debe tener la clave 'title'.",
+            //       en: "The dictionary 'movie3' must have the key 'title'.",
+            //       pt: "O dicionário 'movie3' deve ter a chave 'title'."
+            //     }];
+            //   } else if (pelicula3[1].includes("title")) {
+            //     const keyRegex = new RegExp(`"title"\\s*:\\s*""`);
+            //     if (keyRegex.test(pelicula3[1])) {
+            //       seguirValidando = false;
+            //       return [{
+            //         es: `El diccionario 'movie3' debe tener la clave 'title' con un valor asignado.`,
+            //         en: `The dictionary 'movie3' must have the key 'title' with an assigned value.`,
+            //         pt: `O dicionário 'movie3' deve ter a chave 'title' com um valor atribuído.`
+            //       }];
+            //     }
+            //   }
+            //   else if (!pelicula3[1].includes("protagonist")) {
+            //     seguirValidando = false;
+            //     return [{
+            //       es: "El diccionario 'movie3' debe tener la clave 'protagonist'.",
+            //       en: "The dictionary 'movie3' must have the key 'protagonist'.",
+            //       pt: "O dicionário 'movie3' deve ter a chave 'protagonist'."
+            //     }];
+            //   } else if (pelicula3[1].includes("protagonist")) {
+            //     const keyRegex = new RegExp(`"protagonist"\\s*:\\s*""`);
+            //     if (keyRegex.test(pelicula3[1])) {
+            //       seguirValidando = false;
+            //       return [{
+            //         es: `El diccionario 'movie3' debe tener la clave 'protagonist' con un valor asignado.`,
+            //         en: `The dictionary 'movie3' must have the key 'protagonist' with an assigned value.`,
+            //         pt: `O dicionário 'movie3' deve ter a chave 'protagonist' com um valor atribuído.`
+            //       }];
+            //     }
+            //   }
+            //   else if (!pelicula3[1].includes("genre")) {
+            //     seguirValidando = false;
+            //     return [{
+            //       es: "El diccionario 'movie3' debe tener la clave 'genre'.",
+            //       en: "The dictionary 'movie3' must have the key 'genre'.",
+            //       pt: "O dicionário 'movie3' deve ter a chave 'genre'."
+            //     }];
+            //   } else if (pelicula3[1].includes("genre")) {
+            //     const keyRegex = new RegExp(`"genre"\\s*:\\s*""`);
+            //     if (keyRegex.test(pelicula3[1])) {
+            //       seguirValidando = false;
+            //       return [{
+            //         es: `El diccionario 'movie3' debe tener la clave 'genre' con un valor asignado.`,
+            //         en: `The dictionary 'movie3' must have the key 'genre' with an assigned value.`,
+            //         pt: `O dicionário 'movie3' deve ter a chave 'genre' com um valor atribuído.`
+            //       }];
+            //     }
+            //   }
+            //   else if (!pelicula3[1].includes("duration")) {
+            //     seguirValidando = false;
+            //     return [{
+            //       es: "El diccionario 'movie3' debe tener la clave 'duration'.",
+            //       en: "The dictionary 'movie3' must have the key 'duration'.",
+            //       pt: "O dicionário 'movie3' deve ter a chave 'duration'."
+            //     }];
+            //   } else if (pelicula3[1].includes("duration")) {
+            //     const keyRegex = new RegExp(`"duration"\\s*:\\s*""`);
+            //     if (keyRegex.test(pelicula3[1])) {
+            //       seguirValidando = false;
+            //       return [{
+            //         es: `El diccionario 'movie3' debe tener la clave 'duration' con un valor asignado.`,
+            //         en: `The dictionary 'movie3' must have the key 'duration' with an assigned value.`,
+            //         pt: `O dicionário 'movie3' deve ter a chave 'duration' com um valor atribuído.`
+            //       }];
+            //     }
+            //   }
+            // }
 
-            else if (code.replace(/\s/g, '').trim().includes("movie5={")) {
-              const pelicula5 = code.replace(/\s/g, '').trim().match(/movie5={(.*?)\}/s); // Obtener el contenido del diccionario pelicula5
-              if (!pelicula5[1].includes("title")) {
-                seguirValidando = false;
-                return [{
-                  es: "El diccionario 'movie5' debe tener la clave 'title'.",
-                  en: "The dictionary 'movie5' must have the key 'title'.",
-                  pt: "O dicionário 'movie5' deve ter a chave 'title'."
-                }];
-              } else if (pelicula5[1].includes("title")) {
-                const keyRegex = new RegExp(`"title"\\s*:\\s*""`);
-                if (keyRegex.test(pelicula5[1])) {
-                  seguirValidando = false;
-                  return [{
-                    es: `El diccionario 'movie5' debe tener la clave 'title' con un valor asignado.`,
-                    en: `The dictionary 'movie5' must have the key 'title' with an assigned value.`,
-                    pt: `O dicionário 'movie5' deve ter a chave 'title' com um valor atribuído.`
-                  }];
-                }
-              }
-              else if (!pelicula5[1].includes("protagonist")) {
-                seguirValidando = false;
-                return [{
-                  es: "El diccionario 'movie5' debe tener la clave 'protagonist'.",
-                  en: "The dictionary 'movie5' must have the key 'protagonist'.",
-                  pt: "O dicionário 'movie5' deve ter a chave 'protagonist'."
-                }];
-              } else if (pelicula5[1].includes("protagonist")) {
-                const keyRegex = new RegExp(`"protagonist"\\s*:\\s*""`);
-                if (keyRegex.test(pelicula5[1])) {
-                  seguirValidando = false;
-                  return [{
-                    es: `El diccionario 'movie5' debe tener la clave 'protagonist' con un valor asignado.`,
-                    en: `The dictionary 'movie5' must have the key 'protagonist' with an assigned value.`,
-                    pt: `O dicionário 'movie5' deve ter a chave 'protagonist' com um valor atribuído.`
-                  }];
-                }
-              }
-              else if (!pelicula5[1].includes("genre")) {
-                seguirValidando = false;
-                return [{
-                  es: "El diccionario 'movie5' debe tener la clave 'genre'.",
-                  en: "The dictionary 'movie5' must have the key 'genre'.",
-                  pt: "O dicionário 'movie5' deve ter a chave 'genre'."
-                }];
-              } else if (pelicula5[1].includes("genre")) {
-                const keyRegex = new RegExp(`"genre"\\s*:\\s*""`);
-                if (keyRegex.test(pelicula5[1])) {
-                  seguirValidando = false;
-                  return [{
-                    es: `El diccionario 'movie5' debe tener la clave 'genre' con un valor asignado.`,
-                    en: `The dictionary 'movie5' must have the key 'genre' with an assigned value.`,
-                    pt: `O dicionário 'movie5' deve ter a chave 'genre' com um valor atribuído.`
-                  }];
-                }
-              }
-              else if (!pelicula5[1].includes("duration")) {
-                seguirValidando = false;
-                return [{
-                  es: "El diccionario 'movie5' debe tener la clave 'duration'.",
-                  en: "The dictionary 'movie5' must have the key 'duration'.",
-                  pt: "O dicionário 'movie5' deve ter a chave 'duration'."
-                }];
-              } else if (pelicula5[1].includes("duration")) {
-                const keyRegex = new RegExp(`"duration"\\s*:\\s*""`);
-                if (keyRegex.test(pelicula5[1])) {
-                  seguirValidando = false;
-                  return [{
-                    es: `El diccionario 'movie5' debe tener la clave 'duration' con un valor asignado.`,
-                    en: `The dictionary 'movie5' must have the key 'duration' with an assigned value.`,
-                    pt: `O dicionário 'movie5' deve ter a chave 'duration' com um valor atribuído.`
-                  }];
-                }
-              }
-            }
-            else if (code.replace(/\s/g, '').trim().includes('movie5={"') && !code.replace(/\s/g, '').trim().includes('movie5={"')) {
-              seguirValidando = false;
-              return [{
-                es: "Debe crear un diccionario llamado 'movie5'.",
-                en: "It must create a dictionary named 'movie5'.",
-                pt: "Deve criar um dicionário chamado 'movie5'."
-              }];
-            }
+            // else if (code.replace(/\s/g, '').trim().includes('movie3={"') && !code.replace(/\s/g, '').trim().includes('movie3={"')) {
+            //   seguirValidando = false;
+            //   return [{
+            //     es: "Debe crear un diccionario llamado 'movie3'.",
+            //     en: "It must create a dictionary named 'movie3'.",
+            //     pt: "Deve criar um dicionário chamado 'movie3'."
+            //   }];
+            // }
 
-            if (code.includes("pelicula6 = {")) {
-              const pelicula6 = code.match(/pelicula6 = \{(.*?)\}/s); // Obtener el contenido del diccionario pelicula6
+            // if (code.includes("pelicula4 = {")) {
+            //   const pelicula4 = code.match(/pelicula4 = \{(.*?)\}/s); // Obtener el contenido del diccionario pelicula4
 
-              if (!pelicula6[1].includes("título")) {
-                seguirValidando = false;
-                return [{
-                  es: "El diccionario 'pelicula6' debe tener la clave 'título'.",
-                  en: "The dictionary 'pelicula6' must have the key 'título'.",
-                  pt: "O dicionário 'pelicula6' deve ter a chave 'título'."
-                }];
-              } else if (!pelicula6[1].includes("titulo")) {
-                const keyRegex = new RegExp(`"titulo"\\s*:\\s*""`);
-                if (keyRegex.test(pelicula6[1])) {
-                  seguirValidando = false;
-                  return [{
-                    es: `El diccionario 'pelicula6' debe tener la clave 'titulo' con un valor asignado.`,
-                    en: `The dictionary 'movie6' must have the key 'title' with an assigned value.`,
-                    pt: `O dicionário 'movie6' deve ter a chave 'title' com um valor atribuído.`
-                  }];
-                }
-              }
-              else if (!pelicula6[1].includes("protagonista")) {
-                seguirValidando = false;
-                return [{
-                  es: "El diccionario 'pelicula6' debe tener la clave 'protagonista'.",
-                  en: "The dictionary 'pelicula6' must have the key 'protagonista'.",
-                  pt: "O dicionário 'pelicula6' deve ter a chave 'protagonista'."
-                }];
-              } else if (!pelicula6[1].includes("protagonista")) {
-                const keyRegex = new RegExp(`"protagonista"\\s*:\\s*""`);
-                if (keyRegex.test(pelicula6[1])) {
-                  seguirValidando = false;
-                  return [{
-                    es: `El diccionario 'pelicula6' debe tener la clave 'protagonista' con un valor asignado.`,
-                    en: `The dictionary 'movie6' must have the key 'protagonist' with an assigned value.`,
-                    pt: `O dicionário 'movie6' deve ter a chave 'protagonist' com um valor atribuído.`
-                  }];
-                }
-              }
-              else if (!pelicula6[1].includes("genero")) {
-                seguirValidando = false;
-                return [{
-                  es: "El diccionario 'pelicula6' debe tener la clave 'genero'.",
-                  en: "The dictionary 'pelicula6' must have the key 'genero'.",
-                  pt: "O dicionário 'pelicula6' deve ter a chave 'genero'."
-                }];
-              } else if (!pelicula6[1].includes("genero")) {
-                const keyRegex = new RegExp(`"genero"\\s*:\\s*""`);
-                if (keyRegex.test(pelicula6[1])) {
-                  seguirValidando = false;
-                  return [{
-                    es: `El diccionario 'pelicula6' debe tener la clave 'genero' con un valor asignado.`,
-                    en: `The dictionary 'movie6' must have the key 'genre' with an assigned value.`,
-                    pt: `O dicionário 'movie6' deve ter a chave 'genre' com um valor atribuído.`
-                  }];
-                }
-              }
-              else if (!pelicula6[1].includes("duracion")) {
-                seguirValidando = false;
-                return [{
-                  es: "El diccionario 'pelicula6' debe tener la clave 'duracion'.",
-                  en: "The dictionary 'pelicula6' must have the key 'duracion'.",
-                  pt: "O dicionário 'pelicula6' deve ter a chave 'duracion'."
-                }];
-              } else if (!pelicula6[1].includes("duracion")) {
-                const keyRegex = new RegExp(`"duracion"\\s*:\\s*""`);
-                if (keyRegex.test(pelicula6[1])) {
-                  seguirValidando = false;
-                  return [{
-                    es: `El diccionario 'pelicula6' debe tener la clave 'duracion' con un valor asignado.`,
-                    en: `The dictionary 'movie6' must have the key 'duration' with an assigned value.`,
-                    pt: `O dicionário 'movie6' deve ter a chave 'duration' com um valor atribuído.`
-                  }];
-                }
-              }
-            } if (!code.replace(/\s/g, '').trim().includes('pelicula6={"')) {
-              seguirValidando = false;
-              return [{
-                es: "Debe crear un diccionario llamado 'pelicula6'.",
-                en: "It must create a dictionary named 'pelicula6'.",
-                pt: "Deve criar um dicionário chamado 'pelicula6'."
-              }];
-            }
+            //   if (!pelicula4[1].includes("título")) {
+            //     seguirValidando = false;
+            //     return [{
+            //       es: "El diccionario 'pelicula4' debe tener la clave 'título'.",
+            //       en: "The dictionary 'pelicula4' must have the key 'título'.",
+            //       pt: "O dicionário 'pelicula4' deve ter a chave 'título'."
+            //     }];
+            //   } else if (!pelicula4[1].includes("titulo")) {
+            //     const keyRegex = new RegExp(`"titulo"\\s*:\\s*""`);
+            //     if (keyRegex.test(pelicula4[1])) {
+            //       seguirValidando = false;
+            //       return [{
+            //         es: `El diccionario 'pelicula4' debe tener la clave 'titulo' con un valor asignado.`,
+            //         en: `The dictionary 'movie4' must have the key 'title' with an assigned value.`,
+            //         pt: `O dicionário 'movie4' deve ter a chave 'title' com um valor atribuído.`
+            //       }];
+            //     }
+            //   }
+            //   else if (!pelicula4[1].includes("protagonista")) {
+            //     seguirValidando = false;
+            //     return [{
+            //       es: "El diccionario 'pelicula4' debe tener la clave 'protagonista'.",
+            //       en: "The dictionary 'pelicula4' must have the key 'protagonista'.",
+            //       pt: "O dicionário 'pelicula4' deve ter a chave 'protagonista'."
+            //     }];
+            //   } else if (!pelicula4[1].includes("protagonista")) {
+            //     const keyRegex = new RegExp(`"protagonista"\\s*:\\s*""`);
+            //     if (keyRegex.test(pelicula4[1])) {
+            //       seguirValidando = false;
+            //       return [{
+            //         es: `El diccionario 'pelicula4' debe tener la clave 'protagonista' con un valor asignado.`,
+            //         en: `The dictionary 'movie4' must have the key 'protagonist' with an assigned value.`,
+            //         pt: `O dicionário 'movie4' deve ter a chave 'protagonist' com um valor atribuído.`
+            //       }];
+            //     }
+            //   }
+            //   else if (!pelicula4[1].includes("genero")) {
+            //     seguirValidando = false;
+            //     return [{
+            //       es: "El diccionario 'pelicula4' debe tener la clave 'genero'.",
+            //       en: "The dictionary 'pelicula4' must have the key 'genero'.",
+            //       pt: "O dicionário 'pelicula4' deve ter a chave 'genero'."
+            //     }];
+            //   } else if (!pelicula4[1].includes("genero")) {
+            //     const keyRegex = new RegExp(`"genero"\\s*:\\s*""`);
+            //     if (keyRegex.test(pelicula4[1])) {
+            //       seguirValidando = false;
+            //       return [{
+            //         es: `El diccionario 'pelicula4' debe tener la clave 'genero' con un valor asignado.`,
+            //         en: `The dictionary 'movie4' must have the key 'genre' with an assigned value.`,
+            //         pt: `O dicionário 'movie4' deve ter a chave 'genre' com um valor atribuído.`
+            //       }];
+            //     }
+            //   }
+            //   else if (!pelicula4[1].includes("duracion")) {
+            //     seguirValidando = false;
+            //     return [{
+            //       es: "El diccionario 'pelicula4' debe tener la clave 'duracion'.",
+            //       en: "The dictionary 'pelicula4' must have the key 'duracion'.",
+            //       pt: "O dicionário 'pelicula4' deve ter a chave 'duracion'."
+            //     }];
+            //   } else if (!pelicula4[1].includes("duracion")) {
+            //     const keyRegex = new RegExp(`"duracion"\\s*:\\s*""`);
+            //     if (keyRegex.test(pelicula4[1])) {
+            //       seguirValidando = false;
+            //       return [{
+            //         es: `El diccionario 'pelicula4' debe tener la clave 'duracion' con un valor asignado.`,
+            //         en: `The dictionary 'movie4' must have the key 'duration' with an assigned value.`,
+            //         pt: `O dicionário 'movie4' deve ter a chave 'duration' com um valor atribuído.`
+            //       }];
+            //     }
+            //   }
+            // }
+            // if (!code.replace(/\s/g, '').trim().includes('pelicula4={"')) {
+            //   seguirValidando = false;
+            //   return [{
+            //     es: "Debe crear un diccionario llamado 'pelicula4'.",
+            //     en: "It must create a dictionary named 'pelicula4'.",
+            //     pt: "Deve criar um dicionário chamado 'pelicula4'."
+            //   }];
+            // }
 
-            else if (code.replace(/\s/g, '').trim().includes("movie6={")) {
-              const pelicula6 = code.replace(/\s/g, '').trim().match(/movie6={(.*?)\}/s); // Obtener el contenido del diccionario pelicula6
-              if (!pelicula6[1].includes("title")) {
-                seguirValidando = false;
-                return [{
-                  es: "El diccionario 'movie6' debe tener la clave 'title'.",
-                  en: "The dictionary 'movie6' must have the key 'title'.",
-                  pt: "O dicionário 'movie6' deve ter a chave 'title'."
-                }];
-              } else if (pelicula6[1].includes("title")) {
-                const keyRegex = new RegExp(`"title"\\s*:\\s*""`);
-                if (keyRegex.test(pelicula6[1])) {
-                  seguirValidando = false;
-                  return [{
-                    es: `El diccionario 'movie6' debe tener la clave 'title' con un valor asignado.`,
-                    en: `The dictionary 'movie6' must have the key 'title' with an assigned value.`,
-                    pt: `O dicionário 'movie6' deve ter a chave 'title' com um valor atribuído.`
-                  }];
-                }
-              }
-              else if (!pelicula6[1].includes("protagonist")) {
-                seguirValidando = false;
-                return [{
-                  es: "El diccionario 'movie6' debe tener la clave 'protagonist'.",
-                  en: "The dictionary 'movie6' must have the key 'protagonist'.",
-                  pt: "O dicionário 'movie6' deve ter a chave 'protagonist'."
-                }];
-              } else if (pelicula6[1].includes("protagonist")) {
-                const keyRegex = new RegExp(`"protagonist"\\s*:\\s*""`);
-                if (keyRegex.test(pelicula6[1])) {
-                  seguirValidando = false;
-                  return [{
-                    es: `El diccionario 'movie6' debe tener la clave 'protagonist' con un valor asignado.`,
-                    en: `The dictionary 'movie6' must have the key 'protagonist' with an assigned value.`,
-                    pt: `O dicionário 'movie6' deve ter a chave 'protagonist' com um valor atribuído.`
-                  }];
-                }
-              }
-              else if (!pelicula6[1].includes("genre")) {
-                seguirValidando = false;
-                return [{
-                  es: "El diccionario 'movie6' debe tener la clave 'genre'.",
-                  en: "The dictionary 'movie6' must have the key 'genre'.",
-                  pt: "O dicionário 'movie6' deve ter a chave 'genre'."
-                }];
-              } else if (pelicula6[1].includes("genre")) {
-                const keyRegex = new RegExp(`"genre"\\s*:\\s*""`);
-                if (keyRegex.test(pelicula6[1])) {
-                  seguirValidando = false;
-                  return [{
-                    es: `El diccionario 'movie6' debe tener la clave 'genre' con un valor asignado.`,
-                    en: `The dictionary 'movie6' must have the key 'genre' with an assigned value.`,
-                    pt: `O dicionário 'movie6' deve ter a chave 'genre' com um valor atribuído.`
-                  }];
-                }
-              }
-              else if (!pelicula6[1].includes("duration")) {
-                seguirValidando = false;
-                return [{
-                  es: "El diccionario 'movie6' debe tener la clave 'duration'.",
-                  en: "The dictionary 'movie6' must have the key 'duration'.",
-                  pt: "O dicionário 'movie6' deve ter a chave 'duration'."
-                }];
-              } else if (pelicula6[1].includes("duration")) {
-                const keyRegex = new RegExp(`"duration"\\s*:\\s*""`);
-                if (keyRegex.test(pelicula6[1])) {
-                  seguirValidando = false;
-                  return [{
-                    es: `El diccionario 'movie6' debe tener la clave 'duration' con un valor asignado.`,
-                    en: `The dictionary 'movie6' must have the key 'duration' with an assigned value.`,
-                    pt: `O dicionário 'movie6' deve ter a chave 'duration' com um valor atribuído.`
-                  }];
-                }
-              }
-            }
-            else if (code.replace(/\s/g, '').trim().includes('movie6={"') && !code.replace(/\s/g, '').trim().includes('movie6={"')) {
-              seguirValidando = false;
-              return [{
-                es: "Debe crear un diccionario llamado 'movie6'.",
-                en: "It must create a dictionary named 'movie6'.",
-                pt: "Deve criar um dicionário chamado 'movie6'."
-              }];
-            }
+            // else if (code.replace(/\s/g, '').trim().includes("movie4={")) {
+            //   const pelicula4 = code.replace(/\s/g, '').trim().match(/movie4={(.*?)\}/s); // Obtener el contenido del diccionario pelicula4
+            //   if (!pelicula4[1].includes("title")) {
+            //     seguirValidando = false;
+            //     return [{
+            //       es: "El diccionario 'movie4' debe tener la clave 'title'.",
+            //       en: "The dictionary 'movie4' must have the key 'title'.",
+            //       pt: "O dicionário 'movie4' deve ter a chave 'title'."
+            //     }];
+            //   } else if (pelicula4[1].includes("title")) {
+            //     const keyRegex = new RegExp(`"title"\\s*:\\s*""`);
+            //     if (keyRegex.test(pelicula4[1])) {
+            //       seguirValidando = false;
+            //       return [{
+            //         es: `El diccionario 'movie4' debe tener la clave 'title' con un valor asignado.`,
+            //         en: `The dictionary 'movie4' must have the key 'title' with an assigned value.`,
+            //         pt: `O dicionário 'movie4' deve ter a chave 'title' com um valor atribuído.`
+            //       }];
+            //     }
+            //   }
+            //   else if (!pelicula4[1].includes("protagonist")) {
+            //     seguirValidando = false;
+            //     return [{
+            //       es: "El diccionario 'movie4' debe tener la clave 'protagonist'.",
+            //       en: "The dictionary 'movie4' must have the key 'protagonist'.",
+            //       pt: "O dicionário 'movie4' deve ter a chave 'protagonist'."
+            //     }];
+            //   } else if (pelicula4[1].includes("protagonist")) {
+            //     const keyRegex = new RegExp(`"protagonist"\\s*:\\s*""`);
+            //     if (keyRegex.test(pelicula4[1])) {
+            //       seguirValidando = false;
+            //       return [{
+            //         es: `El diccionario 'movie4' debe tener la clave 'protagonist' con un valor asignado.`,
+            //         en: `The dictionary 'movie4' must have the key 'protagonist' with an assigned value.`,
+            //         pt: `O dicionário 'movie4' deve ter a chave 'protagonist' com um valor atribuído.`
+            //       }];
+            //     }
+            //   }
+            //   else if (!pelicula4[1].includes("genre")) {
+            //     seguirValidando = false;
+            //     return [{
+            //       es: "El diccionario 'movie4' debe tener la clave 'genre'.",
+            //       en: "The dictionary 'movie4' must have the key 'genre'.",
+            //       pt: "O dicionário 'movie4' deve ter a chave 'genre'."
+            //     }];
+            //   } else if (pelicula4[1].includes("genre")) {
+            //     const keyRegex = new RegExp(`"genre"\\s*:\\s*""`);
+            //     if (keyRegex.test(pelicula4[1])) {
+            //       seguirValidando = false;
+            //       return [{
+            //         es: `El diccionario 'movie4' debe tener la clave 'genre' con un valor asignado.`,
+            //         en: `The dictionary 'movie4' must have the key 'genre' with an assigned value.`,
+            //         pt: `O dicionário 'movie4' deve ter a chave 'genre' com um valor atribuído.`
+            //       }];
+            //     }
+            //   }
+            //   else if (!pelicula4[1].includes("duration")) {
+            //     seguirValidando = false;
+            //     return [{
+            //       es: "El diccionario 'movie4' debe tener la clave 'duration'.",
+            //       en: "The dictionary 'movie4' must have the key 'duration'.",
+            //       pt: "O dicionário 'movie4' deve ter a chave 'duration'."
+            //     }];
+            //   } else if (pelicula4[1].includes("duration")) {
+            //     const keyRegex = new RegExp(`"duration"\\s*:\\s*""`);
+            //     if (keyRegex.test(pelicula4[1])) {
+            //       seguirValidando = false;
+            //       return [{
+            //         es: `El diccionario 'movie4' debe tener la clave 'duration' con un valor asignado.`,
+            //         en: `The dictionary 'movie4' must have the key 'duration' with an assigned value.`,
+            //         pt: `O dicionário 'movie4' deve ter a chave 'duration' com um valor atribuído.`
+            //       }];
+            //     }
+            //   }
+            // }
+            // else if (code.replace(/\s/g, '').trim().includes('movie4={"') && !code.replace(/\s/g, '').trim().includes('movie4={"')) {
+            //   seguirValidando = false;
+            //   return [{
+            //     es: "Debe crear un diccionario llamado 'movie4'.",
+            //     en: "It must create a dictionary named 'movie4'.",
+            //     pt: "Deve criar um dicionário chamado 'movie4'."
+            //   }];
+            // }
 
-            if (!code.includes('print(pelicula1)') && !code.includes('print(movie1)')) {
-              seguirValidando = false;
-              return [{
-                es: "Debe mostrar el diccionario 'pelicula1'.",
-                en: "It must display the dictionary 'movie1'.",
-                pt: "Deve exibir o dicionário 'pelicula1'."
-              }];
-            } else if (!code.includes('print(pelicula2)') && !code.includes('print(movie2)')) {
-              seguirValidando = false;
-              return [{
-                es: "Debe mostrar el diccionario 'pelicula2'.",
-                en: "It must display the dictionary 'movie2'.",
-                pt: "Deve exibir o dicionário 'pelicula2'."
-              }];
-            } else if (!code.includes('print(pelicula3)') && !code.includes('print(movie3)')) {
-              seguirValidando = false;
-              return [{
-                es: "Debe mostrar el diccionario 'pelicula3'.",
-                en: "It must display the dictionary 'movie3'.",
-                pt: "Deve exibir o dicionário 'pelicula3'."
-              }];
-            } else if (!code.includes('print(pelicula4)') && !code.includes('print(movie4)')) {
-              seguirValidando = false;
-              return [{
-                es: "Debe mostrar el diccionario 'pelicula4'.",
-                en: "It must display the dictionary 'movie4'.",
-                pt: "Deve exibir o dicionário 'pelicula4'."
-              }];
-            } else if (!code.includes('print(pelicula5)') && !code.includes('print(movie5)')) {
-              seguirValidando = false;
-              return [{
-                es: "Debe mostrar el diccionario 'pelicula5'.",
-                en: "It must display the dictionary 'movie5'.",
-                pt: "Deve exibir o dicionário 'pelicula5'."
-              }];
-            } else if (!code.includes('print(pelicula6)') && !code.includes('print(movie6)')) {
-              seguirValidando = false;
-              return [{
-                es: "Debe mostrar el diccionario 'pelicula6'.",
-                en: "It must display the dictionary 'movie6'.",
-                pt: "Deve exibir o dicionário 'pelicula6'."
-              }];
-            }
+            // if (code.includes("pelicula5 = {")) {
+            //   const pelicula5 = code.match(/pelicula5 = \{(.*?)\}/s); // Obtener el contenido del diccionario pelicula5
+
+            //   if (!pelicula5[1].includes("título")) {
+            //     seguirValidando = false;
+            //     return [{
+            //       es: "El diccionario 'pelicula5' debe tener la clave 'título'.",
+            //       en: "The dictionary 'pelicula5' must have the key 'título'.",
+            //       pt: "O dicionário 'pelicula5' deve ter a chave 'título'."
+            //     }];
+            //   } else if (!pelicula5[1].includes("titulo")) {
+            //     const keyRegex = new RegExp(`"titulo"\\s*:\\s*""`);
+            //     if (keyRegex.test(pelicula5[1])) {
+            //       seguirValidando = false;
+            //       return [{
+            //         es: `El diccionario 'pelicula5' debe tener la clave 'titulo' con un valor asignado.`,
+            //         en: `The dictionary 'movie5' must have the key 'title' with an assigned value.`,
+            //         pt: `O dicionário 'movie5' deve ter a chave 'title' com um valor atribuído.`
+            //       }];
+            //     }
+            //   }
+            //   else if (!pelicula5[1].includes("protagonista")) {
+            //     seguirValidando = false;
+            //     return [{
+            //       es: "El diccionario 'pelicula5' debe tener la clave 'protagonista'.",
+            //       en: "The dictionary 'pelicula5' must have the key 'protagonista'.",
+            //       pt: "O dicionário 'pelicula5' deve ter a chave 'protagonista'."
+            //     }];
+            //   } else if (!pelicula5[1].includes("protagonista")) {
+            //     const keyRegex = new RegExp(`"protagonista"\\s*:\\s*""`);
+            //     if (keyRegex.test(pelicula5[1])) {
+            //       seguirValidando = false;
+            //       return [{
+            //         es: `El diccionario 'pelicula5' debe tener la clave 'protagonista' con un valor asignado.`,
+            //         en: `The dictionary 'movie5' must have the key 'protagonist' with an assigned value.`,
+            //         pt: `O dicionário 'movie5' deve ter a chave 'protagonist' com um valor atribuído.`
+            //       }];
+            //     }
+            //   }
+            //   else if (!pelicula5[1].includes("genero")) {
+            //     seguirValidando = false;
+            //     return [{
+            //       es: "El diccionario 'pelicula5' debe tener la clave 'genero'.",
+            //       en: "The dictionary 'pelicula5' must have the key 'genero'.",
+            //       pt: "O dicionário 'pelicula5' deve ter a chave 'genero'."
+            //     }];
+            //   } else if (!pelicula5[1].includes("genero")) {
+            //     const keyRegex = new RegExp(`"genero"\\s*:\\s*""`);
+            //     if (keyRegex.test(pelicula5[1])) {
+            //       seguirValidando = false;
+            //       return [{
+            //         es: `El diccionario 'pelicula5' debe tener la clave 'genero' con un valor asignado.`,
+            //         en: `The dictionary 'movie5' must have the key 'genre' with an assigned value.`,
+            //         pt: `O dicionário 'movie5' deve ter a chave 'genre' com um valor atribuído.`
+            //       }];
+            //     }
+            //   }
+            //   else if (!pelicula5[1].includes("duracion")) {
+            //     seguirValidando = false;
+            //     return [{
+            //       es: "El diccionario 'pelicula5' debe tener la clave 'duracion'.",
+            //       en: "The dictionary 'pelicula5' must have the key 'duracion'.",
+            //       pt: "O dicionário 'pelicula5' deve ter a chave 'duracion'."
+            //     }];
+            //   } else if (!pelicula5[1].includes("duracion")) {
+            //     const keyRegex = new RegExp(`"duracion"\\s*:\\s*""`);
+            //     if (keyRegex.test(pelicula5[1])) {
+            //       seguirValidando = false;
+            //       return [{
+            //         es: `El diccionario 'pelicula5' debe tener la clave 'duracion' con un valor asignado.`,
+            //         en: `The dictionary 'movie5' must have the key 'duration' with an assigned value.`,
+            //         pt: `O dicionário 'movie5' deve ter a chave 'duration' com um valor atribuído.`
+            //       }];
+            //     }
+            //   }
+            // } if (!code.replace(/\s/g, '').trim().includes('pelicula5={"')) {
+            //   seguirValidando = false;
+            //   return [{
+            //     es: "Debe crear un diccionario llamado 'pelicula5'.",
+            //     en: "It must create a dictionary named 'pelicula5'.",
+            //     pt: "Deve criar um dicionário chamado 'pelicula5'."
+            //   }];
+            // }
+
+            // else if (code.replace(/\s/g, '').trim().includes("movie5={")) {
+            //   const pelicula5 = code.replace(/\s/g, '').trim().match(/movie5={(.*?)\}/s); // Obtener el contenido del diccionario pelicula5
+            //   if (!pelicula5[1].includes("title")) {
+            //     seguirValidando = false;
+            //     return [{
+            //       es: "El diccionario 'movie5' debe tener la clave 'title'.",
+            //       en: "The dictionary 'movie5' must have the key 'title'.",
+            //       pt: "O dicionário 'movie5' deve ter a chave 'title'."
+            //     }];
+            //   } else if (pelicula5[1].includes("title")) {
+            //     const keyRegex = new RegExp(`"title"\\s*:\\s*""`);
+            //     if (keyRegex.test(pelicula5[1])) {
+            //       seguirValidando = false;
+            //       return [{
+            //         es: `El diccionario 'movie5' debe tener la clave 'title' con un valor asignado.`,
+            //         en: `The dictionary 'movie5' must have the key 'title' with an assigned value.`,
+            //         pt: `O dicionário 'movie5' deve ter a chave 'title' com um valor atribuído.`
+            //       }];
+            //     }
+            //   }
+            //   else if (!pelicula5[1].includes("protagonist")) {
+            //     seguirValidando = false;
+            //     return [{
+            //       es: "El diccionario 'movie5' debe tener la clave 'protagonist'.",
+            //       en: "The dictionary 'movie5' must have the key 'protagonist'.",
+            //       pt: "O dicionário 'movie5' deve ter a chave 'protagonist'."
+            //     }];
+            //   } else if (pelicula5[1].includes("protagonist")) {
+            //     const keyRegex = new RegExp(`"protagonist"\\s*:\\s*""`);
+            //     if (keyRegex.test(pelicula5[1])) {
+            //       seguirValidando = false;
+            //       return [{
+            //         es: `El diccionario 'movie5' debe tener la clave 'protagonist' con un valor asignado.`,
+            //         en: `The dictionary 'movie5' must have the key 'protagonist' with an assigned value.`,
+            //         pt: `O dicionário 'movie5' deve ter a chave 'protagonist' com um valor atribuído.`
+            //       }];
+            //     }
+            //   }
+            //   else if (!pelicula5[1].includes("genre")) {
+            //     seguirValidando = false;
+            //     return [{
+            //       es: "El diccionario 'movie5' debe tener la clave 'genre'.",
+            //       en: "The dictionary 'movie5' must have the key 'genre'.",
+            //       pt: "O dicionário 'movie5' deve ter a chave 'genre'."
+            //     }];
+            //   } else if (pelicula5[1].includes("genre")) {
+            //     const keyRegex = new RegExp(`"genre"\\s*:\\s*""`);
+            //     if (keyRegex.test(pelicula5[1])) {
+            //       seguirValidando = false;
+            //       return [{
+            //         es: `El diccionario 'movie5' debe tener la clave 'genre' con un valor asignado.`,
+            //         en: `The dictionary 'movie5' must have the key 'genre' with an assigned value.`,
+            //         pt: `O dicionário 'movie5' deve ter a chave 'genre' com um valor atribuído.`
+            //       }];
+            //     }
+            //   }
+            //   else if (!pelicula5[1].includes("duration")) {
+            //     seguirValidando = false;
+            //     return [{
+            //       es: "El diccionario 'movie5' debe tener la clave 'duration'.",
+            //       en: "The dictionary 'movie5' must have the key 'duration'.",
+            //       pt: "O dicionário 'movie5' deve ter a chave 'duration'."
+            //     }];
+            //   } else if (pelicula5[1].includes("duration")) {
+            //     const keyRegex = new RegExp(`"duration"\\s*:\\s*""`);
+            //     if (keyRegex.test(pelicula5[1])) {
+            //       seguirValidando = false;
+            //       return [{
+            //         es: `El diccionario 'movie5' debe tener la clave 'duration' con un valor asignado.`,
+            //         en: `The dictionary 'movie5' must have the key 'duration' with an assigned value.`,
+            //         pt: `O dicionário 'movie5' deve ter a chave 'duration' com um valor atribuído.`
+            //       }];
+            //     }
+            //   }
+            // }
+            // else if (code.replace(/\s/g, '').trim().includes('movie5={"') && !code.replace(/\s/g, '').trim().includes('movie5={"')) {
+            //   seguirValidando = false;
+            //   return [{
+            //     es: "Debe crear un diccionario llamado 'movie5'.",
+            //     en: "It must create a dictionary named 'movie5'.",
+            //     pt: "Deve criar um dicionário chamado 'movie5'."
+            //   }];
+            // }
+
+            // if (code.includes("pelicula6 = {")) {
+            //   const pelicula6 = code.match(/pelicula6 = \{(.*?)\}/s); // Obtener el contenido del diccionario pelicula6
+
+            //   if (!pelicula6[1].includes("título")) {
+            //     seguirValidando = false;
+            //     return [{
+            //       es: "El diccionario 'pelicula6' debe tener la clave 'título'.",
+            //       en: "The dictionary 'pelicula6' must have the key 'título'.",
+            //       pt: "O dicionário 'pelicula6' deve ter a chave 'título'."
+            //     }];
+            //   } else if (!pelicula6[1].includes("titulo")) {
+            //     const keyRegex = new RegExp(`"titulo"\\s*:\\s*""`);
+            //     if (keyRegex.test(pelicula6[1])) {
+            //       seguirValidando = false;
+            //       return [{
+            //         es: `El diccionario 'pelicula6' debe tener la clave 'titulo' con un valor asignado.`,
+            //         en: `The dictionary 'movie6' must have the key 'title' with an assigned value.`,
+            //         pt: `O dicionário 'movie6' deve ter a chave 'title' com um valor atribuído.`
+            //       }];
+            //     }
+            //   }
+            //   else if (!pelicula6[1].includes("protagonista")) {
+            //     seguirValidando = false;
+            //     return [{
+            //       es: "El diccionario 'pelicula6' debe tener la clave 'protagonista'.",
+            //       en: "The dictionary 'pelicula6' must have the key 'protagonista'.",
+            //       pt: "O dicionário 'pelicula6' deve ter a chave 'protagonista'."
+            //     }];
+            //   } else if (!pelicula6[1].includes("protagonista")) {
+            //     const keyRegex = new RegExp(`"protagonista"\\s*:\\s*""`);
+            //     if (keyRegex.test(pelicula6[1])) {
+            //       seguirValidando = false;
+            //       return [{
+            //         es: `El diccionario 'pelicula6' debe tener la clave 'protagonista' con un valor asignado.`,
+            //         en: `The dictionary 'movie6' must have the key 'protagonist' with an assigned value.`,
+            //         pt: `O dicionário 'movie6' deve ter a chave 'protagonist' com um valor atribuído.`
+            //       }];
+            //     }
+            //   }
+            //   else if (!pelicula6[1].includes("genero")) {
+            //     seguirValidando = false;
+            //     return [{
+            //       es: "El diccionario 'pelicula6' debe tener la clave 'genero'.",
+            //       en: "The dictionary 'pelicula6' must have the key 'genero'.",
+            //       pt: "O dicionário 'pelicula6' deve ter a chave 'genero'."
+            //     }];
+            //   } else if (!pelicula6[1].includes("genero")) {
+            //     const keyRegex = new RegExp(`"genero"\\s*:\\s*""`);
+            //     if (keyRegex.test(pelicula6[1])) {
+            //       seguirValidando = false;
+            //       return [{
+            //         es: `El diccionario 'pelicula6' debe tener la clave 'genero' con un valor asignado.`,
+            //         en: `The dictionary 'movie6' must have the key 'genre' with an assigned value.`,
+            //         pt: `O dicionário 'movie6' deve ter a chave 'genre' com um valor atribuído.`
+            //       }];
+            //     }
+            //   }
+            //   else if (!pelicula6[1].includes("duracion")) {
+            //     seguirValidando = false;
+            //     return [{
+            //       es: "El diccionario 'pelicula6' debe tener la clave 'duracion'.",
+            //       en: "The dictionary 'pelicula6' must have the key 'duracion'.",
+            //       pt: "O dicionário 'pelicula6' deve ter a chave 'duracion'."
+            //     }];
+            //   } else if (!pelicula6[1].includes("duracion")) {
+            //     const keyRegex = new RegExp(`"duracion"\\s*:\\s*""`);
+            //     if (keyRegex.test(pelicula6[1])) {
+            //       seguirValidando = false;
+            //       return [{
+            //         es: `El diccionario 'pelicula6' debe tener la clave 'duracion' con un valor asignado.`,
+            //         en: `The dictionary 'movie6' must have the key 'duration' with an assigned value.`,
+            //         pt: `O dicionário 'movie6' deve ter a chave 'duration' com um valor atribuído.`
+            //       }];
+            //     }
+            //   }
+            // } if (!code.replace(/\s/g, '').trim().includes('pelicula6={"')) {
+            //   seguirValidando = false;
+            //   return [{
+            //     es: "Debe crear un diccionario llamado 'pelicula6'.",
+            //     en: "It must create a dictionary named 'pelicula6'.",
+            //     pt: "Deve criar um dicionário chamado 'pelicula6'."
+            //   }];
+            // }
+
+            // else if (code.replace(/\s/g, '').trim().includes("movie6={")) {
+            //   const pelicula6 = code.replace(/\s/g, '').trim().match(/movie6={(.*?)\}/s); // Obtener el contenido del diccionario pelicula6
+            //   if (!pelicula6[1].includes("title")) {
+            //     seguirValidando = false;
+            //     return [{
+            //       es: "El diccionario 'movie6' debe tener la clave 'title'.",
+            //       en: "The dictionary 'movie6' must have the key 'title'.",
+            //       pt: "O dicionário 'movie6' deve ter a chave 'title'."
+            //     }];
+            //   } else if (pelicula6[1].includes("title")) {
+            //     const keyRegex = new RegExp(`"title"\\s*:\\s*""`);
+            //     if (keyRegex.test(pelicula6[1])) {
+            //       seguirValidando = false;
+            //       return [{
+            //         es: `El diccionario 'movie6' debe tener la clave 'title' con un valor asignado.`,
+            //         en: `The dictionary 'movie6' must have the key 'title' with an assigned value.`,
+            //         pt: `O dicionário 'movie6' deve ter a chave 'title' com um valor atribuído.`
+            //       }];
+            //     }
+            //   }
+            //   else if (!pelicula6[1].includes("protagonist")) {
+            //     seguirValidando = false;
+            //     return [{
+            //       es: "El diccionario 'movie6' debe tener la clave 'protagonist'.",
+            //       en: "The dictionary 'movie6' must have the key 'protagonist'.",
+            //       pt: "O dicionário 'movie6' deve ter a chave 'protagonist'."
+            //     }];
+            //   } else if (pelicula6[1].includes("protagonist")) {
+            //     const keyRegex = new RegExp(`"protagonist"\\s*:\\s*""`);
+            //     if (keyRegex.test(pelicula6[1])) {
+            //       seguirValidando = false;
+            //       return [{
+            //         es: `El diccionario 'movie6' debe tener la clave 'protagonist' con un valor asignado.`,
+            //         en: `The dictionary 'movie6' must have the key 'protagonist' with an assigned value.`,
+            //         pt: `O dicionário 'movie6' deve ter a chave 'protagonist' com um valor atribuído.`
+            //       }];
+            //     }
+            //   }
+            //   else if (!pelicula6[1].includes("genre")) {
+            //     seguirValidando = false;
+            //     return [{
+            //       es: "El diccionario 'movie6' debe tener la clave 'genre'.",
+            //       en: "The dictionary 'movie6' must have the key 'genre'.",
+            //       pt: "O dicionário 'movie6' deve ter a chave 'genre'."
+            //     }];
+            //   } else if (pelicula6[1].includes("genre")) {
+            //     const keyRegex = new RegExp(`"genre"\\s*:\\s*""`);
+            //     if (keyRegex.test(pelicula6[1])) {
+            //       seguirValidando = false;
+            //       return [{
+            //         es: `El diccionario 'movie6' debe tener la clave 'genre' con un valor asignado.`,
+            //         en: `The dictionary 'movie6' must have the key 'genre' with an assigned value.`,
+            //         pt: `O dicionário 'movie6' deve ter a chave 'genre' com um valor atribuído.`
+            //       }];
+            //     }
+            //   }
+            //   else if (!pelicula6[1].includes("duration")) {
+            //     seguirValidando = false;
+            //     return [{
+            //       es: "El diccionario 'movie6' debe tener la clave 'duration'.",
+            //       en: "The dictionary 'movie6' must have the key 'duration'.",
+            //       pt: "O dicionário 'movie6' deve ter a chave 'duration'."
+            //     }];
+            //   } else if (pelicula6[1].includes("duration")) {
+            //     const keyRegex = new RegExp(`"duration"\\s*:\\s*""`);
+            //     if (keyRegex.test(pelicula6[1])) {
+            //       seguirValidando = false;
+            //       return [{
+            //         es: `El diccionario 'movie6' debe tener la clave 'duration' con un valor asignado.`,
+            //         en: `The dictionary 'movie6' must have the key 'duration' with an assigned value.`,
+            //         pt: `O dicionário 'movie6' deve ter a chave 'duration' com um valor atribuído.`
+            //       }];
+            //     }
+            //   }
+            // }
+            // else if (code.replace(/\s/g, '').trim().includes('movie6={"') && !code.replace(/\s/g, '').trim().includes('movie6={"')) {
+            //   seguirValidando = false;
+            //   return [{
+            //     es: "Debe crear un diccionario llamado 'movie6'.",
+            //     en: "It must create a dictionary named 'movie6'.",
+            //     pt: "Deve criar um dicionário chamado 'movie6'."
+            //   }];
+            // }
+
+            // if (!code.includes('print(pelicula1)') && !code.includes('print(movie1)')) {
+            //   seguirValidando = false;
+            //   return [{
+            //     es: "Debe mostrar el diccionario 'pelicula1'.",
+            //     en: "It must display the dictionary 'movie1'.",
+            //     pt: "Deve exibir o dicionário 'pelicula1'."
+            //   }];
+            // } else if (!code.includes('print(pelicula2)') && !code.includes('print(movie2)')) {
+            //   seguirValidando = false;
+            //   return [{
+            //     es: "Debe mostrar el diccionario 'pelicula2'.",
+            //     en: "It must display the dictionary 'movie2'.",
+            //     pt: "Deve exibir o dicionário 'pelicula2'."
+            //   }];
+            // } else if (!code.includes('print(pelicula3)') && !code.includes('print(movie3)')) {
+            //   seguirValidando = false;
+            //   return [{
+            //     es: "Debe mostrar el diccionario 'pelicula3'.",
+            //     en: "It must display the dictionary 'movie3'.",
+            //     pt: "Deve exibir o dicionário 'pelicula3'."
+            //   }];
+            // } else if (!code.includes('print(pelicula4)') && !code.includes('print(movie4)')) {
+            //   seguirValidando = false;
+            //   return [{
+            //     es: "Debe mostrar el diccionario 'pelicula4'.",
+            //     en: "It must display the dictionary 'movie4'.",
+            //     pt: "Deve exibir o dicionário 'pelicula4'."
+            //   }];
+            // } else if (!code.includes('print(pelicula5)') && !code.includes('print(movie5)')) {
+            //   seguirValidando = false;
+            //   return [{
+            //     es: "Debe mostrar el diccionario 'pelicula5'.",
+            //     en: "It must display the dictionary 'movie5'.",
+            //     pt: "Deve exibir o dicionário 'pelicula5'."
+            //   }];
+            // } else if (!code.includes('print(pelicula6)') && !code.includes('print(movie6)')) {
+            //   seguirValidando = false;
+            //   return [{
+            //     es: "Debe mostrar el diccionario 'pelicula6'.",
+            //     en: "It must display the dictionary 'movie6'.",
+            //     pt: "Deve exibir o dicionário 'pelicula6'."
+            //   }];
+            // }
           })
       }
     ]
@@ -6498,244 +6818,501 @@ export const exercises = [
         "description": "Crear una lista vacía con el nombre jugadores",
         "test": (assert) => assert
           .$custom(code => {
-            console.log(code.replace(/\s/g, '').trim());
 
-            function validarInput(code, nombresVariables, palabraClave, label) {
-              const codeClean = code.replace(/\s/g, '').trim();
-              let inputEncontrado = null;
+            const raw = (code || "").toString();
+            const compact = raw.replace(/\s+/g, "").trim();
+            const errors = [];
 
-              for (let nombre of nombresVariables) {
-                if (codeClean.includes(`${nombre}=input(`)) {
-                  const match = code.match(new RegExp(`${nombre}\\s*=\\s*input\\((.*?)\\)`, 's'));
-                  if (match) {
-                    const textoInput = match[1].match(/["'](.*?)["']/)?.[1];
-                    if (!textoInput || textoInput.length < 1) {
-                      seguirValidando = false;
-                      return [{
-                        es: `Debe incluir una pregunta en el input para ${label} dentro del while.`,
-                        en: `You must include a question in the input for the ${label} inside the while.`,
-                        pt: `Você deve incluir uma pergunta no input para o ${label} dentro do while.`
-                      }];
-                    }
-                    if (!new RegExp(palabraClave, 'i').test(textoInput)) {
-                      seguirValidando = false;
-                      return [{
-                        es: `La pregunta del input dentro de while: "${textoInput}" no es válida porque no menciona "${label}".`,
-                        en: `The input question inside the while: "${textoInput}" is not valid because it does not mention "${label}".`,
-                        pt: `A pergunta de entrada dentro do while: "${textoInput}" não é válida porque não menciona "${label}".`
-                      }];
-                    }
-                    inputEncontrado = true;
-                    break;
+            const stop = (msg) => {
+              if (typeof seguirValidando !== "undefined") {
+                seguirValidando = false;
+              }
+              errors.push(msg);
+            };
+
+            // Helper: busca un input para alguna de las variables, con texto que contenga ciertas palabras
+            const validarInput = (varNames, palabrasClaveRegex, label) => {
+              const codeClean = raw;
+              let encontrado = false;
+
+              for (const nombreVar of varNames) {
+                const re = new RegExp(`${nombreVar}\\s*=\\s*input\\((.*?)\\)`, "s");
+                const match = codeClean.match(re);
+                if (match) {
+                  const texto = match[1].match(/["'](.*?)["']/)?.[1] ?? "";
+                  if (!texto || texto.length < 1) {
+                    stop({
+                      es: `Debe incluir una pregunta en el input para ${label}.`,
+                      en: `You must include a question in the input for ${label}.`,
+                      pt: `Você deve incluir uma pergunta no input para ${label}.`
+                    });
+                    return;
                   }
+                  if (!new RegExp(palabrasClaveRegex, "i").test(texto)) {
+                    stop({
+                      es: `La pregunta del input "${texto}" no es válida porque no menciona "${label}".`,
+                      en: `The input question "${texto}" is not valid because it does not mention "${label}".`,
+                      pt: `A pergunta de entrada "${texto}" não é válida porque não menciona "${label}".`
+                    });
+                    return;
+                  }
+                  encontrado = true;
+                  break;
                 }
               }
 
-              if (!inputEncontrado) {
-                const articulo = (label.toLowerCase() === "edad") ? "la" : "el";
-                return [{
-                  es: `Debe solicitar ${articulo} ${label} de un jugador.`,
-                  en: `It must request the ${label} of a player.`,
-                  pt: `Deve solicitar o ${label} de um jogador.`
-                }];
+              if (!encontrado && errors.length === 0) {
+                const articulo = (label.toLowerCase() === "edad" || label.toLowerCase() === "age") ? "la" : "el";
+                stop({
+                  es: `Debe solicitar ${articulo} ${label} de un jugador mediante input().`,
+                  en: `You must request the ${label} of a player using input().`,
+                  pt: `Você deve solicitar o(a) ${label} de um jogador usando input().`
+                });
               }
+            };
 
-              return null;
-            }
-
-
-
-            if (!code.replace(/\s/g, '').trim().includes("jugadores=[]") && !code.replace(/\s/g, '').trim().includes("players=[]")) {
-              return [{
+            // 1) Lista jugadores / players
+            if (!/jugadores\s*=\s*\[\s*\]/.test(raw) && !/players\s*=\s*\[\s*\]/.test(raw)) {
+              stop({
                 es: "Debe crear una lista vacía llamada 'jugadores'.",
-                en: "It must create an empty list named 'players'.",
-                pt: "Deve criar uma lista vazia chamada 'players'."
-              }]
-            } else if (!code.replace(/\s/g, '').trim().includes("contador=1") && !code.replace(/\s/g, '').trim().includes("counter=1")) {
-              return [{
-                es: "Debes tener la variable contador que inicie con valor 1.",
-                en: "You must have the counter variable that starts with value 1.",
-                pt: "Você deve ter a variável contador que começa com o valor 1."
-              }]
-            } else if (!code.replace(/\s/g, '').trim().includes("whilecontador<=3:") && !code.replace(/\s/g, '').trim().includes("whilecounter<=3:")) {
-              return [{
-                es: "Debe usar un bucle while para agregar 3 jugadores a la lista.",
-                en: "You must use a while loop to add 3 players to the list.",
-                pt: "Você deve usar um loop while para adicionar 3 jogadores à lista."
-              }]
+                en: "You must create an empty list named 'players'.",
+                pt: "Você deve criar uma lista vazia chamada 'players'."
+              });
             }
-            // if (!code.replace(/\s/g, '').trim().includes("nombre=input(") && !code.replace(/\s/g, '').trim().includes("name=input(")) {
-            //   return [{
-            //     es: "Debe solicitar el nombre de un jugador.",
-            //     en: "It must request the name of a player.",
-            //     pt: "Deve solicitar o nome de um jogador."
-            //   }]
-            // } 
 
-            let error;
+            if (errors.length) return [errors[0]];
 
-            error = validarInput(code, ["nombre", "name"], "nombre|name", "nombre");
-            if (error) return error;
+            // 2) contador / counter = 1
+            if (!/contador\s*=\s*1/.test(raw) && !/counter\s*=\s*1/.test(raw)) {
+              stop({
+                es: "Debes tener la variable 'contador' que inicie con valor 1.",
+                en: "You must have the 'counter' variable that starts with value 1.",
+                pt: "Você deve ter a variável 'counter' que começa com o valor 1."
+              });
+            }
 
-            error = validarInput(code, ["apellido", "lastname"], "apellido|lastname", "apellido");
-            if (error) return error;
+            if (errors.length) return [errors[0]];
 
-            error = validarInput(code, ["edad", "age"], "edad|age", "edad");
-            if (error) return error;
+            // 3) while contador <= 3
+            if (!/while\s+contador\s*<=\s*3/.test(raw) && !/while\s+counter\s*<=\s*3/.test(raw)) {
+              stop({
+                es: "Debe usar un bucle while para agregar 3 jugadores a la lista (contador <= 3).",
+                en: "You must use a while loop to add 3 players to the list (counter <= 3).",
+                pt: "Você deve usar um loop while para adicionar 3 jogadores à lista (counter <= 3)."
+              });
+            }
 
-            error = validarInput(code, ["club1", "team1"], "club|team", "club");
-            if (error) return error;
+            if (errors.length) return [errors[0]];
 
-            error = validarInput(code, ["club2", "team2"], "club|team", "club");
-            if (error) return error;
+            // 4) Inputs: nombre, apellido, edad, club1, club2 (o versión en inglés)
+            validarInput(["nombre", "name"], "nombre|name", "nombre");
+            if (errors.length) return [errors[0]];
 
-            console.log(code.replace(/\s/g, '').trim().includes("jugador={"));
+            validarInput(["apellido", "lastname"], "apellido|last name|lastname", "apellido");
+            if (errors.length) return [errors[0]];
 
-            if (code.replace(/\s/g, '').trim().includes("jugador={") || code.replace(/\s/g, '').trim().includes("player={")) {
-              const jugadorMatch = code.match(/jugador\s*=\s*\{([\s\S]*?)\}/);
-              const playerMatch = code.match(/player\s*=\s*\{([\s\S]*?)\}/);
-              // console.log(jugadorMatch[1]);
+            validarInput(["edad", "age"], "edad|age", "edad");
+            if (errors.length) return [errors[0]];
 
-              const jugador = jugadorMatch[1];
+            validarInput(["club1", "team1"], "club|team", "club1");
+            if (errors.length) return [errors[0]];
 
-              const player = playerMatch?.[1];
+            validarInput(["club2", "team2"], "club|team", "club2");
+            if (errors.length) return [errors[0]];
 
-              if (!jugadorMatch && !playerMatch) {
-                seguirValidando = false;
-                return [{
-                  es: "Debe existir un diccionario llamado 'jugador'.",
-                  en: "A dictionary named 'jugador' must exist.",
-                  pt: "Um dicionário chamado 'jugador' deve existir."
-                }];
-              }
+            if (errors.length) return [errors[0]];
 
-              // if (!playerMatch) {
-              //   seguirValidando = false;
-              //   return [{
-              //     es: "Debe existir un diccionario llamado 'player'.",
-              //     en: "A dictionary named 'player' must exist.",
-              //     pt: "Um dicionário chamado 'player' deve existir."
-              //   }];
-              // }
-              // console.log(!code.replace(/\s/g, '').trim().includes("foriinrange(len(jugadores))"));
+            // 5) Diccionario jugador / player
+            const jugadorMatch = raw.match(/jugador\s*=\s*\{([\s\S]*?)\}/);
+            const playerMatch = raw.match(/player\s*=\s*\{([\s\S]*?)\}/);
 
-              if (jugador && !jugador.includes('"nombre": nombre')) {
-                seguirValidando = false;
-                return [{
+            if (!jugadorMatch && !playerMatch) {
+              stop({
+                es: "Debe crear un diccionario llamado 'jugador' luego de las preguntas en los inputs.",
+                en: "You must create a dictionary named 'player' after asking the inputs.",
+                pt: "Você deve criar um dicionário chamado 'player' após as perguntas dos inputs."
+              });
+            }
+
+            if (errors.length) return [errors[0]];
+
+            const dictContent = jugadorMatch ? jugadorMatch[1] : playerMatch[1];
+            const isSpanishDict = !!jugadorMatch;
+
+            const containsFragment = (fragments) =>
+              fragments.some(f => dictContent.replace(/\s+/g, "").includes(f.replace(/\s+/g, "")));
+
+            if (isSpanishDict) {
+              // nombre, apellido, edad, club1, club2
+              if (!containsFragment(['"nombre":nombre'])) {
+                stop({
                   es: "El diccionario 'jugador' debe tener la clave 'nombre' con el valor de la variable nombre.",
                   en: "The dictionary 'jugador' must have the key 'nombre' with the value of the variable nombre.",
                   pt: "O dicionário 'jugador' deve ter a chave 'nombre' com o valor da variável nombre."
-                }];
-              } else if (player && !player.includes('"name": name')) {
-                seguirValidando = false;
-                return [{
-                  es: "El diccionario 'player' debe tener la clave 'name' con el valor de la variable name.",
-                  en: "The dictionary 'player' must have the key 'name' with the value of the variable name.",
-                  pt: "O dicionário 'player' deve ter a chave 'name' com o valor da variável name."
-                }];
-              }
-              else if (jugador && !jugador.includes('"apellido": apellido')) {
-                seguirValidando = false;
-                return [{
+                });
+              } else if (!containsFragment(['"apellido":apellido'])) {
+                stop({
                   es: "El diccionario 'jugador' debe tener la clave 'apellido' con el valor de la variable apellido.",
                   en: "The dictionary 'jugador' must have the key 'apellido' with the value of the variable apellido.",
                   pt: "O dicionário 'jugador' deve ter a chave 'apellido' com o valor da variável apellido."
-                }];
-              } else if (player && !player.includes('"lastname": lastname')) {
-                seguirValidando = false;
-                return [{
-                  es: "El diccionario 'player' debe tener la clave 'lastname' con el valor de la variable lastname.",
-                  en: "The dictionary 'player' must have the key 'lastname' with the value of the variable lastname.",
-                  pt: "O dicionário 'player' deve ter a chave 'lastname' com o valor da variável lastname."
-                }];
-              }
-              else if (jugador && !jugador.includes('"edad": edad')) {
-                seguirValidando = false;
-                return [{
+                });
+              } else if (!containsFragment(['"edad":edad'])) {
+                stop({
                   es: "El diccionario 'jugador' debe tener la clave 'edad' con el valor de la variable edad.",
                   en: "The dictionary 'jugador' must have the key 'edad' with the value of the variable edad.",
                   pt: "O dicionário 'jugador' deve ter a chave 'edad' com o valor da variável edad."
-                }];
-              } else if (player && !player.includes('"age": age')) {
-                seguirValidando = false;
-                return [{
-                  es: "El diccionario 'player' debe tener la clave 'age' con el valor de la variable age.",
-                  en: "The dictionary 'player' must have the key 'age' with the value of the variable age.",
-                  pt: "O dicionário 'player' deve ter a chave 'age' com o valor da variável age."
-                }];
-              }
-              else if (jugador && !jugador.includes('"club1": club1')) {
-                seguirValidando = false;
-                return [{
+                });
+              } else if (!containsFragment(['"club1":club1'])) {
+                stop({
                   es: "El diccionario 'jugador' debe tener la clave 'club1' con el valor de la variable club1.",
                   en: "The dictionary 'jugador' must have the key 'club1' with the value of the variable club1.",
                   pt: "O dicionário 'jugador' deve ter a chave 'club1' com o valor da variável club1."
-
-                }];
-              } else if (player && !player.includes('"team1": team1')) {
-                seguirValidando = false;
-                return [{
-                  es: "El diccionario 'player' debe tener la clave 'team1' con el valor de la variable team1.",
-                  en: "The dictionary 'player' must have the key 'team1' with the value of the variable team1.",
-                  pt: "O dicionário 'player' deve ter a chave 'team1' com o valor da variável team1."
-                }];
-              }
-              else if (jugador && !jugador.includes('"club2": club2')) {
-                seguirValidando = false;
-                return [{
+                });
+              } else if (!containsFragment(['"club2":club2'])) {
+                stop({
                   es: "El diccionario 'jugador' debe tener la clave 'club2' con el valor de la variable club2.",
                   en: "The dictionary 'jugador' must have the key 'club2' with the value of the variable club2.",
                   pt: "O dicionário 'jugador' deve ter a chave 'club2' com o valor da variável club2."
-
-                }];
-              } else if (player && !player.includes('"team2": team2')) {
-                seguirValidando = false;
-                return [{
+                });
+              }
+            } else {
+              // Versión en inglés: player
+              if (!containsFragment(['"name":name'])) {
+                stop({
+                  es: "El diccionario 'player' debe tener la clave 'name' con el valor de la variable name.",
+                  en: "The dictionary 'player' must have the key 'name' with the value of the variable name.",
+                  pt: "O dicionário 'player' deve ter a chave 'name' com o valor da variável name."
+                });
+              } else if (!containsFragment(['"lastname":lastname'])) {
+                stop({
+                  es: "El diccionario 'player' debe tener la clave 'lastname' con el valor de la variable lastname.",
+                  en: "The dictionary 'player' must have the key 'lastname' with the value of the variable lastname.",
+                  pt: "O dicionário 'player' deve ter a chave 'lastname' com o valor da variável lastname."
+                });
+              } else if (!containsFragment(['"age":age'])) {
+                stop({
+                  es: "El diccionario 'player' debe tener la clave 'age' con el valor de la variable age.",
+                  en: "The dictionary 'player' must have the key 'age' with the value of the variable age.",
+                  pt: "O dicionário 'player' deve ter a chave 'age' com o valor da variável age."
+                });
+              } else if (!containsFragment(['"team1":team1'])) {
+                stop({
+                  es: "El diccionario 'player' debe tener la clave 'team1' con el valor de la variable team1.",
+                  en: "The dictionary 'player' must have the key 'team1' with the value of the variable team1.",
+                  pt: "O dicionário 'player' deve ter a chave 'team1' com o valor da variável team1."
+                });
+              } else if (!containsFragment(['"team2":team2'])) {
+                stop({
                   es: "El diccionario 'player' debe tener la clave 'team2' con el valor de la variable team2.",
                   en: "The dictionary 'player' must have the key 'team2' with the value of the variable team2.",
                   pt: "O dicionário 'player' deve ter a chave 'team2' com o valor da variável team2."
-                }];
+                });
               }
-            } else if (!code.replace(/\s/g, '').trim().includes("jugador={") && !code.replace(/\s/g, '').trim().includes("player={")) {
-              seguirValidando = false;
-              return [{
-                es: "Debe crear un diccionario llamado 'jugador' luego de las preguntas en los inputs.",
-                en: "It must create a dictionary named 'player' after the questions in the inputs.",
-                pt: "Deve criar um dicionário chamado 'player' após as perguntas nos inputs."
-              }];
             }
-            if (!code.includes("jugadores.append(jugador)") && !code.includes("players.append(player)")) {
-              seguirValidando = false;
-              return [{
+
+            if (errors.length) return [errors[0]];
+
+            // 6) Agregar jugador a la lista
+            if (!compact.includes("jugadores.append(jugador)") && !compact.includes("players.append(player)")) {
+              stop({
                 es: "Debe agregar el diccionario 'jugador' a la lista 'jugadores'.",
-                en: "It must add the dictionary 'player' to the list 'players'.",
-                pt: "Deve adicionar o dicionário 'player' à lista 'players'."
-              }];
+                en: "You must add the dictionary 'player' to the list 'players'.",
+                pt: "Você deve adicionar o dicionário 'player' à lista 'players'."
+              });
             }
-            if (!code.replace(/\s/g, '').trim().includes("contador+=1") && !code.replace(/\s/g, '').trim().includes("counter+=1")) {
-              seguirValidando = false;
-              return [{
-                es: "Debe incrementar el contador.",
-                en: "It must increment the counter.",
-                pt: "Deve incrementar o contador."
-              }];
+
+            if (errors.length) return [errors[0]];
+
+            // 7) Incrementar contador
+            const incContador =
+              /contador\s*\+\=\s*1/.test(raw) ||
+              /contador\s*=\s*contador\s*\+\s*1/.test(raw) ||
+              /counter\s*\+\=\s*1/.test(raw) ||
+              /counter\s*=\s*counter\s*\+\s*1/.test(raw);
+
+            if (!incContador) {
+              stop({
+                es: "Debe incrementar el contador dentro del while (por ejemplo: contador += 1).",
+                en: "You must increment the counter inside the while (e.g.: counter += 1).",
+                pt: "Você deve incrementar o contador dentro do while (por exemplo: counter += 1)."
+              });
             }
-            if (!code.replace(/\s/g, '').trim().includes("forjugadorinjugadores:") && !code.replace(/\s/g, '').trim().includes("forplayerinplayers:")) {
-              seguirValidando = false;
-              return [{
-                es: "Debe recorrer la lista 'jugadores'.",
-                en: "It must iterate the list 'players'.",
-                pt: "Deve iterar a lista 'players'."
-              }];
+
+            if (errors.length) return [errors[0]];
+
+            // 8) Recorrer la lista y mostrar datos
+            const hasForJugadores =
+              /for\s+jugador\s+in\s+jugadores/.test(raw) ||
+              /for\s+player\s+in\s+players/.test(raw);
+
+            if (!hasForJugadores) {
+              stop({
+                es: "Debe recorrer la lista 'jugadores' con un bucle for.",
+                en: "You must iterate the 'players' list with a for loop.",
+                pt: "Você deve iterar a lista 'players' com um laço for."
+              });
             }
-            if (!code.replace(/\s/g, '').trim().includes('indice=1forjugadorinjugadores:print("Losdatosdeljugador"+str(indice)+"son:"+jugador["nombre"]+""+jugador["apellido"]+",Edad:"+jugador["edad"]+",Clubes:"+jugador["club1"]+"y"+jugador["club2"])indice+=1') && !code.replace(/\s/g, '').trim().includes('index=1forplayerinplayers:print("Thedataofplayer"+str(index)+"are:"+player["name"]+""+player["lastname"]+",Age:"+player["age"]+","+"Teams:"+player["team1"]+"and"+player["team2"])index+=1') && !code.replace(/\s/g, '').trim().includes(`indice=1forjugadorinjugadores:print("Losdatosdeljugador"+str(indice)+"son:"+jugador["nombre"]+""+jugador["apellido"]+",Edad:"+jugador["edad"]+",Clubes:"+jugador["club1"]+"y"+jugador["club2"])indice+=1`) && !code.replace(/\s/g, '').trim().includes(`index=1forplayerinplayers:print("Thedataofplayer"+str(index)+"are:"+player["name"]+""+player["lastname"]+",Age:"+player["age"]+","+"Teams:"+player["team1"]+"and"+player["team2"])index+=1`) && !code.replace(/\s/g, '').trim().includes('forjugadorinjugadores:print("Losdatosdeljugador"+str(indice)+"son:"+jugador["nombre"]+""+jugador["apellido"]+",Edad:"+jugador["edad"]+","+"Clubes:"+jugador["club1"]+"y"+jugador["club2"])indice+=1') && !code.replace(/\s/g, '').trim().includes('forplayerinplayers:print("Thedataofplayer"+str(index)+"are:"+player["name"]+""+player["lastname"]+",Age:"+player["age"]+","+"Teams:"+player["team1"]+"and"+player["team2"])index+=1') && !code.replace(/\s/g, '').trim().includes(`forjugadorinjugadores:print('Los datos del jugador '+str(indice)+' son: '+jugador["nombre"]+' '+jugador["apellido"]+', Edad: '+str(jugador["edad"])+', Clubes: '+jugador["club1"]+' y '+jugador["club2"])indice+=1`) && !code.replace(/\s/g, '').trim().includes(`forplayerinplayers:print('The data of player '+str(index)+' are: '+player["name"]+' '+player["lastname"]+', Age: '+str(player["age"])+', Teams: '+player["team1"]+' and '+player["team2"])index+=1`) && !code.replace(/\s/g, '').trim().includes(`forjugadorinjugadores:print('Los datos del jugador '+str(indice)+' son: '+jugador["nombre"]+' '+jugador["apellido"]+', Edad: '+str(jugador["edad"])+','+' Clubes: '+jugador["club1"]+' y '+jugador["club2"])indice+=1`) && !code.replace(/\s/g, '').trim().includes(`forplayerinplayers:print('The data of player '+str(index)+' are: '+player["name"]+' '+player["lastname"]+', Age: '+str(player["age"])+', Teams: '+player["team1"]+' and '+player["team2"])index+=1`)) {
-              seguirValidando = false;
-              return [{
-                es: "Debes mostrar los datos de cada jugador en la lista.",
-                en: "It must display the data of each player in the list.",
-                pt: "Deve exibir os dados de cada jogador na lista."
-              }];
+
+            if (errors.length) return [errors[0]];
+
+            const muestraDatos =
+              raw.includes('jugador["nombre"]') ||
+              raw.includes("jugador['nombre']") ||
+              raw.includes('player["name"]') ||
+              raw.includes("player['name']");
+
+            if (!muestraDatos) {
+              stop({
+                es: "Debes mostrar los datos de cada jugador en la lista usando print().",
+                en: "You must display each player's data in the list using print().",
+                pt: "Você deve exibir os dados de cada jogador na lista usando print()."
+              });
             }
+
+            if (errors.length > 0) {
+              return [errors[0]];
+            }
+            return [];
+
+            //VALIDACION VIEJA
+            // console.log(code.replace(/\s/g, '').trim());
+
+            // function validarInput(code, nombresVariables, palabraClave, label) {
+            //   const codeClean = code.replace(/\s/g, '').trim();
+            //   let inputEncontrado = null;
+
+            //   for (let nombre of nombresVariables) {
+            //     if (codeClean.includes(`${nombre}=input(`)) {
+            //       const match = code.match(new RegExp(`${nombre}\\s*=\\s*input\\((.*?)\\)`, 's'));
+            //       if (match) {
+            //         const textoInput = match[1].match(/["'](.*?)["']/)?.[1];
+            //         if (!textoInput || textoInput.length < 1) {
+            //           seguirValidando = false;
+            //           return [{
+            //             es: `Debe incluir una pregunta en el input para ${label} dentro del while.`,
+            //             en: `You must include a question in the input for the ${label} inside the while.`,
+            //             pt: `Você deve incluir uma pergunta no input para o ${label} dentro do while.`
+            //           }];
+            //         }
+            //         if (!new RegExp(palabraClave, 'i').test(textoInput)) {
+            //           seguirValidando = false;
+            //           return [{
+            //             es: `La pregunta del input dentro de while: "${textoInput}" no es válida porque no menciona "${label}".`,
+            //             en: `The input question inside the while: "${textoInput}" is not valid because it does not mention "${label}".`,
+            //             pt: `A pergunta de entrada dentro do while: "${textoInput}" não é válida porque não menciona "${label}".`
+            //           }];
+            //         }
+            //         inputEncontrado = true;
+            //         break;
+            //       }
+            //     }
+            //   }
+
+            //   if (!inputEncontrado) {
+            //     const articulo = (label.toLowerCase() === "edad") ? "la" : "el";
+            //     return [{
+            //       es: `Debe solicitar ${articulo} ${label} de un jugador.`,
+            //       en: `It must request the ${label} of a player.`,
+            //       pt: `Deve solicitar o ${label} de um jogador.`
+            //     }];
+            //   }
+
+            //   return null;
+            // }
+
+
+
+            // if (!code.replace(/\s/g, '').trim().includes("jugadores=[]") && !code.replace(/\s/g, '').trim().includes("players=[]")) {
+            //   return [{
+            //     es: "Debe crear una lista vacía llamada 'jugadores'.",
+            //     en: "It must create an empty list named 'players'.",
+            //     pt: "Deve criar uma lista vazia chamada 'players'."
+            //   }]
+            // } else if (!code.replace(/\s/g, '').trim().includes("contador=1") && !code.replace(/\s/g, '').trim().includes("counter=1")) {
+            //   return [{
+            //     es: "Debes tener la variable contador que inicie con valor 1.",
+            //     en: "You must have the counter variable that starts with value 1.",
+            //     pt: "Você deve ter a variável contador que começa com o valor 1."
+            //   }]
+            // } else if (!code.replace(/\s/g, '').trim().includes("whilecontador<=3:") && !code.replace(/\s/g, '').trim().includes("whilecounter<=3:")) {
+            //   return [{
+            //     es: "Debe usar un bucle while para agregar 3 jugadores a la lista.",
+            //     en: "You must use a while loop to add 3 players to the list.",
+            //     pt: "Você deve usar um loop while para adicionar 3 jogadores à lista."
+            //   }]
+            // }
+            // // if (!code.replace(/\s/g, '').trim().includes("nombre=input(") && !code.replace(/\s/g, '').trim().includes("name=input(")) {
+            // //   return [{
+            // //     es: "Debe solicitar el nombre de un jugador.",
+            // //     en: "It must request the name of a player.",
+            // //     pt: "Deve solicitar o nome de um jogador."
+            // //   }]
+            // // } 
+
+            // let error;
+
+            // error = validarInput(code, ["nombre", "name"], "nombre|name", "nombre");
+            // if (error) return error;
+
+            // error = validarInput(code, ["apellido", "lastname"], "apellido|lastname", "apellido");
+            // if (error) return error;
+
+            // error = validarInput(code, ["edad", "age"], "edad|age", "edad");
+            // if (error) return error;
+
+            // error = validarInput(code, ["club1", "team1"], "club|team", "club");
+            // if (error) return error;
+
+            // error = validarInput(code, ["club2", "team2"], "club|team", "club");
+            // if (error) return error;
+
+            // console.log(code.replace(/\s/g, '').trim().includes("jugador={"));
+
+            // if (code.replace(/\s/g, '').trim().includes("jugador={") || code.replace(/\s/g, '').trim().includes("player={")) {
+            //   const jugadorMatch = code.match(/jugador\s*=\s*\{([\s\S]*?)\}/);
+            //   const playerMatch = code.match(/player\s*=\s*\{([\s\S]*?)\}/);
+            //   // console.log(jugadorMatch[1]);
+
+            //   const jugador = jugadorMatch[1];
+
+            //   const player = playerMatch?.[1];
+
+            //   if (!jugadorMatch && !playerMatch) {
+            //     seguirValidando = false;
+            //     return [{
+            //       es: "Debe existir un diccionario llamado 'jugador'.",
+            //       en: "A dictionary named 'jugador' must exist.",
+            //       pt: "Um dicionário chamado 'jugador' deve existir."
+            //     }];
+            //   }
+
+            //   // if (!playerMatch) {
+            //   //   seguirValidando = false;
+            //   //   return [{
+            //   //     es: "Debe existir un diccionario llamado 'player'.",
+            //   //     en: "A dictionary named 'player' must exist.",
+            //   //     pt: "Um dicionário chamado 'player' deve existir."
+            //   //   }];
+            //   // }
+            //   // console.log(!code.replace(/\s/g, '').trim().includes("foriinrange(len(jugadores))"));
+
+            //   if (jugador && !jugador.includes('"nombre": nombre')) {
+            //     seguirValidando = false;
+            //     return [{
+            //       es: "El diccionario 'jugador' debe tener la clave 'nombre' con el valor de la variable nombre.",
+            //       en: "The dictionary 'jugador' must have the key 'nombre' with the value of the variable nombre.",
+            //       pt: "O dicionário 'jugador' deve ter a chave 'nombre' com o valor da variável nombre."
+            //     }];
+            //   } else if (player && !player.includes('"name": name')) {
+            //     seguirValidando = false;
+            //     return [{
+            //       es: "El diccionario 'player' debe tener la clave 'name' con el valor de la variable name.",
+            //       en: "The dictionary 'player' must have the key 'name' with the value of the variable name.",
+            //       pt: "O dicionário 'player' deve ter a chave 'name' com o valor da variável name."
+            //     }];
+            //   }
+            //   else if (jugador && !jugador.includes('"apellido": apellido')) {
+            //     seguirValidando = false;
+            //     return [{
+            //       es: "El diccionario 'jugador' debe tener la clave 'apellido' con el valor de la variable apellido.",
+            //       en: "The dictionary 'jugador' must have the key 'apellido' with the value of the variable apellido.",
+            //       pt: "O dicionário 'jugador' deve ter a chave 'apellido' com o valor da variável apellido."
+            //     }];
+            //   } else if (player && !player.includes('"lastname": lastname')) {
+            //     seguirValidando = false;
+            //     return [{
+            //       es: "El diccionario 'player' debe tener la clave 'lastname' con el valor de la variable lastname.",
+            //       en: "The dictionary 'player' must have the key 'lastname' with the value of the variable lastname.",
+            //       pt: "O dicionário 'player' deve ter a chave 'lastname' com o valor da variável lastname."
+            //     }];
+            //   }
+            //   else if (jugador && !jugador.includes('"edad": edad')) {
+            //     seguirValidando = false;
+            //     return [{
+            //       es: "El diccionario 'jugador' debe tener la clave 'edad' con el valor de la variable edad.",
+            //       en: "The dictionary 'jugador' must have the key 'edad' with the value of the variable edad.",
+            //       pt: "O dicionário 'jugador' deve ter a chave 'edad' com o valor da variável edad."
+            //     }];
+            //   } else if (player && !player.includes('"age": age')) {
+            //     seguirValidando = false;
+            //     return [{
+            //       es: "El diccionario 'player' debe tener la clave 'age' con el valor de la variable age.",
+            //       en: "The dictionary 'player' must have the key 'age' with the value of the variable age.",
+            //       pt: "O dicionário 'player' deve ter a chave 'age' com o valor da variável age."
+            //     }];
+            //   }
+            //   else if (jugador && !jugador.includes('"club1": club1')) {
+            //     seguirValidando = false;
+            //     return [{
+            //       es: "El diccionario 'jugador' debe tener la clave 'club1' con el valor de la variable club1.",
+            //       en: "The dictionary 'jugador' must have the key 'club1' with the value of the variable club1.",
+            //       pt: "O dicionário 'jugador' deve ter a chave 'club1' com o valor da variável club1."
+
+            //     }];
+            //   } else if (player && !player.includes('"team1": team1')) {
+            //     seguirValidando = false;
+            //     return [{
+            //       es: "El diccionario 'player' debe tener la clave 'team1' con el valor de la variable team1.",
+            //       en: "The dictionary 'player' must have the key 'team1' with the value of the variable team1.",
+            //       pt: "O dicionário 'player' deve ter a chave 'team1' com o valor da variável team1."
+            //     }];
+            //   }
+            //   else if (jugador && !jugador.includes('"club2": club2')) {
+            //     seguirValidando = false;
+            //     return [{
+            //       es: "El diccionario 'jugador' debe tener la clave 'club2' con el valor de la variable club2.",
+            //       en: "The dictionary 'jugador' must have the key 'club2' with the value of the variable club2.",
+            //       pt: "O dicionário 'jugador' deve ter a chave 'club2' com o valor da variável club2."
+
+            //     }];
+            //   } else if (player && !player.includes('"team2": team2')) {
+            //     seguirValidando = false;
+            //     return [{
+            //       es: "El diccionario 'player' debe tener la clave 'team2' con el valor de la variable team2.",
+            //       en: "The dictionary 'player' must have the key 'team2' with the value of the variable team2.",
+            //       pt: "O dicionário 'player' deve ter a chave 'team2' com o valor da variável team2."
+            //     }];
+            //   }
+            // } else if (!code.replace(/\s/g, '').trim().includes("jugador={") && !code.replace(/\s/g, '').trim().includes("player={")) {
+            //   seguirValidando = false;
+            //   return [{
+            //     es: "Debe crear un diccionario llamado 'jugador' luego de las preguntas en los inputs.",
+            //     en: "It must create a dictionary named 'player' after the questions in the inputs.",
+            //     pt: "Deve criar um dicionário chamado 'player' após as perguntas nos inputs."
+            //   }];
+            // }
+            // if (!code.includes("jugadores.append(jugador)") && !code.includes("players.append(player)")) {
+            //   seguirValidando = false;
+            //   return [{
+            //     es: "Debe agregar el diccionario 'jugador' a la lista 'jugadores'.",
+            //     en: "It must add the dictionary 'player' to the list 'players'.",
+            //     pt: "Deve adicionar o dicionário 'player' à lista 'players'."
+            //   }];
+            // }
+            // if (!code.replace(/\s/g, '').trim().includes("contador+=1") && !code.replace(/\s/g, '').trim().includes("counter+=1")) {
+            //   seguirValidando = false;
+            //   return [{
+            //     es: "Debe incrementar el contador.",
+            //     en: "It must increment the counter.",
+            //     pt: "Deve incrementar o contador."
+            //   }];
+            // }
+            // if (!code.replace(/\s/g, '').trim().includes("forjugadorinjugadores:") && !code.replace(/\s/g, '').trim().includes("forplayerinplayers:")) {
+            //   seguirValidando = false;
+            //   return [{
+            //     es: "Debe recorrer la lista 'jugadores'.",
+            //     en: "It must iterate the list 'players'.",
+            //     pt: "Deve iterar a lista 'players'."
+            //   }];
+            // }
+            // if (!code.replace(/\s/g, '').trim().includes('indice=1forjugadorinjugadores:print("Losdatosdeljugador"+str(indice)+"son:"+jugador["nombre"]+""+jugador["apellido"]+",Edad:"+jugador["edad"]+",Clubes:"+jugador["club1"]+"y"+jugador["club2"])indice+=1') && !code.replace(/\s/g, '').trim().includes('index=1forplayerinplayers:print("Thedataofplayer"+str(index)+"are:"+player["name"]+""+player["lastname"]+",Age:"+player["age"]+","+"Teams:"+player["team1"]+"and"+player["team2"])index+=1') && !code.replace(/\s/g, '').trim().includes(`indice=1forjugadorinjugadores:print("Losdatosdeljugador"+str(indice)+"son:"+jugador["nombre"]+""+jugador["apellido"]+",Edad:"+jugador["edad"]+",Clubes:"+jugador["club1"]+"y"+jugador["club2"])indice+=1`) && !code.replace(/\s/g, '').trim().includes(`index=1forplayerinplayers:print("Thedataofplayer"+str(index)+"are:"+player["name"]+""+player["lastname"]+",Age:"+player["age"]+","+"Teams:"+player["team1"]+"and"+player["team2"])index+=1`) && !code.replace(/\s/g, '').trim().includes('forjugadorinjugadores:print("Losdatosdeljugador"+str(indice)+"son:"+jugador["nombre"]+""+jugador["apellido"]+",Edad:"+jugador["edad"]+","+"Clubes:"+jugador["club1"]+"y"+jugador["club2"])indice+=1') && !code.replace(/\s/g, '').trim().includes('forplayerinplayers:print("Thedataofplayer"+str(index)+"are:"+player["name"]+""+player["lastname"]+",Age:"+player["age"]+","+"Teams:"+player["team1"]+"and"+player["team2"])index+=1') && !code.replace(/\s/g, '').trim().includes(`forjugadorinjugadores:print('Los datos del jugador '+str(indice)+' son: '+jugador["nombre"]+' '+jugador["apellido"]+', Edad: '+str(jugador["edad"])+', Clubes: '+jugador["club1"]+' y '+jugador["club2"])indice+=1`) && !code.replace(/\s/g, '').trim().includes(`forplayerinplayers:print('The data of player '+str(index)+' are: '+player["name"]+' '+player["lastname"]+', Age: '+str(player["age"])+', Teams: '+player["team1"]+' and '+player["team2"])index+=1`) && !code.replace(/\s/g, '').trim().includes(`forjugadorinjugadores:print('Los datos del jugador '+str(indice)+' son: '+jugador["nombre"]+' '+jugador["apellido"]+', Edad: '+str(jugador["edad"])+','+' Clubes: '+jugador["club1"]+' y '+jugador["club2"])indice+=1`) && !code.replace(/\s/g, '').trim().includes(`forplayerinplayers:print('The data of player '+str(index)+' are: '+player["name"]+' '+player["lastname"]+', Age: '+str(player["age"])+', Teams: '+player["team1"]+' and '+player["team2"])index+=1`)) {
+            //   seguirValidando = false;
+            //   return [{
+            //     es: "Debes mostrar los datos de cada jugador en la lista.",
+            //     en: "It must display the data of each player in the list.",
+            //     pt: "Deve exibir os dados de cada jogador na lista."
+            //   }];
+            // }
           })
       }
     ]
