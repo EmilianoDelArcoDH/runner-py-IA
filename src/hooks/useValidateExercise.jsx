@@ -202,6 +202,7 @@ async function analizarConGroq(enunciado, code, clase, idioma = "es", opts = {})
       window.mostrarResultadoHTML(html);
     }
   };
+  console.log("Contexto para RAG:", { clase, code });
 
   try {
     if (!clase) {
@@ -209,17 +210,17 @@ async function analizarConGroq(enunciado, code, clase, idioma = "es", opts = {})
       throw new Error("Clase no definida");
     }
 
-    console.log("Enviando a RAG:", { enunciado, clase, idioma, forceSuccess });
+    console.log("Enviando a RAG:", { enunciado, clase, code, idioma, forceSuccess });
     // Detecta si estás en entorno local (localhost o 127.0.0.1)
     const isLocal =
       window.location.hostname.includes("localhost") ||
       window.location.hostname.includes("127.0.0.1");
 
-    // const API_URL = isLocal
-    //   ? "http://127.0.0.1:8000" // dev local
-    //   : "https://admissions-barbie-clock-recognition.trycloudflare.com"; // túnel
+    const API_URL = isLocal
+      ? "http://127.0.0.1:9000" // dev local
+      : "https://admissions-barbie-clock-recognition.trycloudflare.com"; // túnel
 
-    const API_URL = "https://schools-tools.digitalhouse.com"
+    // const API_URL = "https://schools-tools.digitalhouse.com"
 
     const response = await fetch(`${API_URL}/consejo`, {
       method: "POST",

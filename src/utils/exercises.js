@@ -7883,7 +7883,7 @@ export const exercises = [
         "description": "Importar librerías y leer datos",
         "test": (assert) => assert
           .$custom(code => {
-
+            console.log(code);
             if (!code.replace(/\s/g, '').trim().includes("importpandasaspd") && !code.replace(/\s/g, '').trim().includes("importpandasaspd")) {
               return [{
                 es: "Debes importar la librería 'pandas' como 'pd'.",

@@ -82,7 +82,43 @@ const Exercise = () => {
       "diccionario-01-03": true,
       "diccionario-01-04": true,
       "diccionario-02-01": true,
-      "diccionario-02-02": true
+      "diccionario-02-02": true,
+
+      //Introducción al Procesamiento de Datos → todos con feedback
+      "pandas-a-01": true,
+      "pandas-a-01-desafio": true,
+      "pandas-a-02": false,
+
+      "pandas-a-03-funAgregacion": true,
+      "pandas-a-04-funSimples": true,
+
+      "pandas-b-graficos-01": true,
+      "pandas-b-graficos-02": true,
+      "pandas-b-graficos-03": true,
+      "pandas-b-graficos-04": true,
+
+      "pandas-b-graficos-histograma-01": true,
+      "pandas-b-graficos-histograma-02": true,
+      "pandas-b-graficos-histograma-03": true,
+      "pandas-b-graficos-histograma-04": true,
+
+      "pandas-b-graficos-correlacion-01": true,
+      "pandas-b-graficos-dispersion-02": true,
+
+      "pandas-c-metodo-groupby-01": true,
+      "pandas-c-metodo-groupby-02": true,
+      "pandas-c-metodo-groupby-03": true,
+
+      "pandas-c-metodo-groupby-multiIndices-01": true,
+      "pandas-c-metodo-groupby-multiIndices-02": true,
+      "pandas-c-metodo-groupby-multiIndices-03": true,
+
+      "pandas-c-metodos-PivotTableYaggfunc-01": true,
+      "pandas-c-metodos-PivotTableYaggfunc-02": true,
+      "pandas-c-metodos-PivotTableYaggfunc-03": true,
+      
+      "pandas-c-modelo-datos-merge-01": true,
+      "pandas-c-modelo-datos-merge-02": true,
     };
 
     // Si no está en la lista, por defecto mostrar el feedback
